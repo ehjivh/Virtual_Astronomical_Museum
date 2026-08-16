@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voyager · Grand Tour Simulator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono&display=swap');
+
+:root {
+  --color-paper: oklch(14% 0.01 260);
+  --color-paper-2: oklch(18% 0.012 260);
+  --color-paper-3: oklch(22% 0.012 260);
+  --color-rule: oklch(28% 0.01 260);
+  --color-neutral: oklch(58% 0.01 260);
+  --color-muted: oklch(72% 0.008 260);
+  --color-ink: oklch(95% 0.005 260);
+  --color-accent: oklch(75% 0.15 45);
+  --color-focus: oklch(75% 0.18 45);
+  --font-display: 'Geist', system-ui, sans-serif;
+  --font-body: 'Geist', system-ui, sans-serif;
+  --font-outlier: 'Geist Mono', monospace;
+  --space-xs: 0.25rem; --space-sm: 0.5rem; --space-md: 1rem;
+  --space-lg: 1.5rem; --space-xl: 2rem; --space-2xl: 3rem;
+  --space-3xl: 4rem; --space-4xl: 6rem;
+  --text-xs: 0.64rem; --text-sm: 0.8rem; --text-base: 1rem;
+  --text-md: 1.25rem; --text-lg: 1.5625rem; --text-xl: 1.9531rem;
+  --text-2xl: 2.4414rem; --text-3xl: 3.0518rem;
+  --text-display: clamp(2.75rem, 5vw + 1rem, 5.25rem);
+}
+*,*::before,*::after{box-sizing:border-box;}
+body,html{margin:0;padding:0;background:var(--color-paper);color:var(--color-ink);
+  font-family:var(--font-body);font-weight:400;line-height:1.6;overflow-x:clip;}
+body{
+  background-image:
+    radial-gradient(circle at 15% 30%, oklch(40% 0.08 45 / 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 85% 70%, oklch(35% 0.06 280 / 0.1) 0%, transparent 40%);
+  background-attachment:fixed;background-repeat:no-repeat;}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;line-height:1.1;margin:0;letter-spacing:-0.03em;}
+
+.page-container{max-width:1200px;margin:0 auto;padding:0 var(--space-lg) var(--space-4xl);}
+
+.nav-pill{position:sticky;top:var(--space-md);margin:0 auto var(--space-2xl) auto;max-width:560px;
+  background:oklch(18% 0.012 260 / 0.6);backdrop-filter:blur(12px) saturate(150%);
+  border:1px solid var(--color-rule);border-radius:9999px;
+  padding:var(--space-xs) var(--space-xs) var(--space-xs) var(--space-lg);
+  display:flex;align-items:center;justify-content:space-between;z-index:100;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+.nav-pill__wordmark{font-family:var(--font-display);font-weight:600;letter-spacing:-0.02em;color:var(--color-ink);}
+.nav-pill__actions{display:flex;gap:var(--space-sm);}
+.nav-pill__btn{background:var(--color-accent);color:var(--color-paper);
+  padding:var(--space-sm) var(--space-lg);border-radius:9999px;font-weight:600;font-size:var(--text-sm);
+  border:none;cursor:pointer;transition:transform .2s ease,opacity .2s ease;}
+.nav-pill__btn:hover{transform:translateY(-1px);opacity:.9;}
+
+.portfolio-header{margin:var(--space-2xl) 0;text-align:center;}
+.portfolio-header__tagline{font-family:var(--font-outlier);font-size:var(--text-sm);
+  text-transform:uppercase;letter-spacing:0.1em;color:var(--color-accent);margin-bottom:var(--space-md);}
+.portfolio-header__title{font-size:var(--text-display);margin-bottom:var(--space-md);}
+.portfolio-header__lead{color:var(--color-muted);font-size:var(--text-md);max-width:60ch;margin:0 auto;}
+
+.sim-layout{display:grid;grid-template-columns:1fr 340px;gap:var(--space-xl);margin-bottom:var(--space-4xl);}
+
+.card{background:var(--color-paper-2);border:1px solid var(--color-rule);border-radius:12px;padding:var(--space-xl);}
+.card h2{font-size:var(--text-xl);margin-bottom:var(--space-xs);color:var(--color-ink);}
+
+.stage-card{padding:0;overflow:hidden;position:relative;}
+#stage{display:block;width:100%;height:auto;background:var(--color-paper-3);}
+
+.chip,.stat-chip,.n-badge{display:inline-block;font-family:var(--font-outlier);font-size:var(--text-xs);
+  text-transform:uppercase;letter-spacing:0.05em;padding:4px 12px;border-radius:9999px;
+  background:var(--color-paper-3);color:var(--color-accent);border:1px solid var(--color-rule);}
+
+.control-group{margin-bottom:var(--space-lg);}
+.control-group label{display:flex;justify-content:space-between;align-items:baseline;
+  font-size:var(--text-sm);color:var(--color-muted);margin-bottom:var(--space-xs);}
+.control-group label .val{font-family:var(--font-outlier);color:var(--color-ink);}
+input[type="range"]{width:100%;accent-color:var(--color-accent);}
+
+.btn{font-family:var(--font-body);font-size:var(--text-sm);font-weight:600;padding:10px 24px;
+  border-radius:9999px;border:1px solid transparent;cursor:pointer;width:100%;
+  transition:transform .2s ease,filter .2s ease,opacity .2s ease;
+  display:inline-flex;align-items:center;justify-content:center;gap:var(--space-sm);}
+.btn:active{transform:scale(0.97);}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.btn-primary{background:var(--color-accent);color:var(--color-paper);}
+.btn-primary:hover:not(:disabled){filter:brightness(1.1);}
+.btn-outline{background:transparent;color:var(--color-accent);border-color:var(--color-rule);}
+.btn-outline:hover:not(:disabled){background:var(--color-paper-3);}
+.btn-row{display:flex;gap:var(--space-sm);}
+.btn-row .btn{width:auto;flex:1;padding:10px 12px;}
+
+.hint{font-size:var(--text-sm);color:var(--color-muted);margin-top:var(--space-md);
+  padding:var(--space-md);background:var(--color-paper-2);border-radius:8px;border:1px solid var(--color-rule);}
+.hint b{color:var(--color-accent);}
+.hint small{display:block;margin-top:var(--space-sm);color:var(--color-neutral);font-size:var(--text-xs);line-height:1.5;}
+
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-sm);margin-top:var(--space-md);}
+.stat-box{background:var(--color-paper-3);border:1px solid var(--color-rule);border-radius:8px;padding:var(--space-md);}
+.stat-box .k{font-family:var(--font-outlier);font-size:var(--text-xs);color:var(--color-muted);text-transform:uppercase;letter-spacing:0.05em;}
+.stat-box .v{font-family:var(--font-outlier);font-size:var(--text-lg);color:var(--color-accent);}
+
+.legend{display:flex;flex-wrap:wrap;gap:var(--space-md);margin-top:var(--space-md);font-size:var(--text-xs);color:var(--color-muted);}
+.legend span{display:inline-flex;align-items:center;gap:6px;}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+
+.status-banner{margin-top:var(--space-md);padding:var(--space-md);border-radius:8px;
+  border:1px solid var(--color-rule);background:var(--color-paper-3);font-size:var(--text-sm);text-align:center;}
+.status-banner.ok{border-color:var(--color-accent);color:var(--color-accent);}
+.status-banner.lost{border-color:oklch(60% 0.02 260);color:var(--color-muted);}
+.status-banner.near{border-color:oklch(70% 0.10 90);color:oklch(80% 0.10 90);}
+
+.footer-statement{border-top:1px solid var(--color-rule);padding-top:var(--space-4xl);
+  padding-bottom:var(--space-2xl);text-align:center;}
+.footer-statement__text{font-size:var(--text-2xl);font-weight:600;letter-spacing:-0.02em;
+  margin-bottom:var(--space-2xl);max-width:38ch;margin-left:auto;margin-right:auto;}
+.footer-statement__meta{display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--font-outlier);font-size:var(--text-sm);color:var(--color-muted);gap:var(--space-md);}
+
+@media (max-width:900px){ .sim-layout{grid-template-columns:1fr;} }
+@media (max-width:768px){
+  .nav-pill{margin:var(--space-sm);max-width:none;padding:var(--space-sm);border-radius:12px;}
+  .portfolio-header__title{font-size:var(--text-3xl);}
+  .footer-statement__meta{flex-direction:column;gap:var(--space-md);}
+  .footer-statement__text{font-size:var(--text-xl);}
+}
+</style>
+</head>
+<body>
+<div class="page-container">
+
+  <nav class="nav-pill">
+    <span class="nav-pill__wordmark">Voyager · Grand Tour</span>
+    <div class="nav-pill__actions">
+      <button class="nav-pill__btn" id="navPreset">グランドツアー再現</button>
+    </div>
+  </nav>
+
+  <header class="portfolio-header">
+    <p class="portfolio-header__tagline">Multiple Gravity Assist · 1977</p>
+    <h1 class="portfolio-header__title">多重スイングバイ<br>軌道シミュレーター</h1>
+    <p class="portfolio-header__lead">175年に一度の惑星配置を利用したボイジャーのグランドツアー。初期状態から初速・角度・タイミングをずらして、4惑星を通過する「正解の軌道」を探し当ててください。</p>
+  </header>
+
+  <section class="sim-layout">
+    <div>
+      <div class="card stage-card">
+        <canvas id="stage" width="720" height="720"></canvas>
+      </div>
+      <div class="card" style="margin-top:var(--space-lg);">
+        <span class="chip">B-plane 概念 · Patched-conic 近似</span>
+        <div class="legend">
+          <span><i class="dot" style="background:oklch(60% 0.1 250)"></i>低速の軌跡</span>
+          <span><i class="dot" style="background:var(--color-accent)"></i>高速の軌跡（加速後）</span>
+          <span><i class="dot" style="background:var(--color-muted)"></i>正解ルート（ゴースト）</span>
+        </div>
+        <p class="hint">重力アシスト（<b>Minovitch, 1961</b>）は惑星の運動量を借りて探査機の<b>太陽基準速度</b>を変化させる手法です。スイングバイに成功すると軌跡の色が<b>寒色→暖色</b>へ変化します。
+          <small>💡 惑星から見た相対速度の「大きさ」は変わらず、向きだけが変わります。太陽から見ると、惑星の公転速度の一部を「借りて」加速（または減速）します。<br>
+          ※ 重力アシストは加速だけでなく、減速や進路変更にも使える手法です（本ツアーでは外惑星への加速を利用しています）。</small>
+        </p>
+      </div>
+    </div>
+
+    <aside class="card">
+      <h2>制御パネル</h2>
+      <p class="hint" style="margin-top:var(--space-sm);">初期状態では惑星を通過できません。<b>初速・角度・タイミング</b>を少しずつずらし、点線のゴースト軌道に重ねて<b>4惑星の通過</b>を目指しましょう。答え合わせは<b>グランドツアー再現</b>で。</p>
+
+      <div class="control-group" style="margin-top:var(--space-lg);">
+        <label>打ち上げ初速 <span class="val" id="vVal">12.00 km/s</span></label>
+        <input type="range" id="vSlider" min="12" max="20" step="0.01" value="12">
+      </div>
+      <div class="control-group">
+        <label>打ち上げ角度 <span class="val" id="aVal">+0.00°</span></label>
+        <input type="range" id="aSlider" min="-15" max="15" step="0.1" value="0">
+      </div>
+      <div class="control-group">
+        <label>発射タイミング（惑星配置位相）<span class="val" id="pVal">0.0°</span></label>
+        <input type="range" id="pSlider" min="-30" max="30" step="0.5" value="0">
+      </div>
+
+      <button class="btn btn-primary" id="launchBtn">探査機を発射</button>
+      <div class="btn-row" style="margin-top:var(--space-sm);">
+        <button class="btn btn-outline" id="presetBtn">正解を入力</button>
+        <button class="btn btn-outline" id="resetBtn">初期化（すべて0）</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat-box"><div class="k">現在速度</div><div class="v" id="speedStat">–</div></div>
+        <div class="stat-box"><div class="k">通過惑星</div><div class="v" id="flybyStat">0 / 4</div></div>
+        <div class="stat-box"><div class="k">正解とのズレ</div><div class="v" id="devStat">–</div></div>
+        <div class="stat-box"><div class="k">経過時間</div><div class="v" id="timeStat">0.0 yr</div></div>
+      </div>
+
+      <div class="status-banner" id="statusBanner">待機中 — 発射してください</div>
+    </aside>
+  </section>
+
+  <footer class="footer-statement">
+    <p class="footer-statement__text">わずかな初速のズレが、宇宙の果てまでの行き先を変える。</p>
+    <div class="footer-statement__meta">
+      <span>Grand Tour · Flandro 1966（論文発表年 / 着想は1965年頃）</span>
+      <span>Patched-conic · Minovitch 1961</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+(() => {
+  const cv = document.getElementById('stage');
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height, cx = W/2, cy = H/2;
+
+  const planets = [
+    { name:'Jupiter', r:150, color:'oklch(70% 0.10 60)', size:9, soi:30 },
+    { name:'Saturn',  r:215, color:'oklch(78% 0.09 90)', size:8, soi:28 },
+    { name:'Uranus',  r:278, color:'oklch(75% 0.08 200)',size:6, soi:26 },
+    { name:'Neptune', r:335, color:'oklch(70% 0.10 250)',size:6, soi:26 },
+  ];
+
+  const START_R = 60;
+  const END_R   = 380;
+  const TOTAL_SWEEP = 2.35;
+
+  function truthPoint(s){
+    const R = START_R + (END_R - START_R) * Math.pow(s, 0.85);
+    const th = -Math.PI/2 + TOTAL_SWEEP * s;
+    return { x: cx + Math.cos(th)*R, y: cy + Math.sin(th)*R, R, th };
+  }
+
+  const planetTruth = planets.map(p=>{
+    let lo=0, hi=1;
+    for(let k=0;k<40;k++){
+      const mid=(lo+hi)/2;
+      if(truthPoint(mid).R < p.r) lo=mid; else hi=mid;
+    }
+    const s=(lo+hi)/2;
+    const pt=truthPoint(s);
+    return { s, angle: pt.th };
+  });
+
+  function planetPos(idx){
+    const a = planetTruth[idx].angle;
+    const r = planets[idx].r;
+    return { x: cx + Math.cos(a)*r, y: cy + Math.sin(a)*r };
+  }
+
+  let state = null;
+  let ghost = null;
+  let running = false;
+
+  const PRESET  = { v: 16.72, angle: 5.5, phase: 9.0 };
+  const INITIAL = { v: 12.00, angle: 0.0, phase: 0.0 };
+
+  const $ = id => document.getElementById(id);
+  const vSlider=$('vSlider'), aSlider=$('aSlider'), pSlider=$('pSlider');
+  const vVal=$('vVal'), aVal=$('aVal'), pVal=$('pVal');
+
+  function speedToColor(sp){
+    const s = Math.max(0, Math.min(1, (sp-2)/9));
+    const hue = 250 - s*205;
+    const light = 55 + s*20;
+    return `oklch(${light}% 0.12 ${hue})`;
+  }
+
+  function buildTruthTrajectory(){
+    const pts=[];
+    const N=520;
+    for(let i=0;i<=N;i++){
+      const s=i/N;
+      const pt=truthPoint(s);
+      const sp = 3 + s*8;
+      pts.push({x:pt.x, y:pt.y, sp});
+    }
+    return { pts };
+  }
+
+  function buildUserTrajectory(v, angleDeg, phaseDeg){
+    const truth = buildTruthTrajectory();
+    const dv = (v - PRESET.v);
+    const da = (angleDeg - PRESET.angle);
+    const dp = (phaseDeg - PRESET.phase);
+
+    const pts=[];
+    const N = truth.pts.length-1;
+    for(let i=0;i<=N;i++){
+      const s=i/N;
+      const base=truth.pts[i];
+      const growth = Math.pow(s,1.6);
+      const dirx=base.x-cx, diry=base.y-cy;
+      const dlen=Math.hypot(dirx,diry)||1;
+      const nx=dirx/dlen, ny=diry/dlen;
+      const tx=-ny, ty=nx;
+
+      const radial = dv*40*growth;
+      const tangential = (da*6 + dp*4)*growth;
+
+      const x = base.x + nx*radial + tx*tangential;
+      const y = base.y + ny*radial + ty*tangential;
+      const sp = base.sp + dv*0.4;
+      pts.push({x,y,sp});
+    }
+    return { pts };
+  }
+
+  function countFlybys(traj, uptoIndex){
+    let fb=0;
+    const n = uptoIndex==null ? traj.pts.length : Math.min(uptoIndex, traj.pts.length);
+    const hit=new Array(planets.length).fill(false);
+    for(let i=0;i<n;i++){
+      const pt=traj.pts[i];
+      planets.forEach((p,idx)=>{
+        const pp=planetPos(idx);
+        if(!hit[idx] && Math.hypot(pt.x-pp.x, pt.y-pp.y) < p.soi){
+          hit[idx]=true; fb++;
+        }
+      });
+    }
+    return fb;
+  }
+
+  function updateLabels(){
+    vVal.textContent = parseFloat(vSlider.value).toFixed(2)+' km/s';
+    aVal.textContent = (parseFloat(aSlider.value)>=0?'+':'')+parseFloat(aSlider.value).toFixed(2)+'°';
+    pVal.textContent = (parseFloat(pSlider.value)>=0?'+':'')+parseFloat(pSlider.value).toFixed(1)+'°';
+  }
+
+  function computeGhost(){ ghost = buildTruthTrajectory(); }
+
+  function launch(){
+    const v=parseFloat(vSlider.value);
+    const a=parseFloat(aSlider.value);
+    const p=parseFloat(pSlider.value);
+    state = buildUserTrajectory(v,a,p);
+    state.drawn = 0;
+    running = true;
+    setStatus('flight');
+  }
+
+  function setPreset(){
+    vSlider.value=PRESET.v; aSlider.value=PRESET.angle; pSlider.value=PRESET.phase;
+    updateLabels();
+  }
+
+  function reset(){
+    state=null; running=false;
+    vSlider.value=INITIAL.v; aSlider.value=INITIAL.angle; pSlider.value=INITIAL.phase;
+    updateLabels();
+    $('speedStat').textContent='–'; $('flybyStat').textContent='0 / 4';
+    $('devStat').textContent='–'; $('timeStat').textContent='0.0 yr';
+    setStatus('idle');
+  }
+
+  function setStatus(kind){
+    const b=$('statusBanner');
+    b.className='status-banner';
+    if(kind==='idle'){b.textContent='待機中 — 発射してください';}
+    else if(kind==='flight'){b.textContent='飛行中 …';}
+    else if(kind==='ok'){b.classList.add('ok');b.textContent='★ グランドツアー成功 — 4惑星を通過!';}
+    else if(kind==='near'){b.classList.add('near');b.textContent='惜しい！正解に近づいています …';}
+    else if(kind==='lost'){b.classList.add('lost');b.textContent='探査機は星間空間へ消えました …';}
+  }
+
+  function drawBackground(){
+    ctx.clearRect(0,0,W,H);
+    ctx.save();
+    for(let i=0;i<120;i++){
+      const sx=(i*97+31)%W, sy=(i*193+57)%H;
+      ctx.globalAlpha=0.12+((i*7)%10)/40;
+      ctx.fillStyle='oklch(72% 0.008 260)';
+      ctx.fillRect(sx,sy,1.2,1.2);
+    }
+    ctx.restore();
+
+    planets.forEach(p=>{
+      ctx.beginPath(); ctx.arc(cx,cy,p.r,0,Math.PI*2);
+      ctx.strokeStyle='oklch(28% 0.01 260)'; ctx.lineWidth=1; ctx.stroke();
+    });
+
+    const grd=ctx.createRadialGradient(cx,cy,2,cx,cy,26);
+    grd.addColorStop(0,'oklch(90% 0.15 60)');
+    grd.addColorStop(1,'oklch(60% 0.15 45 / 0)');
+    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(cx,cy,26,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='oklch(92% 0.12 70)'; ctx.beginPath(); ctx.arc(cx,cy,7,0,Math.PI*2); ctx.fill();
+
+    planets.forEach((p,idx)=>{
+      const pp=planetPos(idx);
+      ctx.beginPath(); ctx.arc(pp.x,pp.y,p.soi,0,Math.PI*2);
+      ctx.strokeStyle='oklch(45% 0.02 260 / 0.5)'; ctx.setLineDash([3,4]);
+      ctx.lineWidth=1; ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(pp.x,pp.y,p.size,0,Math.PI*2);
+      ctx.fillStyle=p.color; ctx.fill();
+      ctx.fillStyle='oklch(72% 0.008 260)'; ctx.font='11px "Geist Mono", monospace';
+      ctx.fillText(p.name, pp.x+p.size+4, pp.y-4);
+    });
+  }
+
+  function drawGhost(){
+    if(!ghost) return;
+    ctx.beginPath();
+    ghost.pts.forEach((pt,i)=>{ i?ctx.lineTo(pt.x,pt.y):ctx.moveTo(pt.x,pt.y); });
+    ctx.strokeStyle='oklch(72% 0.008 260 / 0.28)';
+    ctx.lineWidth=1.5; ctx.setLineDash([2,5]); ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  function drawProbe(){
+    if(!state) return;
+    const n=Math.min(state.drawn, state.pts.length);
+    for(let i=1;i<n;i++){
+      const a=state.pts[i-1], b=state.pts[i];
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+      ctx.strokeStyle=speedToColor(b.sp); ctx.lineWidth=2.4; ctx.stroke();
+    }
+    if(n>0){
+      const head=state.pts[n-1];
+      ctx.beginPath(); ctx.arc(head.x,head.y,4,0,Math.PI*2);
+      ctx.fillStyle='oklch(95% 0.005 260)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(head.x,head.y,8,0,Math.PI*2);
+      ctx.strokeStyle=speedToColor(head.sp); ctx.lineWidth=1.5; ctx.stroke();
+    }
+  }
+
+  function updateStats(){
+    if(!state) return;
+    const n=Math.min(state.drawn, state.pts.length);
+    if(n<1) return;
+    const head=state.pts[n-1];
+    $('speedStat').textContent=head.sp.toFixed(1);
+    if(ghost){
+      const gi=Math.min(n-1, ghost.pts.length-1);
+      const g=ghost.pts[gi];
+      const dev=Math.hypot(head.x-g.x, head.y-g.y);
+      $('devStat').textContent=dev.toFixed(0)+' px';
+    }
+    $('timeStat').textContent=(n/ state.pts.length * 12).toFixed(1)+' yr';
+  }
+
+  function frame(){
+    drawBackground();
+    drawGhost();
+    if(state && running){
+      state.drawn += 4;
+      const n=Math.min(state.drawn, state.pts.length);
+      const fb=countFlybys(state, n);
+      $('flybyStat').textContent=fb+' / 4';
+      if(state.drawn>=state.pts.length){
+        running=false;
+        const total=countFlybys(state, null);
+        if(total>=4) setStatus('ok');
+        else if(total>=2) setStatus('near');
+        else setStatus('lost');
+      }
+    }
+    drawProbe();
+    updateStats();
+    requestAnimationFrame(frame);
+  }
+
+  [vSlider,aSlider,pSlider].forEach(s=>s.addEventListener('input',updateLabels));
+  $('launchBtn').addEventListener('click',launch);
+  $('presetBtn').addEventListener('click',setPreset);
+  $('resetBtn').addEventListener('click',reset);
+  $('navPreset').addEventListener('click',()=>{ setPreset(); launch(); });
+
+  computeGhost();
+  reset();
+  frame();
+})();
+</script>
+</body>
+</html>

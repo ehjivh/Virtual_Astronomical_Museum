@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>天体の高度・方位角計算 学習用Web展示</title>
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+<!-- ===== 添付デザインシステム（styles.txt）を統合 ===== -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono&display=swap');
+
+:root {
+  --color-paper: oklch(14% 0.01 260);
+  --color-paper-2: oklch(18% 0.012 260);
+  --color-paper-3: oklch(22% 0.012 260);
+  --color-rule: oklch(28% 0.01 260);
+  --color-neutral: oklch(58% 0.01 260);
+  --color-muted: oklch(72% 0.008 260);
+  --color-ink: oklch(95% 0.005 260);
+  --color-accent: oklch(75% 0.15 45);
+  --color-focus: oklch(75% 0.18 45);
+  --font-display: 'Geist', system-ui, sans-serif;
+  --font-body: 'Geist', system-ui, sans-serif;
+  --font-outlier: 'Geist Mono', monospace;
+  --space-xs: 0.25rem; --space-sm: 0.5rem; --space-md: 1rem;
+  --space-lg: 1.5rem; --space-xl: 2rem; --space-2xl: 3rem;
+  --space-3xl: 4rem; --space-4xl: 6rem;
+  --text-xs: 0.64rem; --text-sm: 0.8rem; --text-base: 1rem;
+  --text-md: 1.25rem; --text-lg: 1.5625rem; --text-xl: 1.9531rem;
+  --text-2xl: 2.4414rem; --text-3xl: 3.0518rem;
+  --text-display: clamp(2.75rem, 5vw + 1rem, 5.25rem);
+}
+*, *::before, *::after { box-sizing: border-box; }
+body, html {
+  margin:0; padding:0; background:var(--color-paper); color:var(--color-ink);
+  font-family:var(--font-body); font-weight:400; line-height:1.6; overflow-x:clip;
+}
+body {
+  background-image:
+    radial-gradient(circle at 15% 30%, oklch(40% 0.08 45 / 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 85% 70%, oklch(35% 0.06 280 / 0.1) 0%, transparent 40%);
+  background-attachment: fixed; background-repeat: no-repeat;
+}
+h1,h2,h3,h4 { font-family:var(--font-display); font-weight:600; line-height:1.1;
+  margin:0; letter-spacing:-0.03em; }
+a { color:inherit; text-decoration:none; }
+
+.page-container { max-width:1200px; margin:0 auto; padding:0 var(--space-lg);
+  padding-bottom:var(--space-4xl); }
+
+/* N5 Floating Pill Nav */
+.nav-pill {
+  position:sticky; top:var(--space-md); margin:0 auto var(--space-2xl) auto;
+  max-width:640px; background:oklch(18% 0.012 260 / 0.6);
+  backdrop-filter:blur(12px) saturate(150%); border:1px solid var(--color-rule);
+  border-radius:9999px; padding:var(--space-xs) var(--space-xs) var(--space-xs) var(--space-lg);
+  display:flex; align-items:center; justify-content:space-between; z-index:100;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+.nav-pill__wordmark { font-family:var(--font-display); font-weight:600;
+  letter-spacing:-0.02em; color:var(--color-ink); }
+.nav-pill__actions { display:flex; gap:var(--space-sm); }
+.nav-pill__btn { background:var(--color-accent); color:var(--color-paper);
+  padding:var(--space-sm) var(--space-lg); border-radius:9999px; font-weight:600;
+  font-size:var(--text-sm); transition:transform .2s ease, opacity .2s ease; }
+.nav-pill__btn:hover { transform:translateY(-1px); opacity:.9; }
+
+/* Header */
+.portfolio-header { margin-bottom:var(--space-2xl); text-align:center; }
+.portfolio-header__tagline { font-family:var(--font-outlier); font-size:var(--text-sm);
+  text-transform:uppercase; letter-spacing:0.1em; color:var(--color-accent);
+  margin-bottom:var(--space-md); }
+.portfolio-header__title { font-size:var(--text-display); margin-bottom:var(--space-md); }
+.portfolio-header__sub { color:var(--color-muted); max-width:60ch; margin:0 auto;
+  font-size:var(--text-base); }
+
+/* Layout 2-col */
+.layout { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-xl);
+  align-items:start; }
+
+/* Cards */
+.card { background:var(--color-paper-2); border:1px solid var(--color-rule);
+  border-radius:12px; padding:var(--space-xl); margin-bottom:var(--space-xl); }
+.card h2 { font-size:var(--text-xl); margin-bottom:var(--space-md); color:var(--color-ink); }
+
+/* Section title with number */
+.section-title { font-family:var(--font-display); font-size:var(--text-md);
+  font-weight:600; margin-bottom:var(--space-lg); display:flex; align-items:center;
+  gap:var(--space-sm); letter-spacing:-0.02em; }
+.section-num { font-family:var(--font-outlier); display:inline-flex; align-items:center;
+  justify-content:center; width:34px; height:34px; border-radius:50%;
+  background:var(--color-paper-3); color:var(--color-accent); font-size:var(--text-base);
+  font-weight:600; flex-shrink:0; border:1px solid var(--color-rule); }
+
+/* Chips */
+.chip { display:inline-block; font-family:var(--font-outlier); font-size:var(--text-xs);
+  text-transform:uppercase; letter-spacing:0.05em; padding:4px 12px; border-radius:9999px;
+  background:var(--color-paper-3); color:var(--color-accent); border:1px solid var(--color-rule); }
+
+/* Inputs */
+label { display:block; font-size:var(--text-sm); color:var(--color-muted);
+  margin:var(--space-md) 0 var(--space-xs); font-family:var(--font-outlier);
+  text-transform:uppercase; letter-spacing:0.03em; font-size:var(--text-xs); }
+input[type=number], input[type=datetime-local] {
+  width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--color-rule);
+  background:var(--color-paper-3); color:var(--color-ink); font-size:var(--text-base);
+  font-family:var(--font-body); }
+input:focus { outline:none; border-color:var(--color-focus); }
+input[type=range] { accent-color:var(--color-accent); }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-md); }
+
+/* Map */
+#map { width:100%; height:280px; border-radius:12px; overflow:hidden;
+  border:1px solid var(--color-rule); margin-top:var(--space-sm); }
+
+/* Buttons */
+.btn, button.btn-primary, button.btn-outline {
+  font-family:var(--font-body); font-size:var(--text-sm); font-weight:600;
+  padding:8px 18px; border-radius:9999px; border:1px solid transparent; cursor:pointer;
+  transition:transform .2s ease, filter .2s ease, opacity .2s ease;
+  display:inline-flex; align-items:center; justify-content:center; }
+.btn:active { transform:scale(0.97); }
+.btn-primary { background:var(--color-accent); color:var(--color-paper); }
+.btn-primary:hover { filter:brightness(1.1); }
+.btn-outline { background:transparent; color:var(--color-accent); border-color:var(--color-rule); }
+.btn-outline:hover { background:var(--color-paper-3); }
+.preset { display:flex; gap:var(--space-xs); flex-wrap:wrap; margin-top:var(--space-sm); }
+
+/* Steps */
+.step { background:var(--color-paper-3); border:1px solid var(--color-rule);
+  border-radius:12px; padding:var(--space-lg); margin-bottom:var(--space-md); }
+.step__head { display:flex; align-items:center; gap:var(--space-sm);
+  margin-bottom:var(--space-sm); }
+.step__num { font-family:var(--font-outlier); display:inline-flex; align-items:center;
+  justify-content:center; width:28px; height:28px; border-radius:50%;
+  background:var(--color-accent); color:var(--color-paper); font-weight:600;
+  font-size:var(--text-sm); flex-shrink:0; }
+.step__title { font-weight:600; font-size:var(--text-base); font-family:var(--font-display); }
+.formula { font-family:var(--font-outlier); background:var(--color-paper);
+  padding:10px 12px; border-radius:8px; margin:var(--space-sm) 0; font-size:var(--text-sm);
+  overflow-x:auto; border:1px solid var(--color-rule); color:var(--color-ink);
+  line-height:1.7; }
+.calc { font-family:var(--font-outlier); font-size:var(--text-xs); color:var(--color-muted);
+  background:var(--color-paper); padding:8px 12px; border-radius:8px; margin:var(--space-xs) 0;
+  border:1px solid var(--color-rule); }
+.result { font-family:var(--font-outlier); font-weight:600; color:var(--color-accent);
+  font-size:var(--text-sm); margin-top:var(--space-xs); }
+.desc { font-size:var(--text-sm); color:var(--color-neutral); line-height:1.7;
+  margin-top:var(--space-sm); }
+.note-acad { font-size:var(--text-xs); color:var(--color-muted); line-height:1.7;
+  margin-top:var(--space-sm); padding:var(--space-sm) var(--space-md);
+  background:var(--color-paper); border-left:2px solid var(--color-accent);
+  border-radius:0 6px 6px 0; font-family:var(--font-outlier); }
+
+/* Options */
+.options label { display:flex; align-items:center; gap:var(--space-sm);
+  color:var(--color-ink); text-transform:none; letter-spacing:0; font-size:var(--text-sm);
+  font-family:var(--font-body); margin:0; }
+.hint { font-size:var(--text-sm); color:var(--color-muted); margin-top:var(--space-md);
+  padding:var(--space-md); background:var(--color-paper-3); border-radius:8px;
+  border:1px solid var(--color-rule); }
+.hint b { color:var(--color-accent); }
+
+/* Final result */
+.final { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-md);
+  margin-top:var(--space-sm); }
+.final .box { background:var(--color-paper-3); border:1px solid var(--color-rule);
+  border-radius:12px; padding:var(--space-lg); text-align:center; }
+.final .box .lbl { font-size:var(--text-xs); color:var(--color-muted);
+  font-family:var(--font-outlier); text-transform:uppercase; letter-spacing:0.05em; }
+.final .box .val { font-size:var(--text-2xl); font-weight:600; color:var(--color-accent);
+  margin-top:var(--space-xs); font-family:var(--font-display); letter-spacing:-0.02em; }
+.visible-tag { display:inline-block; padding:6px 16px; border-radius:9999px;
+  font-family:var(--font-outlier); font-size:var(--text-xs); text-transform:uppercase;
+  letter-spacing:0.05em; border:1px solid var(--color-rule); }
+.above { background:oklch(75% 0.15 45 / 0.15); color:var(--color-accent); }
+.below { background:var(--color-paper-3); color:var(--color-muted); }
+
+/* Sky */
+.sky { position:relative; width:100%; aspect-ratio:1/1; max-width:440px;
+  margin:0 auto; }
+canvas { display:block; width:100%; height:100%; border-radius:50%; }
+
+/* Ft5 Footer */
+.footer-statement { border-top:1px solid var(--color-rule); padding-top:var(--space-4xl);
+  padding-bottom:var(--space-2xl); text-align:center; margin-top:var(--space-3xl); }
+.footer-statement__text { font-size:var(--text-2xl); font-weight:600;
+  letter-spacing:-0.02em; margin-bottom:var(--space-2xl); max-width:38ch;
+  margin-left:auto; margin-right:auto; }
+.footer-statement__meta { display:flex; justify-content:space-between; align-items:center;
+  font-family:var(--font-outlier); font-size:var(--text-sm); color:var(--color-muted); }
+
+@media (max-width:900px) {
+  .layout { grid-template-columns:1fr; }
+}
+@media (max-width:768px) {
+  .nav-pill { margin:var(--space-sm); max-width:none; padding:var(--space-sm);
+    border-radius:12px; }
+  .portfolio-header__title { font-size:var(--text-3xl); }
+  .footer-statement__meta { flex-direction:column; gap:var(--space-md); }
+  .footer-statement__text { font-size:var(--text-xl); }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== N5 Floating Pill Nav ===== -->
+<nav class="nav-pill">
+  <span class="nav-pill__wordmark">☄ Celestial Coordinates</span>
+  <div class="nav-pill__actions">
+    <a href="#calc" class="nav-pill__btn">計算パネルへ</a>
+  </div>
+</nav>
+
+<div class="page-container">
+
+  <!-- ===== Header ===== -->
+  <header class="portfolio-header">
+    <div class="portfolio-header__tagline">Spherical Astronomy · Learning Exhibit</div>
+    <h1 class="portfolio-header__title">天体の高度・方位角計算</h1>
+    <p class="portfolio-header__sub">
+      観測者の「現在地・現在時刻」と、天体の「赤経・赤緯」。異なる2つの座標系を球面三角法でどう結びつけるか──
+      その数学的プロセスを、地図とインタラクティブな天球モデルで可視化します。
+    </p>
+  </header>
+
+  <!-- ===== 2-column Layout ===== -->
+  <div class="layout" id="calc">
+
+    <!-- ---- 左：入力・計算ステップ ---- -->
+    <div class="col">
+      <div class="card">
+        <div class="section-title"><span class="section-num">1</span>観測地情報</div>
+        <span class="chip">Tap the map</span>
+        <div id="map"></div>
+        <div class="grid2" style="margin-top:var(--space-md);">
+          <div>
+            <label>経度 λ（東経を正・度）</label>
+            <input type="number" id="lon" value="135.230" step="0.001">
+          </div>
+          <div>
+            <label>緯度 φ（北緯を正・度）</label>
+            <input type="number" id="lat" value="34.100" step="0.001">
+          </div>
+        </div>
+        <div class="preset">
+          <button class="btn btn-outline" data-lat="34.100" data-lon="135.230">紀美野町</button>
+          <button class="btn btn-outline" data-lat="35.681" data-lon="139.767">東京</button>
+          <button class="btn btn-outline" data-lat="0" data-lon="0">赤道・本初子午線</button>
+          <button class="btn btn-outline" data-lat="89.9" data-lon="0">北極付近</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><span class="section-num">2</span>観測時刻・天体の座標</div>
+        <label>観測時刻（日本標準時 JST）</label>
+        <input type="datetime-local" id="jst" step="1">
+        <div class="preset">
+          <button class="btn btn-primary" id="nowBtn">現在時刻にセット</button>
+        </div>
+        <div class="grid2" style="margin-top:var(--space-md);">
+          <div>
+            <label>赤経 α（時 h：0〜24）</label>
+            <input type="number" id="ra" value="6.752" step="0.001">
+          </div>
+          <div>
+            <label>赤緯 δ（度：-90〜90）</label>
+            <input type="number" id="dec" value="-16.716" step="0.001">
+          </div>
+        </div>
+        <div class="preset">
+          <button class="btn btn-outline" data-ra="6.752" data-dec="-16.716">シリウス</button>
+          <button class="btn btn-outline" data-ra="14.261" data-dec="19.182">アルクトゥルス</button>
+          <button class="btn btn-outline" data-ra="2.530" data-dec="89.264">ポラリス</button>
+          <button class="btn btn-outline" data-ra="18.616" data-dec="38.784">ベガ</button>
+        </div>
+      </div>
+
+      <div class="card options">
+        <div class="section-title"><span class="section-num">3</span>オプション設定</div>
+        <label><input type="checkbox" id="refract"> 大気差補正を適用（Saemundsson, 1986）</label>
+        <div class="hint">
+          本展示は<b>基礎の理解</b>が主目的のため、大気差はオプション扱いです。
+          方位角の計算では <b>atan2</b> 関数を <b>cosδ を掛けた等価形</b> で用いており、
+          δ = ±90°（天の極）でも tanδ が発散せず、極付近の特異点でも破綻しません。
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><span class="section-num">4</span>計算ステップ</div>
+
+        <div class="step">
+          <div class="step__head"><span class="step__num">1</span>
+            <span class="step__title">ユリウス日の算出（Julian Date）</span></div>
+          <div class="formula">A = ⌊Y/100⌋ ,&nbsp; B = 2 − A + ⌊A/4⌋<br>JD = ⌊365.25(Y+4716)⌋ + ⌊30.6001(M+1)⌋ + D + UT/24 + B − 1524.5</div>
+          <div class="calc" id="c1">—</div>
+          <div class="result" id="r1">—</div>
+          <div class="desc">天文学では、計算を簡単にするために『紀元前4713年1月1日正午』からの連続した日数（ユリウス日）を使います。カレンダーの月日を、ただの『数字の連続』に変換する最初の手順です。</div>
+          <div class="note-acad">※1月・2月は「前年の13月・14月」として扱います（Y ← Y−1, M ← M+12）。この前処理がないと1〜2月の計算が破綻します。<br>※B はグレゴリオ暦の補正項（1582年10月15日以降）で、B = 2 − ⌊Y/100⌋ + ⌊⌊Y/100⌋/4⌋ です。</div>
+        </div>
+
+        <div class="step">
+          <div class="step__head"><span class="step__num">2</span>
+            <span class="step__title">地方恒星時の算出（Local Sidereal Time）</span></div>
+          <div class="formula">T = (JD − 2451545.0) / 36525<br>θ_G = 280.46061837 + 360.98564736629·(JD−2451545) + 0.000387933·T² − T³/38710000<br>θ = θ_G + λ</div>
+          <div class="calc" id="c2">—</div>
+          <div class="result" id="r2">—</div>
+          <div class="desc">地球は自転しているため、宇宙空間から見た『真の時刻』は私たちが使う時計とは少しずつズレていきます。観測地の真上（子午線）に春分点が来る時刻を基準としたのが『恒星時』です。今あなたの頭上にどんな星空が広がっているかを示す基準となります。</div>
+          <div class="note-acad">※T は J2000.0（JD 2451545.0）からの「ユリウス世紀」です。<br>※得られた θ_G（度単位）は 360 で割った余り（mod 360）を取って 0〜360° に正規化します。<br>※本展示は<b>東経を正</b>とする規約のため θ = θ_G + λ です。Meeus原著（西経を正）とは λ の符号が逆になります。</div>
+        </div>
+
+        <div class="step">
+          <div class="step__head"><span class="step__num">3</span>
+            <span class="step__title">時角の算出（Hour Angle）</span></div>
+          <div class="formula">H = θ − α</div>
+          <div class="calc" id="c3">—</div>
+          <div class="result" id="r3">—</div>
+          <div class="desc">見たい天体が、今いる場所の『真南』から地球の自転によってどれくらいズレているか（角度）を計算します。時角が0度なら、その天体はちょうど南中（一番高いところ）にいます。</div>
+        </div>
+
+        <div class="step">
+          <div class="step__head"><span class="step__num">4</span>
+            <span class="step__title">地平座標（高度と方位）への変換</span></div>
+          <div class="formula">sin h = sinφ·sinδ + cosφ·cosδ·cosH<br>A = atan2( sinH·cosδ , cosH·sinφ·cosδ − sinδ·cosφ ) + 180°</div>
+          <div class="calc" id="c4">—</div>
+          <div class="result" id="r4">—</div>
+          <div class="desc">最後に、地球という球体の上で『あなたがいる場所の傾き（緯度）』と『星の傾き（赤緯）』、そしてステップ3で求めた『星のズレ（時角）』を組み合わせます。球面三角法の定理を使うと、星が地平線から何度高いか（高度）、北から何度の方角にあるか（方位）が導き出されます。</div>
+          <div class="note-acad">※atan2 は南を 0° として方位角を返すため、+180° して<b>北を 0°（北基準・東回り）</b>に変換しています。天球モデルの「上=北」と一致します。<br>※式は tanδ ではなく cosδ を分子・分母に掛けた等価形を用いており、δ = ±90°（天の極）でも発散しません。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- 右：天球モデル可視化 ---- -->
+    <div class="col">
+      <div class="card">
+        <h2>計算結果</h2>
+        <div class="final">
+          <div class="box"><div class="lbl">高度 h · Altitude</div><div class="val" id="fAlt">—</div></div>
+          <div class="box"><div class="lbl">方位角 A · Azimuth</div><div class="val" id="fAz">—</div></div>
+        </div>
+        <div style="text-align:center;margin-top:var(--space-md);">
+          <span id="visTag" class="visible-tag above">—</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>天球モデル（全天図）</h2>
+        <div class="sky">
+          <canvas id="skyCanvas" width="440" height="440"></canvas>
+        </div>
+        <div class="hint" style="text-align:center;">
+          円の中心＝<b>天頂</b>、円周＝<b>地平線</b>。上=北 / 右=東 / 下=南 / 左=西。
+          <b>★</b> が計算された天体の位置です。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Ft5 Statement Footer ===== -->
+  <footer class="footer-statement">
+    <p class="footer-statement__text">赤道座標から地平座標へ。数式の羅列を、頭上に広がる星空へと翻訳する。</p>
+    <div class="footer-statement__meta">
+      <span>Algorithm: Meeus (1991) · Spherical Trigonometry</span>
+      <span>Refraction: Saemundsson (1986) · Theme: Bloom</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+/* ================= ユーティリティ ================= */
+const D2R = Math.PI/180, R2D = 180/Math.PI;
+const norm360 = x => ((x % 360) + 360) % 360;
+const $ = id => document.getElementById(id);
+
+/* ---- ユリウス日（Meeus）：1・2月は前年13・14月として前処理 ---- */
+function toJulian(Y, M, D, UTh){
+  if(M <= 2){ Y -= 1; M += 12; }          // 1・2月 → 前年13・14月
+  const A = Math.floor(Y/100);
+  const B = 2 - A + Math.floor(A/4);       // グレゴリオ暦補正項
+  const dayFrac = D + UTh/24;
+  return Math.floor(365.25*(Y+4716)) + Math.floor(30.6001*(M+1))
+    + dayFrac + B - 1524.5;
+}
+/* ---- 大気差（Saemundsson 1986） ---- */
+function refraction(hDeg){
+  if(hDeg < -1) return 0;
+  const R = 1.02 / Math.tan((hDeg + 10.3/(hDeg + 5.11)) * D2R);
+  return R / 60;
+}
+
+/* ================= メイン計算 ================= */
+function compute(){
+  const lon = parseFloat($('lon').value);
+  const lat = parseFloat($('lat').value);
+  const raH = parseFloat($('ra').value);
+  const dec = parseFloat($('dec').value);
+  const useRef = $('refract').checked;
+  const jstVal = $('jst').value;
+  if(!jstVal || isNaN(lon)||isNaN(lat)||isNaN(raH)||isNaN(dec)) return;
+
+  const jd = new Date(jstVal);
+  const utDate = new Date(jd.getTime() - 9*3600*1000);
+  const Y = utDate.getUTCFullYear();
+  const M = utDate.getUTCMonth()+1;
+  const D = utDate.getUTCDate();
+  const UTh = utDate.getUTCHours() + utDate.getUTCMinutes()/60 + utDate.getUTCSeconds()/3600;
+
+  /* Step1: ユリウス日 */
+  const JD = toJulian(Y, M, D, UTh);
+  $('c1').innerHTML = `UT = ${Y}/${M}/${D} ${UTh.toFixed(4)}h （JST−9h）`;
+  $('r1').innerHTML = `→ JD = ${JD.toFixed(6)}`;
+
+  /* Step2: 恒星時（T の定義と mod360 正規化） */
+  const T = (JD - 2451545.0)/36525;
+  let gmst = 280.46061837 + 360.98564736629*(JD-2451545.0)
+           + 0.000387933*T*T - (T*T*T)/38710000;
+  gmst = norm360(gmst);                     // 0〜360° へ正規化
+  const lst = norm360(gmst + lon);          // 東経を正で加算
+  $('c2').innerHTML = `T = ${T.toFixed(8)} , θ_G = ${gmst.toFixed(4)}° ＋ λ(${lon.toFixed(3)}°)`;
+  $('r2').innerHTML = `→ θ = ${lst.toFixed(4)}° （${(lst/15).toFixed(4)}h）`;
+
+  /* Step3: 時角 */
+  const raDeg = raH * 15;
+  let H = norm360(lst - raDeg);
+  let Hdisp = H > 180 ? H - 360 : H;
+  $('c3').innerHTML = `H = θ(${lst.toFixed(3)}°) − α(${raDeg.toFixed(3)}° = ${raH}h)`;
+  $('r3').innerHTML = `→ H = ${Hdisp.toFixed(4)}° （${(Hdisp/15).toFixed(4)}h）`;
+
+  /* Step4: 地平座標（cosδを掛けた等価形で極発散を回避） */
+  const phi = lat*D2R, del = dec*D2R, Hr = H*D2R;
+  const sinAlt = Math.sin(phi)*Math.sin(del) + Math.cos(phi)*Math.cos(del)*Math.cos(Hr);
+  let altGeo = Math.asin(Math.max(-1,Math.min(1,sinAlt)))*R2D;
+  // A = atan2(sinH·cosδ, cosH·sinφ·cosδ − sinδ·cosφ) : tanδ発散なし
+  let az = Math.atan2(
+              Math.sin(Hr)*Math.cos(del),
+              Math.cos(Hr)*Math.sin(phi)*Math.cos(del) - Math.sin(del)*Math.cos(phi)
+           )*R2D;
+  az = norm360(az + 180);                   // 南基準 → 北基準
+
+  let alt = altGeo;
+  if(useRef) alt = altGeo + refraction(altGeo);
+
+  $('c4').innerHTML =
+    `sin h = sin(${lat}°)sin(${dec}°) + cos(${lat}°)cos(${dec}°)cos(${Hdisp.toFixed(2)}°)`
+    + (useRef ? `<br>大気差補正: +${(alt-altGeo).toFixed(4)}°` : '');
+  $('r4').innerHTML = `→ h = ${alt.toFixed(4)}° ,  A = ${az.toFixed(4)}°`;
+
+  $('fAlt').textContent = alt.toFixed(2)+'°';
+  $('fAz').textContent  = az.toFixed(2)+'°';
+  const tag = $('visTag');
+  if(alt >= 0){ tag.className='visible-tag above'; tag.textContent='☀ 地平線上（観測可能）'; }
+  else{ tag.className='visible-tag below'; tag.textContent='🌑 地平線下（観測不可）'; }
+
+  drawSky(alt, az);
+}
+
+/* ================= 全天図の描画 ================= */
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function drawSky(alt, az){
+  const cv = $('skyCanvas'), ctx = cv.getContext('2d');
+  const W = cv.width, C = W/2, R = C-6;
+  ctx.clearRect(0,0,W,W);
+
+  const paper  = css('--color-paper');
+  const paper3 = css('--color-paper-3');
+  const rule   = css('--color-rule');
+  const muted  = css('--color-muted');
+  const accent = css('--color-accent');
+
+  const grad = ctx.createRadialGradient(C,C,R*0.1, C,C,R);
+  grad.addColorStop(0, paper3);
+  grad.addColorStop(1, paper);
+  ctx.beginPath(); ctx.arc(C,C,R,0,2*Math.PI);
+  ctx.fillStyle=grad; ctx.fill();
+  ctx.strokeStyle=rule; ctx.lineWidth=2; ctx.stroke();
+
+  ctx.strokeStyle=rule; ctx.lineWidth=1;
+  [30,60].forEach(a=>{
+    const rr = R*(1 - a/90);
+    ctx.beginPath(); ctx.arc(C,C,rr,0,2*Math.PI); ctx.stroke();
+  });
+  ctx.beginPath(); ctx.moveTo(C,6); ctx.lineTo(C,W-6);
+  ctx.moveTo(6,C); ctx.lineTo(W-6,C); ctx.stroke();
+
+  ctx.fillStyle=muted; ctx.font='13px Geist Mono, monospace'; ctx.textAlign='center';
+  ctx.fillText('N 北', C, 18);
+  ctx.fillText('S 南', C, W-6);
+  ctx.textAlign='left';  ctx.fillText('E 東', W-30, C+4);
+  ctx.textAlign='right'; ctx.fillText('W 西', 30, C+4);
+
+  if(alt >= -1){
+    const r = R*(1 - Math.max(0,alt)/90);
+    const ang = az*D2R;
+    const x = C + r*Math.sin(ang);
+    const y = C - r*Math.cos(ang);
+    ctx.beginPath(); ctx.arc(x,y,12,0,2*Math.PI);
+    ctx.fillStyle = alt>=0 ? 'oklch(75% 0.15 45 / 0.25)' : 'oklch(58% 0.01 260 / 0.2)';
+    ctx.fill();
+    ctx.fillStyle = alt>=0 ? accent : muted;
+    ctx.font='22px Geist, sans-serif'; ctx.textAlign='center';
+    ctx.fillText('★', x, y+8);
+  }
+  ctx.fillStyle=accent; ctx.beginPath(); ctx.arc(C,C,3,0,2*Math.PI); ctx.fill();
+  ctx.fillStyle=muted; ctx.font='11px Geist Mono, monospace'; ctx.textAlign='center';
+  ctx.fillText('天頂', C, C-8);
+}
+
+/* ================= 地図（MapLibre GL JS） ================= */
+const map = new maplibregl.Map({
+  container:'map',
+  style:{
+    version:8,
+    sources:{ osm:{ type:'raster',
+      tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tileSize:256, attribution:'© OpenStreetMap contributors' } },
+    layers:[{id:'osm',type:'raster',source:'osm'}]
+  },
+  center:[135.230,34.100], zoom:5
+});
+let marker = new maplibregl.Marker({color:'#f0a060'})
+  .setLngLat([135.230,34.100]).addTo(map);
+
+map.on('click', e=>{
+  const {lng,lat} = e.lngLat;
+  $('lon').value = lng.toFixed(3);
+  $('lat').value = lat.toFixed(3);
+  marker.setLngLat([lng,lat]);
+  compute();
+});
+function syncMarkerFromInput(){
+  const lo=parseFloat($('lon').value), la=parseFloat($('lat').value);
+  if(!isNaN(lo)&&!isNaN(la)){ marker.setLngLat([lo,la]); map.setCenter([lo,la]); }
+}
+
+/* ================= イベント ================= */
+['lon','lat','ra','dec','jst','refract'].forEach(id=>{
+  $(id).addEventListener('input', ()=>{ if(id==='lon'||id==='lat') syncMarkerFromInput(); compute(); });
+});
+$('nowBtn').addEventListener('click', ()=>{ setNow(); compute(); });
+document.querySelectorAll('.preset button[data-lat]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    $('lat').value=b.dataset.lat; $('lon').value=b.dataset.lon;
+    syncMarkerFromInput(); compute();
+  });
+});
+document.querySelectorAll('.preset button[data-ra]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    $('ra').value=b.dataset.ra; $('dec').value=b.dataset.dec; compute();
+  });
+});
+
+/* ================= 初期化 ================= */
+function setNow(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  $('jst').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`
+    +`T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+setNow();
+compute();
+</script>
+</body>
+</html>
