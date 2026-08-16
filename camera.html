@@ -1,0 +1,1214 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>天体写真の裏側 〜見えないノイズを取り除く画像処理〜 | Virtual Astronomical Museum</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      /* Layout specific styles for Camera Lab */
+      .starfield {
+        position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.15;
+        background-image: radial-gradient(1px 1px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 60% 70%, #cfe0ff, transparent), radial-gradient(1px 1px at 80% 20%, #fff, transparent), radial-gradient(2px 2px at 40% 80%, #fff, transparent), radial-gradient(1px 1px at 90% 60%, #dde, transparent), radial-gradient(1px 1px at 10% 90%, #fff, transparent);
+      }
+      .container { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 var(--space-lg); padding-bottom: var(--space-4xl); }
+
+      /* Header */
+      header { text-align: center; padding: var(--space-4xl) 0 var(--space-2xl); }
+      header h1 { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 600; margin-bottom: var(--space-md); color: var(--color-ink); letter-spacing: -0.03em;}
+      header p { color: var(--color-muted); font-size: var(--text-md); max-width: 700px; margin: 0 auto; }
+      
+      section { padding: var(--space-2xl) 0; }
+      .text-center { text-align: center; }
+
+      /* 比較スライダー */
+      .compare { position: relative; width: 100%; max-width: 640px; margin: 0 auto; aspect-ratio: 4/3; border-radius: 12px; overflow: hidden; border: 1px solid var(--color-rule); cursor: ew-resize; user-select: none; box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6); }
+      .compare canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+      .compare .clip-wrap { position: absolute; inset: 0; overflow: hidden; width: 50%; }
+      .compare .clip-wrap canvas { width: 640px; height: 480px; }
+      .compare .label { position: absolute; top: 12px; padding: 4px 12px; border-radius: 20px; font-size: var(--text-sm); font-family: var(--font-outlier); background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
+      .label-left { left: 12px; color: oklch(75% 0.15 45); } /* Reddish */
+      .label-right { right: 12px; color: oklch(80% 0.15 150); } /* Greenish */
+      .compare .handle { position: absolute; top: 0; bottom: 0; width: 3px; left: 50%; background: var(--color-accent); transform: translateX(-50%); }
+      .compare .handle::after { content: "↔"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: var(--color-accent); color: var(--color-paper); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 700; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); }
+
+      /* フレーム図鑑 */
+      .frame-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-lg); }
+      .frame-card { text-align: center; }
+      .frame-card canvas { width: 100%; aspect-ratio: 4/3; border-radius: 8px; border: 1px solid var(--color-rule); background: #000; }
+      .frame-card h3 { margin: 14px 0 6px; font-size: var(--text-md); display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--color-ink); }
+      .frame-card .desc { font-size: var(--text-sm); color: var(--color-muted); text-align: left; margin-top: 8px; }
+      .frame-card .desc b { color: var(--color-accent); }
+
+      /* 数式 */
+      .formula { text-align: center; font-size: var(--text-lg); margin: var(--space-lg) 0; color: var(--color-muted); display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; font-family: var(--font-outlier); }
+      .frac { display: inline-flex; flex-direction: column; align-items: center; }
+      .frac .top { border-bottom: 2px solid var(--color-muted); padding: 0 10px 4px; }
+      .frac .bot { padding: 4px 10px 0; }
+      .formula-note { text-align: center; font-size: var(--text-sm); color: var(--color-muted); margin-bottom: var(--space-xl); }
+      .formula-note b { color: var(--color-accent); }
+
+      /* ステップタブ */
+      .steps { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+      .step-tab { flex: 1; min-width: 150px; padding: 12px 14px; border-radius: 12px; cursor: pointer; background: var(--color-paper-3); border: 1px solid var(--color-rule); transition: all 0.2s; font-size: var(--text-sm); }
+      .step-tab.active { border-color: var(--color-accent); background: oklch(75% 0.15 45 / 0.1); }
+      .step-tab.done { border-color: oklch(80% 0.15 150); }
+      .step-tab .st-no { font-weight: 700; color: var(--color-accent); font-family: var(--font-outlier); }
+      .step-tab.done .st-no { color: oklch(80% 0.15 150); }
+      .step-tab .st-desc { color: var(--color-muted); font-size: var(--text-xs); margin-top: 4px; }
+
+      /* ラボレイアウト */
+      .lab-layout { display: grid; grid-template-columns: 1fr; gap: 24px; }
+      @media (min-width: 820px) { .lab-layout { grid-template-columns: 1.1fr 1fr; } }
+      .sub-card { background: var(--color-paper-3); padding: 16px; border-radius: 12px; border: 1px solid var(--color-rule); }
+      .sub-card p { font-size: var(--text-sm); }
+      .op { color: var(--color-accent); }
+      .muted-note { color: var(--color-muted); font-size: var(--text-xs); }
+
+      /* プレビュー */
+      .preview-box { text-align: center; }
+      .preview-box canvas { width: 100%; max-width: 420px; aspect-ratio: 4/3; border-radius: 12px; border: 1px solid var(--color-rule); background: #000; box-shadow: 0 6px 30px rgba(0, 0, 0, 0.5); }
+      .preview-status { margin-top: 12px; font-size: var(--text-sm); min-height: 22px; color: var(--color-accent); font-weight: 600; font-family: var(--font-outlier); }
+
+      /* ヒストグラム・統計 */
+      .histo-box { margin-top: 18px; }
+      .histo-box canvas { width: 100%; max-width: 420px; height: 130px; border-radius: 8px; border: 1px solid var(--color-rule); background: var(--color-paper-3); }
+      .stat-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
+      .stat-chip { background: transparent; }
+      .stat-chip .lbl { color: var(--color-muted); font-size: var(--text-xs); display: block; margin-bottom: 4px;}
+      .stat-chip .val { font-size: var(--text-lg); font-weight: 700; color: var(--color-accent); }
+      .stat-chip.measured .val { color: oklch(80% 0.15 150); }
+      .stat-chip.theory .val { color: oklch(85% 0.15 80); }
+
+      /* スタックUI */
+      .stack-area { margin-bottom: 20px; }
+      .stack-title { font-size: var(--text-sm); color: var(--color-muted); margin-bottom: 10px; font-family: var(--font-outlier); }
+      .thumb-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+      .thumb { width: 46px; height: 35px; border-radius: 6px; border: 1px solid var(--color-rule); background: #000; opacity: 0; transform: scale(0.7); transition: all 0.25s; }
+      .thumb.show { opacity: 1; transform: scale(1); }
+      .stack-controls { display: flex; align-items: center; gap: 10px; margin: 14px 0; flex-wrap: wrap; }
+      .stack-controls input[type="range"] { flex: 1; min-width: 140px; }
+
+      /* ボタン群のレイアウト */
+      .btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+
+      /* ノイズ可視化グラフ */
+      .noise-graphs { margin-top: 28px; }
+      .graph-block { margin-top: 20px; }
+      .graph-block h4 { font-size: var(--text-md); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; color: var(--color-ink); }
+      .graph-block p.gdesc { font-size: var(--text-sm); color: var(--color-muted); margin-bottom: 10px; }
+      .graph-block canvas { width: 100%; border-radius: 8px; border: 1px solid var(--color-rule); background: var(--color-paper-3); }
+      #barCanvas { height: 200px; }
+      #lineCanvas { height: 180px; }
+      .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; font-size: var(--text-sm); color: var(--color-muted); }
+      .legend span { display: inline-flex; align-items: center; gap: 5px; }
+      .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+      /* 平均 vs 中央値 */
+      .median-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 20px; }
+      .median-cell { text-align: center; }
+      .median-cell canvas { width: 100%; aspect-ratio: 4/3; border-radius: 8px; border: 1px solid var(--color-rule); background: #000; }
+      .median-cell h4 { margin-top: 10px; font-size: var(--text-md); color: var(--color-ink); }
+      .median-cell .tag { font-size: var(--text-xs); padding: 2px 10px; border-radius: 8px; display: inline-block; margin-top: 4px; }
+      .tag-mean { background: oklch(50% 0.15 45 / 0.15); color: oklch(75% 0.15 45); border: 1px solid oklch(75% 0.15 45); }
+      .tag-med { background: oklch(50% 0.15 150 / 0.15); color: oklch(80% 0.15 150); border: 1px solid oklch(80% 0.15 150); }
+      .toggle-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+      .toggle-row .label-txt { font-size: var(--text-sm); color: var(--color-muted); }
+      .seg { display: inline-flex; border: 1px solid var(--color-rule); border-radius: 20px; overflow: hidden; }
+      .seg button { border-radius: 0; margin: 0; background: transparent; color: var(--color-muted); }
+      .seg button.active { background: var(--color-accent); color: var(--color-paper); }
+
+      /* 結び・参考文献 */
+      .conclusion { color: var(--color-muted); font-size: var(--text-md); margin-top: var(--space-xl); }
+      .conclusion b { color: var(--color-ink); }
+      .refs { font-size: var(--text-sm); color: var(--color-muted); font-family: var(--font-outlier); margin-top: var(--space-lg); }
+      .refs li { margin-bottom: 14px; list-style: none; padding-left: 18px; position: relative; }
+      .refs li::before { content: "▹"; position: absolute; left: 0; color: var(--color-accent); }
+      .refs cite { color: var(--color-ink); font-style: italic; }
+    </style>
+  </head>
+  <body>
+    <div class="starfield"></div>
+    <div class="page-container">
+
+      <!-- Nav: N5 Floating Pill -->
+      <nav class="nav-pill" aria-label="Main Navigation">
+        <div class="nav-pill__wordmark">Astronomy Museum</div>
+        <div class="nav-pill__actions">
+          <a href="index.html" class="nav-pill__btn">Back to Exhibits</a>
+        </div>
+      </nav>
+
+      <header>
+        <h1>天体写真の裏側</h1>
+        <p>
+          〜 見えないノイズを取り除く画像処理 〜<br />
+          美しい星空の写真は「撮って出し」ではなく、複数枚を重ねてノイズを減らし、不要なシグナルを数学的に取り除いた<b>科学的なデータ処理</b>の賜物です。
+        </p>
+      </header>
+
+      <section id="intro">
+        <div class="section-title"><span class="section-num">1</span>見えないノイズの存在</div>
+        <p class="section-lead">スライダーを動かして、熱によるノイズや四隅が暗くなる周辺減光（レンズの影）だらけの「生データ」と、キャリブレーション（補正処理）済みの「完成画像」を比べてみましょう。</p>
+        <div class="compare" id="compare">
+          <canvas id="cmpFinal" width="640" height="480"></canvas>
+          <div class="clip-wrap" id="clipWrap"><canvas id="cmpRaw" width="640" height="480"></canvas></div>
+          <span class="label label-left">生データ（Light）</span>
+          <span class="label label-right">完成画像</span>
+          <div class="handle" id="handle"></div>
+        </div>
+      </section>
+
+      <section id="anatomy">
+        <div class="section-title"><span class="section-num">2</span>ノイズの解剖学</div>
+        <p class="section-lead">天体撮影で避けられない4種類のフレーム。これらを複数枚ずつ撮影して重ね合わせ、精度の高い「マスターフレーム」を作ります。</p>
+        <div class="frame-grid">
+          <div class="frame-card card">
+            <canvas id="fLight" width="200" height="150"></canvas>
+            <h3>ライトフレーム <span class="chip">Light</span></h3>
+            <p class="desc">天体そのものを撮影した<b>生データ</b>。目的のシグナルに加え、すべてのノイズが含まれています。</p>
+          </div>
+          <div class="frame-card card">
+            <canvas id="fDark" width="200" height="150"></canvas>
+            <h3>ダークフレーム <span class="chip">Dark</span></h3>
+            <p class="desc"><b>正体:</b> センサーの熱による暗電流ノイズ（カメラの熱によるザラつき）。<br /><b>取得:</b> 蓋をして遮光し、ライトと同じ温度・露出時間で撮影。</p>
+          </div>
+          <div class="frame-card card">
+            <canvas id="fBias" width="200" height="150"></canvas>
+            <h3>バイアスフレーム <span class="chip">Bias</span></h3>
+            <p class="desc"><b>正体:</b> 読み出しノイズと基準電圧のオフセット。<br /><b>取得:</b> 遮光し、最短露出（例 1/4000秒）で撮影。</p>
+          </div>
+          <div class="frame-card card">
+            <canvas id="fFlat" width="200" height="150"></canvas>
+            <h3>フラットフレーム <span class="chip">Flat</span></h3>
+            <p class="desc"><b>正体:</b> 周辺減光（レンズの影）やゴミによる影のムラ。<br /><b>取得:</b> 均一な光源を撮影。※フラットにも暗電流が乗るため<b>フラット用ダーク</b>で補正します。</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="lab">
+        <div class="section-title"><span class="section-num">3</span>インタラクティブラボ</div>
+        <p class="section-lead">実際の天体画像処理は「①複数枚を重ねてマスターを作る」→「②マスター同士で減算・除算する」の2段階です。順に体験しましょう。各段階でノイズがどう変化するかをグラフでも確認できます。</p>
+
+        <div class="formula">
+          <span>I<sub>calibrated</sub></span
+          ><span>=</span>
+          <span class="frac">
+            <span class="top">Master<sub>Light</sub> − Master<sub>Dark</sub></span>
+            <span class="bot">Master<sub>Flat</sub> − Master<sub>DarkFlat</sub></span>
+          </span>
+        </div>
+        <p class="formula-note">※フラットにも暗電流とバイアスが含まれるため、分母では<b>フラット専用ダーク</b>を減算します。なお、ダークフレームを引くことでそこに含まれるバイアス成分も同時に除去されます。各マスターは N 枚の平均。</p>
+
+        <div class="card">
+          <div class="steps" id="steps">
+            <div class="step-tab active" data-step="0">
+              <span class="st-no">STEP 1</span> 複数枚をスタック
+              <div class="st-desc">同種フレームを平均してマスター作成</div>
+            </div>
+            <div class="step-tab" data-step="1">
+              <span class="st-no">STEP 2</span> 減算
+              <div class="st-desc">Light − Dark、Flat − DarkFlat</div>
+            </div>
+            <div class="step-tab" data-step="2">
+              <span class="st-no">STEP 3</span> 除算
+              <div class="st-desc">周辺減光を補正して完成</div>
+            </div>
+          </div>
+
+          <div class="lab-layout">
+            <div>
+              <div id="panel-stack">
+                <div class="stack-area">
+                  <p class="stack-title">▼ 重ねる枚数 N を選ぶと、ランダムノイズが 1/√N に減っていきます</p>
+                  <div class="stack-controls">
+                    <span>N =</span>
+                    <input type="range" id="nStack" min="1" max="16" value="1" step="1" />
+                    <span class="n-badge" id="nBadge">1 枚</span>
+                  </div>
+                  <div class="thumb-row" id="thumbRow"></div>
+                </div>
+
+                <div class="histo-box">
+                  <p class="stack-title">▼ 背景領域のピクセル分布（ヒストグラム）と標準偏差 σ</p>
+                  <canvas id="histo" width="420" height="130"></canvas>
+                  <div class="stat-row">
+                    <div class="stat-chip measured"><span class="lbl">実測ノイズ σ</span><span class="val" id="statSigma">–</span></div>
+                    <div class="stat-chip theory"><span class="lbl">理論値 σ₁/√N</span><span class="val" id="statTheory">–</span></div>
+                    <div class="stat-chip"><span class="lbl">1枚時からの低減率</span><span class="val" id="statRatio">–</span></div>
+                  </div>
+                </div>
+
+                <p class="hint">💡 多数枚を平均するとランダムノイズが打ち消し合い、ヒストグラムの山が<b>細く鋭く</b>なって σ が <b>1/√N</b> に近づきます。</p>
+                <div class="btn-row">
+                  <button class="btn-primary" id="toStep2" disabled>マスター確定 → 減算へ ▶</button>
+                </div>
+              </div>
+
+              <div id="panel-sub" style="display: none">
+                <p class="stack-title">▼ マスター同士を減算します</p>
+                <div class="card sub-card">
+                  <p>分子： Master<sub>Light</sub> <span class="op">−</span> Master<sub>Dark</sub> <span class="muted-note">（天体の光＋ノイズ − ノイズ）</span></p>
+                  <p style="margin-top: 8px">分母： Master<sub>Flat</sub> <span class="op">−</span> Master<sub>DarkFlat</sub> <span class="muted-note">（影のムラ＋ノイズ − ノイズ）</span></p>
+                </div>
+                <p class="hint">💡 <b>Light − Dark</b> で赤いホットピクセルと暗電流が消えます。下の内訳グラフで、暗電流・ホットピクセル成分が激減する様子を確認しましょう。</p>
+                <div class="btn-row">
+                  <button class="btn-primary" id="doSub">減算を実行 ▶</button>
+                  <button class="btn-outline" id="backStep1">◀ 戻る</button>
+                </div>
+              </div>
+
+              <div id="panel-div" style="display: none">
+                <p class="stack-title">▼ 減算済み分子を、減算済み分母で割ります</p>
+                <div class="card sub-card">
+                  <p class="text-center">(Light−Dark) <span class="op">÷</span> (Flat−DarkFlat)</p>
+                </div>
+                <p class="hint">💡 除算により四隅の暗い影（<b>周辺減光</b>）が持ち上がります。下のラインプロファイルで、両端が沈んだ曲線が<b>平坦</b>になる様子を確認しましょう。</p>
+                <div class="btn-row">
+                  <button class="btn-primary" id="doDiv">除算を実行 ▶</button>
+                  <button class="btn-outline" id="resetAll">最初からやり直す</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="preview-box">
+              <canvas id="preview" width="320" height="240"></canvas>
+              <p class="preview-status" id="status">STEP1：重ねる枚数を選んでください（現在 1 枚）</p>
+            </div>
+          </div>
+
+          <div class="noise-graphs">
+            <div class="graph-block">
+              <h4>📊 各段階のノイズ成分の内訳</h4>
+              <p class="gdesc">生データ → 減算後 → 除算後（完成）で、各ノイズ成分の大きさがどう変化するかを積み上げ棒グラフで表示します。「減算を実行」「除算を実行」を押すと該当バーが現れます。</p>
+              <canvas id="barCanvas" width="820" height="200"></canvas>
+              <div class="legend">
+                <span><i style="background: #ff6b6b"></i>暗電流ノイズ</span>
+                <span><i style="background: #ffd27f"></i>読み出しノイズ</span>
+                <span><i style="background: #d0bcff"></i>ホットピクセル</span>
+                <span><i style="background: #7ee0a0"></i>周辺減光ムラ</span>
+              </div>
+            </div>
+
+            <div class="graph-block">
+              <h4>📈 水平ラインプロファイル（画像中央の明るさ）</h4>
+              <p class="gdesc">画像中央を横切る1ラインの明るさを左端→右端でプロット。周辺減光のため生データは両端が沈んだ「谷型」ですが、除算後は平坦になります。</p>
+              <canvas id="lineCanvas" width="820" height="180"></canvas>
+              <div class="legend">
+                <span><i style="background: #ff6b6b"></i>生データ（Light）</span>
+                <span><i style="background: #ffd27f"></i>減算後（Light−Dark）</span>
+                <span><i style="background: #7ee0a0"></i>除算後（完成）</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="median">
+        <div class="section-title"><span class="section-num">4</span>平均 vs 中央値（メディアン）</div>
+        <p class="section-lead">複数枚を重ねる「スタック」には計算方法が2種類あります。<b>人工衛星や飛行機の光跡</b>が写り込んだとき、その違いが決定的になります。トグルで光跡の有無を切り替えて比べてみましょう。</p>
+
+        <div class="card">
+          <div class="toggle-row">
+            <span class="label-txt">光跡（人工衛星・飛行機）：</span>
+            <div class="seg" id="trailSeg">
+              <button data-trail="on" class="active">あり</button>
+              <button data-trail="off">なし</button>
+            </div>
+            <span class="label-txt" style="margin-left: 12px">重ねる枚数：</span>
+            <div class="seg" id="medNSeg">
+              <button data-n="4">4枚</button>
+              <button data-n="8" class="active">8枚</button>
+              <button data-n="16">16枚</button>
+            </div>
+          </div>
+
+          <div class="median-compare">
+            <div class="median-cell">
+              <canvas id="meanCanvas" width="320" height="240"></canvas>
+              <h4>平均スタック（Mean）</h4>
+              <span class="tag tag-mean" id="meanTag">光跡が薄く残る</span>
+            </div>
+            <div class="median-cell">
+              <canvas id="medCanvas" width="320" height="240"></canvas>
+              <h4>中央値スタック（Median）</h4>
+              <span class="tag tag-med">光跡が消える（ノイズは少し残る）</span>
+            </div>
+          </div>
+
+          <p class="hint">💡 <b>平均</b>はたまにしか写らない光跡でも「薄く」残ります。一方<b>中央値</b>は各ピクセルで「真ん中の値」を採用するため、少数枚だけに現れる光跡は<b>外れ値として自動的に除外</b>されます。ただし、全体的なノイズをなめらかに減らす効果は「平均」の方が少しだけ優れており、目的によって使い分けるのがプロの技です。</p>
+        </div>
+      </section>
+
+      <section id="conclusion">
+        <div class="section-title"><span class="section-num">5</span>結び：天体写真は「観測データ」である</div>
+        <div class="card conclusion">
+          <p>天体写真は単なる「撮影結果」ではありません。まず<b>同種フレームを複数枚重ねて（スタック）</b>ランダムノイズを 1/√N に低減し、精度の高いマスターフレームを作ります。その際、光跡の有無に応じて<b>平均か中央値かを使い分けます</b>。次に<b>減算と除算</b>で、暗電流・読み出しノイズ・周辺減光といった系統誤差を取り除きます。</p>
+          <p style="margin-top: 14px">この一連の処理を<b>キャリブレーション（較正）</b>と呼びます。較正を経た画像は、天体の明るさを正確に測定できる<b>定量的な観測データ</b>となり、変光星の光度測定や小惑星の検出など、プロの天文学と同じ土俵に立つのです。</p>
+        </div>
+      </section>
+
+      <section id="refs">
+        <div class="section-title"><span class="section-num" style="font-size: 0.8rem">📖</span>参考文献</div>
+        <ul class="refs">
+          <li>
+            Howell, S. B. (2006). <cite>Handbook of CCD Astronomy</cite> (2nd ed.). Cambridge University Press.<br />
+            ─ CCD/CMOSにおける暗電流・読み出しノイズ・フラットフィールド補正の数学的定式化の基準として。また、平均結合と中央値結合のS/N比のトレードオフ（正規ノイズ下で中央値の標準誤差は平均の約√(π/2)≒1.25倍）についての根拠として。
+          </li>
+          <li>
+            Berry, R., &amp; Burnell, J. (2005). <cite>The Handbook of Astronomical Image Processing</cite>. Willmann-Bell.<br />
+            ─ マスターフレーム作成やスタッキング（平均・中央値・シグマクリッピング）を含む標準的なキャリブレーション手順として。
+          </li>
+        </ul>
+      </section>
+    </div>
+    
+    <!-- Footer: Ft5 Statement -->
+    <footer class="footer-statement">
+      <div class="footer-statement__text">
+        The instrument is dark. The output is yours.
+      </div>
+      <div class="footer-statement__meta">
+        <span>Web展示「天体写真の裏側」 デモ実装 / 画像はデモ用に生成した擬似データです</span>
+        <span>© 2026. All rights reserved.</span>
+      </div>
+    </footer>
+
+    <script>
+      "use strict";
+
+      /* ============================================================
+         定数・共通ユーティリティ
+         ============================================================ */
+      const W = 320;
+      const H = 240;
+      const SIZE = W * H;
+
+      const PARAMS = {
+        biasBase: 18,
+        darkCurrent: 8,
+        darkFlatCurrent: 2,
+        noiseAmp: 22,
+      };
+
+      const SEED = { light: 1000, dark: 2000, flat: 3000, darkFlat: 4000, trail: 5000 };
+
+      const COLOR = {
+        error: "#ff6b6b",
+        warn: "#ffd27f",
+        purple: "#d0bcff",
+        success: "#7ee0a0",
+        axis: "rgba(58,70,94,0.8)",
+        text: "#a8b3c7",
+      };
+
+      function makeRng(seed) {
+        let s = seed >>> 0;
+        return () => {
+          s = (s * 1664525 + 1013904223) >>> 0;
+          return s / 4294967296;
+        };
+      }
+
+      const $ = (id) => document.getElementById(id);
+      const clamp01 = (v) => Math.min(1, Math.max(0, v));
+
+      /* ============================================================
+         擬似データ生成
+         ============================================================ */
+      const hotPixels = (() => {
+        const r = makeRng(777);
+        const a = [];
+        for (let i = 0; i < 120; i++) a.push({ x: (r() * W) | 0, y: (r() * H) | 0, v: 80 + r() * 175 });
+        return a;
+      })();
+
+      const stars = (() => {
+        const r = makeRng(42);
+        const a = [];
+        for (let i = 0; i < 90; i++) a.push({ x: r() * W, y: r() * H, mag: 0.3 + r() * 0.7, size: 0.6 + r() * 2.2 });
+        return a;
+      })();
+
+      function vignette(x, y) {
+        const dx = (x - W / 2) / (W / 2);
+        const dy = (y - H / 2) / (H / 2);
+        const d = Math.sqrt(dx * dx + dy * dy);
+        return Math.max(0.45, 1 - 0.55 * d * d);
+      }
+
+      function nebula(x, y) {
+        const cx = W * 0.55;
+        const cy = H * 0.45;
+        const dx = (x - cx) / (W * 0.35);
+        const dy = (y - cy) / (H * 0.35);
+        const d = dx * dx + dy * dy;
+        return 55 * Math.exp(-d) + 22 * Math.exp(-((x - W * 0.3) ** 2 + (y - H * 0.6) ** 2) / 6000);
+      }
+
+      function flatIllum(x, y) {
+        let v = 200 * vignette(x, y);
+        const gx = x - W * 0.7;
+        const gy = y - H * 0.3;
+        const gd = Math.sqrt(gx * gx + gy * gy);
+        if (gd < 14 && gd > 7) v *= 0.7;
+        return v;
+      }
+
+      function applyHotPixels(a) {
+        for (const hp of hotPixels) {
+          const idx = hp.y * W + hp.x;
+          if (idx >= 0 && idx < SIZE) a[idx] += hp.v;
+        }
+      }
+
+      function addSignal(a) {
+        for (let y = 0; y < H; y++) {
+          for (let x = 0; x < W; x++) {
+            a[y * W + x] += (nebula(x, y) + 6) * vignette(x, y);
+          }
+        }
+        for (const s of stars) {
+          const sx = s.x | 0;
+          const sy = s.y | 0;
+          for (let dy = -3; dy <= 3; dy++) {
+            for (let dx = -3; dx <= 3; dx++) {
+              const x = sx + dx;
+              const y = sy + dy;
+              if (x < 0 || y < 0 || x >= W || y >= H) continue;
+              const g = Math.exp(-(dx * dx + dy * dy) / (2 * s.size * s.size));
+              a[y * W + x] += 220 * s.mag * g * vignette(x, y);
+            }
+          }
+        }
+      }
+
+      /* ============================================================
+         各種フレーム生成
+         ============================================================ */
+      function frameLight(seed) {
+        const r = makeRng(seed);
+        const a = new Float32Array(SIZE);
+        for (let i = 0; i < SIZE; i++) a[i] = PARAMS.biasBase + PARAMS.darkCurrent + (r() - 0.5) * PARAMS.noiseAmp;
+        applyHotPixels(a);
+        addSignal(a);
+        return a;
+      }
+
+      function frameDark(seed) {
+        const r = makeRng(seed);
+        const a = new Float32Array(SIZE);
+        for (let i = 0; i < SIZE; i++) a[i] = PARAMS.biasBase + PARAMS.darkCurrent + (r() - 0.5) * PARAMS.noiseAmp;
+        applyHotPixels(a);
+        return a;
+      }
+
+      function frameBias(seed) {
+        const r = makeRng(seed);
+        const a = new Float32Array(SIZE);
+        for (let i = 0; i < SIZE; i++) a[i] = PARAMS.biasBase + (r() - 0.5) * 16;
+        return a;
+      }
+
+      function frameFlat(seed) {
+        const r = makeRng(seed);
+        const a = new Float32Array(SIZE);
+        for (let y = 0; y < H; y++) {
+          for (let x = 0; x < W; x++) {
+            const i = y * W + x;
+            a[i] = flatIllum(x, y) + PARAMS.biasBase + PARAMS.darkFlatCurrent + (r() - 0.5) * 18;
+          }
+        }
+        return a;
+      }
+
+      function frameDarkFlat(seed) {
+        const r = makeRng(seed);
+        const a = new Float32Array(SIZE);
+        for (let i = 0; i < SIZE; i++) a[i] = PARAMS.biasBase + PARAMS.darkFlatCurrent + (r() - 0.5) * 18;
+        return a;
+      }
+
+      function frameLightWithTrail(seed, trailOn) {
+        const a = frameLight(seed);
+        if (trailOn) {
+          const r = makeRng(seed * 13 + 7);
+          const y0 = r() * H;
+          const angle = (r() - 0.5) * 0.6;
+          for (let x = 0; x < W; x++) {
+            const y = Math.round(y0 + Math.tan(angle) * (x - W / 2));
+            for (let t = -1; t <= 1; t++) {
+              const yy = y + t;
+              if (yy < 0 || yy >= H) continue;
+              a[yy * W + x] += 260;
+            }
+          }
+        }
+        return a;
+      }
+
+      /* ============================================================
+         スタック処理
+         ============================================================ */
+      function meanStack(genFn, N) {
+        const acc = new Float32Array(SIZE);
+        for (let k = 0; k < N; k++) {
+          const f = genFn(k);
+          for (let i = 0; i < SIZE; i++) acc[i] += f[i];
+        }
+        for (let i = 0; i < SIZE; i++) acc[i] /= N;
+        return acc;
+      }
+
+      function stackMaster(genFn, N, seedBase) {
+        return meanStack((k) => genFn(seedBase + k * 97 + 1), N);
+      }
+
+      function meanStackTrail(N, trailOn) {
+        return meanStack((k) => frameLightWithTrail(SEED.trail + k * 131 + 1, trailOn), N);
+      }
+
+      function medianStackTrail(N, trailOn) {
+        const frames = [];
+        for (let k = 0; k < N; k++) frames.push(frameLightWithTrail(SEED.trail + k * 131 + 1, trailOn));
+        const out = new Float32Array(SIZE);
+        const buf = new Float32Array(N);
+        for (let i = 0; i < SIZE; i++) {
+          for (let k = 0; k < N; k++) buf[k] = frames[k][i];
+          buf.sort();
+          out[i] = N % 2 ? buf[(N - 1) >> 1] : (buf[N / 2 - 1] + buf[N / 2]) / 2;
+        }
+        return out;
+      }
+
+      /* ============================================================
+         キャリブレーション演算
+         ============================================================ */
+      function calibrate(mLight, mDark, mFlat, mDarkFlat) {
+        const numerator = new Float32Array(SIZE);
+        const denominator = new Float32Array(SIZE);
+        for (let i = 0; i < SIZE; i++) {
+          numerator[i] = mLight[i] - mDark[i];
+          denominator[i] = mFlat[i] - mDarkFlat[i];
+        }
+        let dm = 0;
+        for (let i = 0; i < SIZE; i++) dm += denominator[i];
+        dm /= SIZE;
+        const finalImg = new Float32Array(SIZE);
+        for (let i = 0; i < SIZE; i++) {
+          const d = denominator[i] / dm;
+          finalImg[i] = numerator[i] / (d || 1e-6);
+        }
+        return { numerator, denominator, finalImg };
+      }
+
+      /* ============================================================
+         描画
+         ============================================================ */
+      function renderImage(canvas, arr, opts = {}) {
+        const { tint = null, final = false } = opts;
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width;
+        const h = canvas.height;
+        const img = ctx.createImageData(w, h);
+
+        let mn = Infinity;
+        let mx = -Infinity;
+        for (let i = 0; i < arr.length; i++) {
+          if (arr[i] < mn) mn = arr[i];
+          if (arr[i] > mx) mx = arr[i];
+        }
+        const range = mx - mn || 1;
+
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const sx = ((x * W) / w) | 0;
+            const sy = ((y * H) / h) | 0;
+            const v = Math.pow(clamp01((arr[sy * W + sx] - mn) / range), 0.7);
+            const g = v * 255;
+            const di = (y * w + x) * 4;
+            if (final) {
+              img.data[di] = Math.min(255, g * 1.05 + 12);
+              img.data[di + 1] = Math.min(255, g * 0.95);
+              img.data[di + 2] = Math.min(255, g * 1.1 + 20);
+            } else if (tint) {
+              img.data[di] = Math.round(g * tint[0]);
+              img.data[di + 1] = Math.round(g * tint[1]);
+              img.data[di + 2] = Math.round(g * tint[2]);
+            } else {
+              const gi = Math.round(g);
+              img.data[di] = gi;
+              img.data[di + 1] = gi;
+              img.data[di + 2] = gi;
+            }
+            img.data[di + 3] = 255;
+          }
+        }
+        ctx.putImageData(img, 0, 0);
+      }
+      const drawFloat = (canvas, arr, tint) => renderImage(canvas, arr, { tint });
+      const drawFinal = (canvas, arr) => renderImage(canvas, arr, { final: true });
+
+      /* ============================================================
+         背景統計・ヒストグラム
+         ============================================================ */
+      const REGION = { x0: 8, y0: 8, x1: 90, y1: 90 };
+
+      function regionStats(arr) {
+        let sum = 0;
+        let n = 0;
+        const vals = [];
+        for (let y = REGION.y0; y < REGION.y1; y++) {
+          for (let x = REGION.x0; x < REGION.x1; x++) {
+            const v = arr[y * W + x];
+            sum += v;
+            n++;
+            vals.push(v);
+          }
+        }
+        const mean = sum / n;
+        let sq = 0;
+        for (const v of vals) sq += (v - mean) * (v - mean);
+        return { mean, sigma: Math.sqrt(sq / n), vals };
+      }
+
+      function drawHisto(canvas, vals, mean, sigma) {
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        const halfRange = Math.max(6, state.sigma0 * 3.2);
+        const lo = mean - halfRange;
+        const hi = mean + halfRange;
+        const BINS = 60;
+        const bins = new Float32Array(BINS);
+        for (const v of vals) {
+          const t = (v - lo) / (hi - lo);
+          if (t < 0 || t >= 1) continue;
+          bins[(t * BINS) | 0]++;
+        }
+        let bmax = 1;
+        for (const b of bins) if (b > bmax) bmax = b;
+
+        const pad = 6;
+        const binW = (w - pad * 2) / BINS;
+        ctx.fillStyle = "rgba(168,199,250,0.75)";
+        for (let i = 0; i < BINS; i++) {
+          const bh = (bins[i] / bmax) * (h - pad * 2);
+          const bx = pad + i * binW;
+          ctx.fillRect(bx, h - pad - bh, binW - 1, bh);
+        }
+
+        const mx = pad + ((mean - lo) / (hi - lo)) * (w - pad * 2);
+        ctx.strokeStyle = COLOR.success;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(mx, pad);
+        ctx.lineTo(mx, h - pad);
+        ctx.stroke();
+
+        ctx.strokeStyle = "rgba(255,210,127,0.9)";
+        ctx.setLineDash([4, 3]);
+        ctx.lineWidth = 1;
+        for (const sv of [mean - sigma, mean + sigma]) {
+          const sx = pad + ((sv - lo) / (hi - lo)) * (w - pad * 2);
+          ctx.beginPath();
+          ctx.moveTo(sx, pad);
+          ctx.lineTo(sx, h - pad);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+      }
+
+      /* ============================================================
+         ノイズ成分の指標抽出
+         ============================================================ */
+      function metricDarkCurrent(arr) {
+        return Math.max(0, regionStats(arr).mean - PARAMS.biasBase);
+      }
+      function metricReadNoise(arr) {
+        return regionStats(arr).sigma;
+      }
+      function metricHotPixel(arr) {
+        const base = regionStats(arr).mean;
+        let sum = 0;
+        let c = 0;
+        for (const hp of hotPixels) {
+          const idx = hp.y * W + hp.x;
+          if (idx < 0 || idx >= SIZE) continue;
+          const ex = arr[idx] - base;
+          if (ex > 0) {
+            sum += ex;
+            c++;
+          }
+        }
+        return c ? sum / c : 0;
+      }
+      function metricVignette(arr) {
+        const center = arr[((H / 2) | 0) * W + ((W / 2) | 0)];
+        const corner = (arr[10 * W + 10] + arr[10 * W + (W - 10)] + arr[(H - 10) * W + 10] + arr[(H - 10) * W + (W - 10)]) / 4;
+        return Math.max(0, center - corner);
+      }
+
+      function computeStageMetrics(arr, isFinal) {
+        return {
+          dark: metricDarkCurrent(arr),
+          read: metricReadNoise(arr),
+          hot: metricHotPixel(arr),
+          vig: isFinal ? 0 : metricVignette(arr),
+        };
+      }
+
+      /* ============================================================
+         グラフ
+         ============================================================ */
+      const BAR_COMPS = [
+        { k: "dark", color: COLOR.error },
+        { k: "read", color: COLOR.warn },
+        { k: "hot", color: COLOR.purple },
+        { k: "vig", color: COLOR.success },
+      ];
+
+      function drawBarChart() {
+        const cv = $("barCanvas");
+        const ctx = cv.getContext("2d");
+        const w = cv.width;
+        const h = cv.height;
+        ctx.clearRect(0, 0, w, h);
+
+        const stages = [
+          { label: "生データ", data: state.stageMetrics.raw },
+          { label: "減算後", data: state.stageMetrics.sub },
+          { label: "除算後(完成)", data: state.stageMetrics.div },
+        ];
+
+        let maxTotal = 1;
+        for (const s of stages) {
+          if (!s.data) continue;
+          let t = 0;
+          for (const c of BAR_COMPS) t += s.data[c.k];
+          if (t > maxTotal) maxTotal = t;
+        }
+
+        const padL = 40;
+        const padB = 28;
+        const padT = 14;
+        const plotH = h - padB - padT;
+        const groupW = (w - padL - 20) / stages.length;
+
+        ctx.strokeStyle = COLOR.axis;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT);
+        ctx.lineTo(padL, h - padB);
+        ctx.lineTo(w - 8, h - padB);
+        ctx.stroke();
+
+        ctx.fillStyle = COLOR.text;
+        ctx.font = "11px sans-serif";
+        ctx.fillText("大", padL - 26, padT + 10);
+        ctx.fillText("小", padL - 26, h - padB);
+
+        stages.forEach((s, si) => {
+          const cx = padL + groupW * si + groupW * 0.5;
+          const barW = Math.min(70, groupW * 0.5);
+          ctx.fillStyle = COLOR.text;
+          ctx.textAlign = "center";
+          ctx.fillText(s.label, cx, h - padB + 16);
+
+          if (!s.data) {
+            ctx.strokeStyle = "rgba(168,179,199,0.4)";
+            ctx.setLineDash([4, 4]);
+            ctx.strokeRect(cx - barW / 2, padT, barW, plotH);
+            ctx.setLineDash([]);
+            ctx.fillStyle = "rgba(168,179,199,0.6)";
+            ctx.fillText("未実行", cx, padT + plotH / 2);
+            return;
+          }
+
+          let yCur = h - padB;
+          for (const c of BAR_COMPS) {
+            const bh = (s.data[c.k] / maxTotal) * plotH;
+            ctx.fillStyle = c.color;
+            ctx.fillRect(cx - barW / 2, yCur - bh, barW, bh);
+            yCur -= bh;
+          }
+        });
+        ctx.textAlign = "left";
+      }
+
+      function extractLine(arr) {
+        const y = (H / 2) | 0;
+        const out = new Float32Array(W);
+        for (let x = 0; x < W; x++) out[x] = arr[y * W + x];
+        return out;
+      }
+
+      function smoothLine(line, k = 3) {
+        if (!line) return null;
+        const out = new Float32Array(W);
+        for (let x = 0; x < W; x++) {
+          let s = 0;
+          let c = 0;
+          for (let d = -k; d <= k; d++) {
+            const xx = x + d;
+            if (xx < 0 || xx >= W) continue;
+            s += line[xx];
+            c++;
+          }
+          out[x] = s / c;
+        }
+        return out;
+      }
+
+      function drawLineChart() {
+        const cv = $("lineCanvas");
+        const ctx = cv.getContext("2d");
+        const w = cv.width;
+        const h = cv.height;
+        ctx.clearRect(0, 0, w, h);
+
+        const padL = 36;
+        const padB = 22;
+        const padT = 12;
+        const padR = 10;
+        const plotW = w - padL - padR;
+        const plotH = h - padB - padT;
+
+        ctx.strokeStyle = COLOR.axis;
+        ctx.beginPath();
+        ctx.moveTo(padL, padT);
+        ctx.lineTo(padL, h - padB);
+        ctx.lineTo(w - padR, h - padB);
+        ctx.stroke();
+
+        ctx.fillStyle = COLOR.text;
+        ctx.font = "11px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("左端", padL + 10, h - padB + 15);
+        ctx.fillText("中央", padL + plotW / 2, h - padB + 15);
+        ctx.fillText("右端", w - padR - 10, h - padB + 15);
+        ctx.save();
+        ctx.translate(12, h / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText("明るさ", 0, 0);
+        ctx.restore();
+
+        const plot = (line, color) => {
+          if (!line) return;
+          let mn = Infinity;
+          let mx = -Infinity;
+          for (const v of line) {
+            if (v < mn) mn = v;
+            if (v > mx) mx = v;
+          }
+          const range = mx - mn || 1;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          for (let x = 0; x < W; x++) {
+            const px = padL + (x / (W - 1)) * plotW;
+            const py = h - padB - ((line[x] - mn) / range) * plotH;
+            if (x === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+        };
+
+        plot(smoothLine(state.lineData.raw), COLOR.error);
+        plot(smoothLine(state.lineData.sub), COLOR.warn);
+        plot(smoothLine(state.lineData.div), COLOR.success);
+      }
+
+      /* ============================================================
+         状態管理
+         ============================================================ */
+      const state = {
+        N: 1,
+        sigma0: null,
+        masters: { light: null, dark: null, flat: null, darkFlat: null },
+        calib: { numerator: null, denominator: null, finalImg: null },
+        stageMetrics: { raw: null, sub: null, div: null },
+        lineData: { raw: null, sub: null, div: null },
+        median: { trail: true, n: 8 },
+      };
+
+      function buildMasters(n) {
+        state.masters.light = stackMaster(frameLight, n, SEED.light);
+        state.masters.dark = stackMaster(frameDark, n, SEED.dark);
+        state.masters.flat = stackMaster(frameFlat, n, SEED.flat);
+        state.masters.darkFlat = stackMaster(frameDarkFlat, n, SEED.darkFlat);
+      }
+
+      function computeCalibration() {
+        const { light, dark, flat, darkFlat } = state.masters;
+        state.calib = calibrate(light, dark, flat, darkFlat);
+      }
+
+      /* ============================================================
+         DOM 参照
+         ============================================================ */
+      const els = {
+        preview: $("preview"),
+        status: $("status"),
+        nStack: $("nStack"),
+        nBadge: $("nBadge"),
+        thumbRow: $("thumbRow"),
+        histo: $("histo"),
+        statSigma: $("statSigma"),
+        statTheory: $("statTheory"),
+        statRatio: $("statRatio"),
+        toStep2: $("toStep2"),
+        cmpRaw: $("cmpRaw"),
+        cmpFinal: $("cmpFinal"),
+        meanCanvas: $("meanCanvas"),
+        medCanvas: $("medCanvas"),
+        meanTag: $("meanTag"),
+      };
+      const stepTabs = document.querySelectorAll(".step-tab");
+      const panels = { 0: $("panel-stack"), 1: $("panel-sub"), 2: $("panel-div") };
+
+      function setStatus(text, color = "var(--md-primary)") {
+        els.status.style.color = color;
+        els.status.textContent = text;
+      }
+
+      /* ============================================================
+         サムネイル
+         ============================================================ */
+      const thumbs = [];
+      for (let i = 0; i < 16; i++) {
+        const c = document.createElement("canvas");
+        c.width = 46;
+        c.height = 35;
+        c.className = "thumb";
+        els.thumbRow.appendChild(c);
+        thumbs.push(c);
+      }
+
+      function renderThumbs(n) {
+        thumbs.forEach((c, i) => {
+          if (i < n) {
+            c.classList.add("show");
+            drawFloat(c, frameLight(SEED.light + i * 97 + 1));
+          } else {
+            c.classList.remove("show");
+          }
+        });
+      }
+
+      /* ============================================================
+         ステップ切替
+         ============================================================ */
+      function showStep(step) {
+        stepTabs.forEach((t) => t.classList.toggle("active", +t.dataset.step === step));
+        Object.entries(panels).forEach(([k, el]) => {
+          el.style.display = +k === step ? "block" : "none";
+        });
+      }
+
+      function markDone(step) {
+        stepTabs.forEach((t) => {
+          if (+t.dataset.step === step) t.classList.add("done");
+        });
+      }
+
+      /* ============================================================
+         ヒストグラム統計更新
+         ============================================================ */
+      function updateHistoStats() {
+        const st = regionStats(state.masters.light);
+        if (state.sigma0 === null) state.sigma0 = st.sigma;
+        drawHisto(els.histo, st.vals, st.mean, st.sigma);
+        const theory = state.sigma0 / Math.sqrt(state.N);
+        els.statSigma.textContent = st.sigma.toFixed(2);
+        els.statTheory.textContent = theory.toFixed(2);
+        els.statRatio.textContent = "×" + (st.sigma / state.sigma0).toFixed(2);
+      }
+
+      function refreshRawGraphs() {
+        state.stageMetrics.raw = computeStageMetrics(state.masters.light, false);
+        state.stageMetrics.sub = null;
+        state.stageMetrics.div = null;
+        state.lineData.raw = extractLine(state.masters.light);
+        state.lineData.sub = null;
+        state.lineData.div = null;
+        drawBarChart();
+        drawLineChart();
+      }
+
+      /* ============================================================
+         初期描画：導入・解剖学
+         ============================================================ */
+      function initStaticSections() {
+        drawFloat(els.cmpRaw, frameLight(1));
+
+        const m = 8;
+        const { finalImg } = calibrate(stackMaster(frameLight, m, SEED.light), stackMaster(frameDark, m, SEED.dark), stackMaster(frameFlat, m, SEED.flat), stackMaster(frameDarkFlat, m, SEED.darkFlat));
+        drawFinal(els.cmpFinal, finalImg);
+
+        drawFloat($("fLight"), frameLight(1));
+        drawFloat($("fDark"), frameDark(1), [1.0, 0.5, 0.5]);
+        drawFloat($("fBias"), frameBias(1), [0.6, 0.75, 1.0]);
+        drawFloat($("fFlat"), frameFlat(1), [0.6, 1.0, 0.7]);
+      }
+
+      /* ============================================================
+         比較スライダー
+         ============================================================ */
+      function initCompareSlider() {
+        const box = $("compare");
+        const clip = $("clipWrap");
+        const handle = $("handle");
+        let dragging = false;
+
+        const set = (cx) => {
+          const r = box.getBoundingClientRect();
+          const p = clamp01((cx - r.left) / r.width);
+          clip.style.width = p * 100 + "%";
+          handle.style.left = p * 100 + "%";
+        };
+
+        box.addEventListener("mousedown", (e) => {
+          dragging = true;
+          set(e.clientX);
+        });
+        window.addEventListener("mousemove", (e) => {
+          if (dragging) set(e.clientX);
+        });
+        window.addEventListener("mouseup", () => (dragging = false));
+
+        box.addEventListener(
+          "touchstart",
+          (e) => {
+            dragging = true;
+            set(e.touches[0].clientX);
+          },
+          { passive: true },
+        );
+        box.addEventListener(
+          "touchmove",
+          (e) => {
+            if (dragging) set(e.touches[0].clientX);
+          },
+          { passive: true },
+        );
+        window.addEventListener("touchend", () => (dragging = false));
+      }
+
+      /* ============================================================
+         ラボUI
+         ============================================================ */
+      function initLab() {
+        buildMasters(1);
+        drawFloat(els.preview, state.masters.light);
+        renderThumbs(1);
+        updateHistoStats();
+        refreshRawGraphs();
+
+        els.nStack.addEventListener("input", () => {
+          state.N = +els.nStack.value;
+          els.nBadge.textContent = state.N + " 枚";
+          buildMasters(state.N);
+          drawFloat(els.preview, state.masters.light);
+          renderThumbs(state.N);
+          updateHistoStats();
+          refreshRawGraphs();
+          setStatus("STEP1：" + state.N + " 枚を平均 → ランダムノイズ約 " + (1 / Math.sqrt(state.N)).toFixed(2) + " 倍に減少");
+          els.toStep2.disabled = state.N < 2;
+        });
+
+        els.toStep2.addEventListener("click", () => {
+          markDone(0);
+          showStep(1);
+          setStatus("STEP2：マスターが完成しました（" + state.N + "枚平均）。減算を実行しましょう");
+        });
+
+        $("backStep1").addEventListener("click", () => {
+          showStep(0);
+          drawFloat(els.preview, state.masters.light);
+        });
+
+        $("doSub").addEventListener("click", () => {
+          computeCalibration();
+          const { numerator } = state.calib;
+          drawFloat(els.preview, numerator);
+          state.stageMetrics.sub = computeStageMetrics(numerator, false);
+          state.lineData.sub = extractLine(numerator);
+          drawBarChart();
+          drawLineChart();
+          markDone(1);
+          showStep(2);
+          setStatus("✓ 減算完了：暗電流とホットピクセルが激減（下のグラフ参照）→ 次は除算", "var(--md-success)");
+        });
+
+        $("doDiv").addEventListener("click", () => {
+          const { finalImg } = state.calib;
+          drawFinal(els.preview, finalImg);
+          state.stageMetrics.div = computeStageMetrics(finalImg, true);
+          state.lineData.div = extractLine(finalImg);
+          drawBarChart();
+          drawLineChart();
+          markDone(2);
+          setStatus("✓ 完成！ 周辺減光が平坦化（ラインプロファイル参照）", "var(--md-success)");
+        });
+
+        $("resetAll").addEventListener("click", () => {
+          state.N = 1;
+          els.nStack.value = 1;
+          els.nBadge.textContent = "1 枚";
+          stepTabs.forEach((t) => t.classList.remove("done"));
+          els.toStep2.disabled = true;
+          buildMasters(1);
+          renderThumbs(1);
+          drawFloat(els.preview, state.masters.light);
+          updateHistoStats();
+          refreshRawGraphs();
+          showStep(0);
+          setStatus("STEP1：重ねる枚数を選んでください（現在 1 枚）");
+        });
+      }
+
+      /* ============================================================
+         平均 vs 中央値
+         ============================================================ */
+      function renderMedian() {
+        const { n, trail } = state.median;
+        drawFloat(els.meanCanvas, meanStackTrail(n, trail));
+        drawFloat(els.medCanvas, medianStackTrail(n, trail));
+        els.meanTag.textContent = trail ? "光跡が薄く残る" : "光跡なし・低ノイズ";
+      }
+
+      function initSegment(containerId, onSelect) {
+        const buttons = document.querySelectorAll("#" + containerId + " button");
+        buttons.forEach((b) => {
+          b.addEventListener("click", () => {
+            buttons.forEach((x) => x.classList.remove("active"));
+            b.classList.add("active");
+            onSelect(b);
+          });
+        });
+      }
+
+      function initMedian() {
+        renderMedian();
+        initSegment("trailSeg", (b) => {
+          state.median.trail = b.dataset.trail === "on";
+          renderMedian();
+        });
+        initSegment("medNSeg", (b) => {
+          state.median.n = +b.dataset.n;
+          renderMedian();
+        });
+      }
+
+      /* ============================================================
+         起動
+         ============================================================ */
+      initStaticSections();
+      initCompareSlider();
+      initLab();
+      initMedian();
+    </script>
+  </body>
+</html>
