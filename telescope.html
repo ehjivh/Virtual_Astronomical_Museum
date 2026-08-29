@@ -1,0 +1,1529 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>光の軌跡から探る望遠鏡の仕組み | Web展示</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* ===== 展示個別レイアウト（styles.css のトークンを継承） ===== */
+      .exhibit-section {
+        margin-bottom: var(--space-4xl);
+        scroll-margin-top: 88px;
+      }
+      .sim-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+        gap: var(--space-xl);
+        align-items: start;
+      }
+      .stage {
+        background: var(--color-paper-2);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        padding: var(--space-md);
+        position: relative;
+        overflow: hidden;
+      }
+      .stage canvas {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 8px;
+        background: var(--color-paper);
+        touch-action: none;
+        cursor: grab;
+      }
+      .stage canvas:active {
+        cursor: grabbing;
+      }
+      .stage__caption {
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-top: var(--space-sm);
+      }
+      .panel {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+      }
+      .viewfinder {
+        background: var(--color-paper-2);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        padding: var(--space-md);
+      }
+      .viewfinder h3 {
+        font-size: var(--text-base);
+        margin-bottom: var(--space-sm);
+      }
+      .viewfinder canvas {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 8px;
+        background: #000;
+      }
+      .ctrl {
+        background: var(--color-paper-2);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        padding: var(--space-lg);
+      }
+      .ctrl__row {
+        margin-bottom: var(--space-lg);
+      }
+      .ctrl__row:last-child {
+        margin-bottom: 0;
+      }
+      .ctrl__label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: var(--space-sm);
+        font-size: var(--text-sm);
+        font-weight: 600;
+        margin-bottom: var(--space-xs);
+      }
+      .ctrl__val {
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-accent);
+      }
+      input[type="range"] {
+        width: 100%;
+      }
+      .seg {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+      }
+      .switch {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+        cursor: pointer;
+      }
+      .readout {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 4px var(--space-sm);
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-muted);
+      }
+      .readout b {
+        color: var(--color-ink);
+        font-weight: 400;
+      }
+      .refs {
+        margin-top: var(--space-xl);
+        background: var(--color-paper-2);
+        border: 1px solid var(--color-rule);
+        border-left: 3px solid var(--color-accent);
+        border-radius: 8px;
+        padding: var(--space-lg);
+      }
+      .refs h4 {
+        font-size: var(--text-base);
+        margin-bottom: var(--space-sm);
+      }
+      .refs ul {
+        margin: 0;
+        padding-left: 1.2em;
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+      }
+      .refs li {
+        margin-bottom: 6px;
+      }
+      .refs a {
+        color: var(--color-accent);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      .misconception {
+        margin-top: var(--space-md);
+      }
+      @media (max-width: 900px) {
+        .sim-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ===== N5 Floating Pill Nav ===== -->
+    <nav class="nav-pill">
+      <span class="nav-pill__wordmark">Optics&nbsp;Trail</span>
+      <div class="nav-pill__actions">
+        <a class="nav-pill__btn" href="#sec1">直進</a>
+        <a class="nav-pill__btn" href="#sec15">重ね</a>
+        <a class="nav-pill__btn" href="#sec2">屈折</a>
+        <a class="nav-pill__btn" href="#sec3">反射</a>
+      </div>
+    </nav>
+
+    <div class="page-container">
+      <!-- ===== Header ===== -->
+      <header class="portfolio-header">
+        <p class="portfolio-header__tagline">Interactive Optics Exhibition</p>
+        <h1 class="portfolio-header__title">光の軌跡から探る<br />望遠鏡の仕組み</h1>
+        <p class="section-lead" style="margin: 0 auto">光はまっすぐ進む。その単純な性質だけを頼りに、ピンホール → レンズ → 屈折望遠鏡 → 反射望遠鏡へと、 人類が「遠くを、明るく、鮮明に」見るために積み上げてきた工夫を、光線を自分の手で動かしながら辿ります。</p>
+      </header>
+
+      <!-- ===== 概要グリッド（18-portfolio-grid） ===== -->
+      <div class="portfolio-grid">
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Section 01 / Pinhole</p>
+            <h2 class="exhibit-card__title">ピンホールと光の直進</h2>
+            <p class="exhibit-card__desc">穴の大きさと数を変え、「明るさ」と「鮮明さ」が両立しない理由を体感します。</p>
+            <a class="exhibit-card__link" href="#sec1">シミュレータへ</a>
+          </div>
+        </article>
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Section 01.5 / Superposition</p>
+            <h2 class="exhibit-card__title">穴を増やし、レンズで重ねる</h2>
+            <p class="exhibit-card__desc">多数の穴が作るバラバラの像が、レンズ1枚で1つに収束する瞬間を観察します。</p>
+            <a class="exhibit-card__link" href="#sec15">シミュレータへ</a>
+          </div>
+        </article>
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Section 02 / Refraction</p>
+            <h2 class="exhibit-card__title">レンズの導入と屈折望遠鏡</h2>
+            <p class="exhibit-card__desc">プリズムの連続体としてレンズを理解し、ケプラー式望遠鏡を組み立てます。</p>
+            <a class="exhibit-card__link" href="#sec2">シミュレータへ</a>
+          </div>
+        </article>
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Section 03 / Reflection</p>
+            <h2 class="exhibit-card__title">反射望遠鏡と多様な光学系</h2>
+            <p class="exhibit-card__desc">ニュートン式・カセグレン式の光路を比較し、大口径化の鍵を探ります。</p>
+            <a class="exhibit-card__link" href="#sec3">シミュレータへ</a>
+          </div>
+        </article>
+      </div>
+
+      <!-- =========================================================
+       SECTION 1 : ピンホールと光の直進
+       ========================================================= -->
+      <section class="exhibit-section" id="sec1">
+        <h2 class="section-title"><span class="section-num">1</span>ピンホールと光の直進</h2>
+        <p class="section-lead">光源の各点から放たれた光は、四方八方へ「まっすぐ」進みます。板に小さな穴を開けると、 その点を通る細い光線だけがスクリーンに届き、上下左右が反転した<b>倒立像</b>が現れます。 レンズもフィルムも要らない、最も原始的なカメラです。</p>
+
+        <div class="sim-layout">
+          <div class="stage">
+            <canvas id="cv1" width="900" height="480" aria-label="ピンホールカメラの光路シミュレーション"></canvas>
+            <p class="stage__caption">Drag: 穴あき板を左右に移動 / 左端付近を上下ドラッグで光源を移動</p>
+          </div>
+
+          <div class="panel">
+            <div class="viewfinder">
+              <h3>像シミュレーションビュー</h3>
+              <canvas id="vf1" width="360" height="230" aria-label="スクリーン上の像"></canvas>
+              <div class="readout" style="margin-top: var(--space-sm)"><span>相対光量</span><b id="r1a">–</b> <span>ボケ半径</span><b id="r1b">–</b> <span>像の数</span><b id="r1c">–</b></div>
+            </div>
+
+            <div class="ctrl">
+              <div class="ctrl__row">
+                <div class="ctrl__label"><span>穴の直径</span><span class="ctrl__val" id="v1a">1.0 mm</span></div>
+                <input type="range" id="s1a" min="0.4" max="16" step="0.2" value="1.0" />
+              </div>
+              <div class="ctrl__row">
+                <div class="ctrl__label"><span>穴の数</span><span class="ctrl__val" id="v1b">1 個</span></div>
+                <input type="range" id="s1b" min="1" max="5" step="1" value="1" />
+              </div>
+              <div class="ctrl__row">
+                <div class="ctrl__label"><span>板からスクリーンまで</span><span class="ctrl__val" id="v1c">300 mm</span></div>
+                <input type="range" id="s1c" min="120" max="520" step="10" value="300" />
+              </div>
+              <div class="ctrl__row seg">
+                <button class="btn btn-outline" id="b1ray">光線を間引く</button>
+                <button class="btn btn-outline" id="b1reset">初期化</button>
+              </div>
+            </div>
+
+            <div class="hint"><b>観察</b>：穴を大きくすると像は明るくなりますが、物体の1点から出た光が スクリーン上で「穴の大きさの円」に広がるため輪郭が溶けます。穴を増やすと、 穴の数だけ像がズレて重なります。<b>明るさと鮮明さは、穴だけでは両立しません。</b></div>
+          </div>
+        </div>
+
+        <div class="refs">
+          <h4>学術的背景・参考文献</h4>
+          <ul>
+            <li>ピンホールからレンズへの概念的飛躍については、理科教育学分野で「凸レンズの結像」に関する誤概念研究が蓄積されています（例：作図用の3本の光線だけが実際に通っていると考える形式的理解に起因する誤り）。</li>
+            <li>公開天文台や科学館の光学展示の実践報告（<a href="https://www.koukaitenmondai.jp/" target="_blank" rel="noopener">日本公開天文台協会（JAPOS）</a> 等）も、展示設計の参考になります。</li>
+          </ul>
+          <div class="hint misconception"><b>よくある誤概念</b>：「レンズの上半分を隠すと、像の上半分（または下半分）が欠ける」 → 実際には<b>像は欠けず、暗くなるだけ</b>です。物体の1点から出た光はレンズ面全体に広がって入射し、 その<b>どの部分を通った光線も同じ一点</b>に集まるためです。セクション2の「レンズ上半分を遮蔽」で確認できます。</div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+       SECTION 1.5 : 多数のピンホール + レンズで像が重なる
+       ========================================================= -->
+      <section class="exhibit-section" id="sec15">
+        <h2 class="section-title"><span class="section-num">1.5</span>穴を増やし、レンズで重ねる</h2>
+        <p class="section-lead">たくさん穴を開ければ光は増えます。しかし像は<b>穴の数だけバラバラの位置</b>にできてしまう。 では、そのズレた光線を「曲げて」1か所に集めたらどうなるか—— スライダーを右へ動かして、<b>レンズを挿入</b>してみてください。 光の量はそのままに、散らばっていた像が<b>ぴたりと一つに重なります</b>。</p>
+
+        <div class="sim-layout">
+          <div class="stage">
+            <canvas id="cv15" width="900" height="480" aria-label="多数のピンホールとレンズによる像の重ね合わせ"></canvas>
+            <p class="stage__caption">Drag: 穴あき板／レンズを左右に移動</p>
+          </div>
+
+          <div class="panel">
+            <div class="viewfinder">
+              <h3>像シミュレーションビュー（比較）</h3>
+              <canvas id="vf15" width="360" height="230" aria-label="レンズなし・ありの像の比較"></canvas>
+              <div class="readout" style="margin-top: var(--space-sm)"><span>穴の総面積（相対光量）</span><b id="r15a">–</b> <span>スクリーン上の像の数</span><b id="r15b">–</b> <span>像のズレ幅</span><b id="r15c">–</b> <span>レンズ挿入率</span><b id="r15d">–</b></div>
+            </div>
+
+            <div class="ctrl">
+              <div class="ctrl__row">
+                <div class="ctrl__label"><span>穴の数</span><span class="ctrl__val" id="v15n">5 個</span></div>
+                <input type="range" id="s15n" min="1" max="9" step="1" value="5" />
+              </div>
+              <div class="ctrl__row">
+                <div class="ctrl__label"><span>穴の間隔</span><span class="ctrl__val" id="v15p">34 px</span></div>
+                <input type="range" id="s15p" min="18" max="52" step="2" value="34" />
+              </div>
+              <div class="ctrl__row">
+                <div class="ctrl__label"><span>レンズを入れる</span><span class="ctrl__val" id="v15l">0 %</span></div>
+                <input type="range" id="s15l" min="0" max="100" step="1" value="0" />
+              </div>
+              <div class="ctrl__row seg">
+                <button class="btn btn-primary" id="b15auto">レンズを入れる（自動）</button>
+                <button class="btn btn-outline" id="b15reset">初期化</button>
+              </div>
+              <div class="ctrl__row seg">
+                <label class="switch"><input type="checkbox" id="c15trace" checked /> 穴ごとに色分け</label>
+                <label class="switch"><input type="checkbox" id="c15ghost" checked /> 元の像の位置を残像表示</label>
+              </div>
+            </div>
+
+            <div class="hint">
+              <b>ここが核心</b>：レンズを入れても<b>入ってくる光の量は変わりません</b>。 変わったのは「どこへ届くか」だけ。バラバラの行き先を1点にそろえた結果、 明るさを保ったまま鮮明な像になりました。<br />
+              つまりレンズは、<b>穴をたくさん開けても像が1つで済むようにする装置</b>です。
+            </div>
+          </div>
+        </div>
+
+        <div class="refs">
+          <h4>解説：なぜ「重なる」のか</h4>
+          <ul>
+            <li>物体の1点から出た光は、レンズ面上のどの位置に入っても<b>同じ1点（共役点）</b>へ向かうように屈折します。これが結像の条件です。</li>
+            <li>ピンホールを増やす行為は、レンズの「入射面を広げる」ことに相当します。レンズがなければ行き先はバラけ、あれば1点に収束します。</li>
+            <li>したがって、<b>レンズの一部を隠しても像は欠けません</b>（残った部分を通る光だけで同じ像ができ、暗くなるだけ）。次のセクション2で実際に遮蔽を試して確認できます。</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- =========================================================
+       SECTION 2 : レンズの導入と屈折望遠鏡
+       ========================================================= -->
+      <section class="exhibit-section" id="sec2">
+        <h2 class="section-title"><span class="section-num">2</span>レンズの導入と屈折望遠鏡</h2>
+        <p class="section-lead">前のセクションで、レンズは「バラけた光の行き先を1点にそろえる装置」だとわかりました。 では、その曲げ方はどう実現されているのか。答えは<b>場所ごとに必要な角度だけ光を曲げるプリズムの集まり</b>です。 これを無限に細かくした極限が<b>凸レンズ</b>。大きな穴の明るさと小さな穴の鮮明さを、同時に手に入れる発明でした。</p>
+
+        <div class="sim-layout">
+          <div class="stage">
+            <canvas id="cv2" width="900" height="480" aria-label="レンズと屈折望遠鏡のシミュレーション"></canvas>
+            <p class="stage__caption">Drag: 対物レンズ／接眼レンズを左右に移動</p>
+          </div>
+
+          <div class="panel">
+            <div class="viewfinder">
+              <h3>像シミュレーションビュー</h3>
+              <canvas id="vf2" width="360" height="230" aria-label="接眼レンズを通した見え方"></canvas>
+              <div class="readout" style="margin-top: var(--space-sm)"><span>相対光量</span><b id="r2a">–</b> <span>合焦誤差</span><b id="r2b">–</b> <span>倍率</span><b id="r2c">–</b></div>
+            </div>
+
+            <div class="ctrl">
+              <div class="ctrl__row">
+                <div class="ctrl__label"><span>表示モード</span></div>
+                <div class="seg">
+                  <button class="btn btn-primary" data-mode2="prism">プリズム→レンズ</button>
+                  <button class="btn btn-outline" data-mode2="lens">凸レンズ結像</button>
+                  <button class="btn btn-outline" data-mode2="tele">ケプラー式望遠鏡</button>
+                </div>
+              </div>
+              <div class="ctrl__row">
+                <div class="ctrl__label"><span>プリズム化 → レンズ化</span><span class="ctrl__val" id="v2m">0 %</span></div>
+                <input type="range" id="s2m" min="0" max="100" step="1" value="0" />
+              </div>
+              <div class="ctrl__row">
+                <div class="ctrl__label"><span>対物レンズ 口径</span><span class="ctrl__val" id="v2a">80 mm</span></div>
+                <input type="range" id="s2a" min="20" max="160" step="2" value="80" />
+              </div>
+              <div class="ctrl__row">
+                <div class="ctrl__label"><span>対物レンズ 焦点距離</span><span class="ctrl__val" id="v2b">300 mm</span></div>
+                <input type="range" id="s2b" min="150" max="480" step="5" value="300" />
+              </div>
+              <div class="ctrl__row">
+                <div class="ctrl__label"><span>接眼レンズ 焦点距離</span><span class="ctrl__val" id="v2c">25 mm</span></div>
+                <input type="range" id="s2c" min="6" max="60" step="1" value="25" />
+              </div>
+              <div class="ctrl__row seg">
+                <label class="switch"><input type="checkbox" id="c2chroma" /> 色収差を表示</label>
+                <label class="switch"><input type="checkbox" id="c2mask" /> レンズ上半分を遮蔽</label>
+              </div>
+            </div>
+
+            <div class="hint"><b>観察</b>：スライダーを右へ動かすと、並んだプリズムの屈折角が滑らかに変化し、 やがて連続した1枚の凸レンズになります。<b>レンズ上半分を遮蔽</b>しても像の形は欠けず、 光量だけが落ちることを確認してください。</div>
+          </div>
+        </div>
+
+        <div class="refs">
+          <h4>学術的背景・参考文献</h4>
+          <ul>
+            <li>ケプラー式望遠鏡の倍率は「対物焦点距離 ÷ 接眼焦点距離」、集光力は口径の2乗に比例します。基礎的な結像理論は光学の標準的教科書（Hecht『Optics』等）を参照。</li>
+            <li>色収差はガラスの屈折率が波長に依存すること（分散）に起因し、アクロマート・アポクロマート設計で低減されます。<a href="https://www.nao.ac.jp/" target="_blank" rel="noopener">国立天文台</a> の解説資料等が概説として有用です。</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- =========================================================
+       SECTION 3 : 反射望遠鏡と多様な光学系
+       ========================================================= -->
+      <section class="exhibit-section" id="sec3">
+        <h2 class="section-title"><span class="section-num">3</span>反射望遠鏡と多様な光学系</h2>
+        <p class="section-lead">屈折望遠鏡は、ガラスによる光の吸収、色収差、そして大口径レンズが自重でたわむという壁に突き当たります。 そこで光を「曲げる」代わりに「跳ね返す」——鏡なら色収差は原理的に生じず、裏面から支えられるため大型化にも耐えます。</p>
+
+        <div class="sim-layout">
+          <div class="stage">
+            <canvas id="cv3" width="900" height="480" aria-label="反射望遠鏡の光路シミュレーション"></canvas>
+            <p class="stage__caption">Drag: 斜鏡／副鏡を光軸方向に移動</p>
+          </div>
+
+          <div class="panel">
+            <div class="viewfinder">
+              <h3>像シミュレーションビュー</h3>
+              <canvas id="vf3" width="360" height="230" aria-label="反射望遠鏡での見え方"></canvas>
+              <div class="readout" style="margin-top: var(--space-sm)"><span>有効集光面積</span><b id="r3a">–</b> <span>合成焦点距離</span><b id="r3b">–</b> <span>鏡筒長</span><b id="r3c">–</b></div>
+            </div>
+
+            <div class="ctrl">
+              <div class="ctrl__row">
+                <div class="ctrl__label"><span>光学系</span></div>
+                <div class="seg">
+                  <button class="btn btn-primary" data-mode3="newton">ニュートン式</button>
+                  <button class="btn btn-outline" data-mode3="casse">カセグレン式</button>
+                </div>
+              </div>
+              <div class="ctrl__row">
+                <div class="ctrl__label"><span>主鏡 口径</span><span class="ctrl__val" id="v3a">400 mm</span></div>
+                <input type="range" id="s3a" min="150" max="600" step="10" value="400" />
+              </div>
+              <div class="ctrl__row">
+                <div class="ctrl__label"><span>主鏡 焦点距離</span><span class="ctrl__val" id="v3b">1600 mm</span></div>
+                <input type="range" id="s3b" min="800" max="2600" step="50" value="1600" />
+              </div>
+              <div class="ctrl__row">
+                <div class="ctrl__label"><span>副鏡の拡大率（カセグレン）</span><span class="ctrl__val" id="v3c">×2.5</span></div>
+                <input type="range" id="s3c" min="1.5" max="5" step="0.1" value="2.5" />
+              </div>
+              <div class="ctrl__row seg">
+                <label class="switch"><input type="checkbox" id="c3rays" checked /> 平行光を表示</label>
+                <label class="switch"><input type="checkbox" id="c3spot" /> 中央遮蔽を強調</label>
+              </div>
+            </div>
+
+            <div class="hint"><b>観察</b>：カセグレン式は凸面副鏡で光を折り返すため、<b>短い鏡筒に長い焦点距離</b>を収められます。 焦点が主鏡の背後にあるので、重い観測装置（分光器・カメラ）を架台の回転中心近くに取り付けやすい構造です。</div>
+          </div>
+        </div>
+
+        <div class="refs">
+          <h4>学術的背景・参考文献（コラム）</h4>
+          <ul>
+            <li>大脇ほか「40cm カセグレン反射望遠鏡の光学系」等の光学設計に関する報告では、主鏡（放物面）と副鏡（双曲面）の組み合わせによる合成焦点距離の設計手順と、収差補正の実際が論じられています。</li>
+            <li>プロの天体観測でカセグレン式が広く採用される理由は、(1) 鏡筒が短く架台への負荷が小さい、(2) 焦点位置が主鏡背後で安定し重量のある観測装置を搭載しやすい、(3) 長焦点により分光・測光に適したスケールが得られる点にあります。</li>
+            <li>国内の公開天文台の望遠鏡仕様は、各施設および <a href="https://www.koukaitenmondai.jp/" target="_blank" rel="noopener">日本公開天文台協会</a> の資料で確認できます。</li>
+          </ul>
+          <div class="hint misconception"><b>補足</b>：副鏡やスパイダー（支持金具）による中央遮蔽は、集光面積をわずかに減らし コントラストを低下させますが、<b>像が欠けることはありません</b>。セクション1.5・2で確認した 「隠しても欠けない」原理と同じです。</div>
+        </div>
+      </section>
+
+      <!-- ===== Ft5 Statement Footer ===== -->
+      <footer class="footer-statement">
+        <p class="footer-statement__text">光はまっすぐ進むだけ。そのまっすぐさをどう束ねるかが、宇宙を見る技術になった。</p>
+        <div class="footer-statement__meta">
+          <span>Web Exhibition / Optics Trail</span>
+          <span>Interactive Ray-Casting Simulation</span>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      /* =========================================================
+   共通ユーティリティ
+   ========================================================= */
+      const ACC = "#ffb185",
+        INK = "#f2f2f4",
+        MUT = "#a9adb8",
+        RUL = "#3a3d47";
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      function setupHiDPI(cv) {
+        const w = cv.width,
+          h = cv.height;
+        cv.style.aspectRatio = w + " / " + h;
+        cv.width = w * dpr;
+        cv.height = h * dpr;
+        const ctx = cv.getContext("2d");
+        ctx.scale(dpr, dpr);
+        cv.logicalW = w;
+        cv.logicalH = h;
+        return ctx;
+      }
+      function clear(ctx, cv) {
+        ctx.clearRect(0, 0, cv.logicalW, cv.logicalH);
+        const g = ctx.createLinearGradient(0, 0, cv.logicalW, cv.logicalH);
+        g.addColorStop(0, "#16181f");
+        g.addColorStop(1, "#1c1e27");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, cv.logicalW, cv.logicalH);
+      }
+      function axis(ctx, cv, y) {
+        ctx.save();
+        ctx.strokeStyle = RUL;
+        ctx.setLineDash([6, 6]);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(cv.logicalW, y);
+        ctx.stroke();
+        ctx.restore();
+      }
+      function label(ctx, x, y, t, col) {
+        ctx.save();
+        ctx.fillStyle = col || MUT;
+        ctx.font = "11px ui-monospace, monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(t, x, y);
+        ctx.restore();
+      }
+      function ray(ctx, pts, col, alpha, w) {
+        ctx.save();
+        ctx.strokeStyle = col;
+        ctx.globalAlpha = alpha ?? 0.55;
+        ctx.lineWidth = w ?? 1;
+        ctx.beginPath();
+        ctx.moveTo(pts[0][0], pts[0][1]);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+        ctx.stroke();
+        ctx.restore();
+      }
+      function screenPlate(ctx, x, y0, y1) {
+        ctx.save();
+        ctx.strokeStyle = MUT;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(x, y0);
+        ctx.lineTo(x, y1);
+        ctx.stroke();
+        ctx.restore();
+      }
+      function pointerX(cv, e) {
+        const r = cv.getBoundingClientRect();
+        return (e.clientX - r.left) * (cv.logicalW / r.width);
+      }
+      function pointerY(cv, e) {
+        const r = cv.getBoundingClientRect();
+        return (e.clientY - r.top) * (cv.logicalH / r.height);
+      }
+      /* 疑似的な「見え方」レンダラ：物体（矢印＋星）を blur / 多重 / 色ズレ / 輝度で描く */
+      function renderView(cv, ctx, opt) {
+        const W = cv.logicalW,
+          H = cv.logicalH;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, W, H);
+        const copies = opt.copies || [[0, 0]];
+        const blur = opt.blur || 0,
+          bri = Math.max(0, Math.min(1.6, opt.brightness ?? 1));
+        const chroma = opt.chroma || 0,
+          flip = opt.flip !== false,
+          scale = opt.scale || 1;
+        ctx.save();
+        ctx.translate(W / 2, H / 2);
+        ctx.scale(scale * (flip ? -1 : 1), scale * (flip ? -1 : 1));
+        const layers =
+          chroma > 0
+            ? [
+                [-chroma, "#5a7bff"],
+                [0, "#ffffff"],
+                [chroma, "#ff6a4d"],
+              ]
+            : [[0, "#ffffff"]];
+        ctx.globalCompositeOperation = "lighter";
+        copies.forEach(([ox, oy]) => {
+          layers.forEach(([dx, col]) => {
+            ctx.save();
+            ctx.filter = blur > 0 ? `blur(${blur}px)` : "none";
+            ctx.globalAlpha = Math.min(1, (bri / copies.length / layers.length) * 1.6);
+            ctx.translate(ox + dx, oy);
+            ctx.strokeStyle = col;
+            ctx.lineWidth = 5;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            ctx.moveTo(0, 42);
+            ctx.lineTo(0, -42);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(-16, -24);
+            ctx.lineTo(0, -44);
+            ctx.lineTo(16, -24);
+            ctx.stroke();
+            ctx.fillStyle = col;
+            [
+              [-52, -30],
+              [46, 18],
+              [-40, 34],
+              [58, -40],
+            ].forEach(([sx, sy], i) => {
+              ctx.beginPath();
+              ctx.arc(sx, sy, 2.4 + i * 0.5, 0, 7);
+              ctx.fill();
+            });
+            ctx.restore();
+          });
+        });
+        ctx.restore();
+        ctx.globalCompositeOperation = "source-over";
+        ctx.filter = "none";
+        ctx.strokeStyle = RUL;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
+      }
+
+      /* =========================================================
+   SECTION 1 : ピンホール
+   ========================================================= */
+      (function () {
+        const cv = document.getElementById("cv1"),
+          ctx = setupHiDPI(cv);
+        const vf = document.getElementById("vf1"),
+          vctx = setupHiDPI(vf);
+        const sA = document.getElementById("s1a"),
+          sB = document.getElementById("s1b"),
+          sC = document.getElementById("s1c");
+        let plateX = 380,
+          objY = 0,
+          sparse = false;
+
+        function draw() {
+          const W = cv.logicalW,
+            H = cv.logicalH,
+            cy = H / 2;
+          const d = +sA.value,
+            n = +sB.value,
+            L = +sC.value;
+          document.getElementById("v1a").textContent = d.toFixed(1) + " mm";
+          document.getElementById("v1b").textContent = n + " 個";
+          document.getElementById("v1c").textContent = L + " mm";
+
+          clear(ctx, cv);
+          axis(ctx, cv, cy);
+          const scrX = Math.min(W - 40, plateX + L * 0.95);
+          const objX = 90;
+          const holeR = d * 1.4;
+
+          const holes = [];
+          const pitch = 46;
+          for (let i = 0; i < n; i++) holes.push(cy + (i - (n - 1) / 2) * pitch);
+
+          const oTop = cy - 70 + objY,
+            oBot = cy + 70 + objY;
+          ctx.save();
+          ctx.strokeStyle = ACC;
+          ctx.lineWidth = 3;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(objX, oBot);
+          ctx.lineTo(objX, oTop);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(objX - 9, oTop + 14);
+          ctx.lineTo(objX, oTop);
+          ctx.lineTo(objX + 9, oTop + 14);
+          ctx.stroke();
+          ctx.restore();
+          label(ctx, objX, oBot + 22, "OBJECT", ACC);
+
+          const srcN = sparse ? 3 : 7;
+          for (let s = 0; s < srcN; s++) {
+            const sy = oTop + ((oBot - oTop) * s) / (srcN - 1);
+            const hue = `hsl(${20 + s * 14} 90% 70%)`;
+            holes.forEach((hy) => {
+              [-holeR, 0, holeR].forEach((off, k) => {
+                const hx = plateX,
+                  hyy = hy + off;
+                const t = (scrX - hx) / (hx - objX);
+                const ey = hyy + (hyy - sy) * t;
+                ray(
+                  ctx,
+                  [
+                    [objX, sy],
+                    [hx, hyy],
+                    [scrX, ey],
+                  ],
+                  hue,
+                  k === 1 ? 0.5 : 0.18,
+                  k === 1 ? 1.1 : 0.8,
+                );
+              });
+            });
+          }
+
+          ctx.save();
+          ctx.fillStyle = "#2a2d36";
+          ctx.strokeStyle = MUT;
+          let segs = [[20, H - 20]];
+          holes.forEach((hy) => {
+            segs = segs.flatMap(([a, b]) =>
+              hy - holeR > a && hy + holeR < b
+                ? [
+                    [a, hy - holeR],
+                    [hy + holeR, b],
+                  ]
+                : [[a, b]],
+            );
+          });
+          segs.forEach(([a, b]) => {
+            ctx.fillRect(plateX - 4, a, 8, b - a);
+            ctx.strokeRect(plateX - 4, a, 8, b - a);
+          });
+          ctx.restore();
+          label(ctx, plateX, H - 6, "PINHOLE PLATE");
+
+          screenPlate(ctx, scrX, 30, H - 30);
+          label(ctx, scrX, 20, "SCREEN", MUT);
+
+          const area = n * Math.PI * Math.pow(d / 2, 2);
+          const relLight = area / (Math.PI * Math.pow(0.5, 2));
+          const mag = (scrX - plateX) / (plateX - objX);
+          const blurPx = d * 1.4 * (1 + mag) * 0.5;
+          document.getElementById("r1a").textContent = "×" + relLight.toFixed(1);
+          document.getElementById("r1b").textContent = blurPx.toFixed(1) + " px";
+          document.getElementById("r1c").textContent = n;
+
+          const copies = [];
+          for (let i = 0; i < n; i++) copies.push([(i - (n - 1) / 2) * pitch * mag * 0.6, 0]);
+          renderView(vf, vctx, {
+            copies,
+            blur: Math.min(24, blurPx * 0.9),
+            brightness: Math.min(1.5, 0.35 + Math.log10(1 + relLight) * 0.55),
+            flip: true,
+            scale: 0.95,
+          });
+        }
+
+        let drag = null;
+        cv.addEventListener("pointerdown", (e) => {
+          const x = pointerX(cv, e);
+          drag = Math.abs(x - plateX) < 40 ? "plate" : x < 200 ? "obj" : null;
+          if (drag) cv.setPointerCapture(e.pointerId);
+        });
+        cv.addEventListener("pointermove", (e) => {
+          if (!drag) return;
+          if (drag === "plate") plateX = Math.max(200, Math.min(cv.logicalW - 260, pointerX(cv, e)));
+          else objY = Math.max(-90, Math.min(90, pointerY(cv, e) - cv.logicalH / 2));
+          draw();
+        });
+        cv.addEventListener("pointerup", () => (drag = null));
+        cv.addEventListener("pointercancel", () => (drag = null));
+        [sA, sB, sC].forEach((s) => s.addEventListener("input", draw));
+        document.getElementById("b1ray").addEventListener("click", (e) => {
+          sparse = !sparse;
+          e.target.textContent = sparse ? "光線を増やす" : "光線を間引く";
+          draw();
+        });
+        document.getElementById("b1reset").addEventListener("click", () => {
+          sA.value = 1;
+          sB.value = 1;
+          sC.value = 300;
+          plateX = 380;
+          objY = 0;
+          draw();
+        });
+        draw();
+      })();
+
+      /* =========================================================
+   SECTION 1.5 : 多数のピンホール → レンズで重ね合わせ
+   ========================================================= */
+      (function () {
+        const cv = document.getElementById("cv15"),
+          ctx = setupHiDPI(cv);
+        const vf = document.getElementById("vf15"),
+          vctx = setupHiDPI(vf);
+        const sN = document.getElementById("s15n"),
+          sP = document.getElementById("s15p"),
+          sL = document.getElementById("s15l");
+        const cTrace = document.getElementById("c15trace"),
+          cGhost = document.getElementById("c15ghost");
+        let plateX = 360,
+          animId = null;
+
+        const OBJ_X = 90,
+          SCR_MARGIN = 60;
+
+        function holeColor(i, n) {
+          if (!cTrace.checked) return "hsl(30 90% 72%)";
+          return `hsl(${(i / Math.max(1, n)) * 300 + 15} 88% 70%)`;
+        }
+
+        function draw() {
+          const W = cv.logicalW,
+            H = cv.logicalH,
+            cy = H / 2;
+          const n = +sN.value,
+            pitch = +sP.value,
+            L = +sL.value / 100;
+          document.getElementById("v15n").textContent = n + " 個";
+          document.getElementById("v15p").textContent = pitch + " px";
+          document.getElementById("v15l").textContent = Math.round(L * 100) + " %";
+
+          clear(ctx, cv);
+          axis(ctx, cv, cy);
+          const scrX = W - SCR_MARGIN;
+          const holeR = 3.4;
+          const holes = [];
+          for (let i = 0; i < n; i++) holes.push(cy + (i - (n - 1) / 2) * pitch);
+          const apR = Math.max(holeR * 2, ((n - 1) * pitch) / 2 + holeR + 6);
+
+          /* --- 物体（矢印） --- */
+          const oTop = cy - 66,
+            oBot = cy + 66;
+          ctx.save();
+          ctx.strokeStyle = ACC;
+          ctx.lineWidth = 3;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(OBJ_X, oBot);
+          ctx.lineTo(OBJ_X, oTop);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(OBJ_X - 9, oTop + 14);
+          ctx.lineTo(OBJ_X, oTop);
+          ctx.lineTo(OBJ_X + 9, oTop + 14);
+          ctx.stroke();
+          ctx.restore();
+          label(ctx, OBJ_X, oBot + 22, "OBJECT", ACC);
+
+          /* --- 光線：物体3点 × 各穴。L=0 で直進、L=1 で共役点に収束 --- */
+          const srcs = [oTop, cy, oBot];
+          const mag = (scrX - plateX) / (plateX - OBJ_X);
+          srcs.forEach((sy, si) => {
+            const idealY = cy - (sy - cy) * mag;
+            holes.forEach((hy, hi) => {
+              const straightY = hy + (hy - sy) * mag;
+              const endY = straightY + (idealY - straightY) * L;
+              const col = holeColor(hi, n);
+              ray(
+                ctx,
+                [
+                  [OBJ_X, sy],
+                  [plateX, hy],
+                  [scrX, endY],
+                ],
+                col,
+                si === 1 ? 0.62 : 0.38,
+                si === 1 ? 1.3 : 0.9,
+              );
+
+              if (cGhost.checked && L > 0.05) {
+                ctx.save();
+                ctx.globalAlpha = 0.18 * (1 - L) + 0.08;
+                ctx.strokeStyle = col;
+                ctx.setLineDash([2, 4]);
+                ctx.lineWidth = 0.8;
+                ctx.beginPath();
+                ctx.moveTo(plateX, hy);
+                ctx.lineTo(scrX, straightY);
+                ctx.stroke();
+                ctx.restore();
+              }
+            });
+          });
+
+          /* --- 穴あき板（レンズ挿入でフェードアウト） --- */
+          ctx.save();
+          ctx.globalAlpha = 1 - L * 0.75;
+          ctx.fillStyle = "#2a2d36";
+          ctx.strokeStyle = MUT;
+          ctx.lineWidth = 1;
+          let segs = [[24, H - 24]];
+          holes.forEach((hy) => {
+            segs = segs.flatMap(([a, b]) =>
+              hy - holeR > a && hy + holeR < b
+                ? [
+                    [a, hy - holeR],
+                    [hy + holeR, b],
+                  ]
+                : [[a, b]],
+            );
+          });
+          segs.forEach(([a, b]) => {
+            ctx.fillRect(plateX - 4, a, 8, b - a);
+            ctx.strokeRect(plateX - 4, a, 8, b - a);
+          });
+          ctx.restore();
+
+          /* --- レンズ（挿入率に応じて出現） --- */
+          if (L > 0.02) {
+            ctx.save();
+            ctx.globalAlpha = Math.min(1, L * 1.3);
+            const bulge = 16 * Math.min(1, L * 1.2);
+            ctx.beginPath();
+            ctx.moveTo(plateX, cy - apR);
+            ctx.quadraticCurveTo(plateX + bulge, cy, plateX, cy + apR);
+            ctx.quadraticCurveTo(plateX - bulge, cy, plateX, cy - apR);
+            ctx.closePath();
+            ctx.fillStyle = "rgba(255,177,133,0.15)";
+            ctx.strokeStyle = ACC;
+            ctx.lineWidth = 1.8;
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+            label(ctx, plateX, cy - apR - 14, "CONVEX LENS", ACC);
+          } else {
+            label(ctx, plateX, cy - apR - 14, "MULTI-PINHOLE PLATE", MUT);
+          }
+          label(ctx, plateX, H - 8, "PLATE / LENS");
+
+          /* --- スクリーン --- */
+          screenPlate(ctx, scrX, 26, H - 26);
+          label(ctx, scrX - 4, 18, "SCREEN", MUT);
+
+          /* --- スクリーン上の像位置マーカー（重なりの可視化） --- */
+          ctx.save();
+          holes.forEach((hy, hi) => {
+            const straightY = hy + (hy - cy) * mag;
+            const endY = straightY + (cy - straightY) * L;
+            ctx.fillStyle = holeColor(hi, n);
+            ctx.globalAlpha = 0.85;
+            ctx.beginPath();
+            ctx.arc(scrX + 10, endY, 3.2, 0, 7);
+            ctx.fill();
+          });
+          ctx.restore();
+
+          /* --- 読み出し --- */
+          const spreadPx = (n - 1) * pitch * mag * (1 - L);
+          const visibleImages = L > 0.9 ? 1 : n;
+          document.getElementById("r15a").textContent = "×" + n;
+          document.getElementById("r15b").textContent = visibleImages + (L > 0.05 && L <= 0.9 ? "（収束中）" : "");
+          document.getElementById("r15c").textContent = spreadPx.toFixed(0) + " px";
+          document.getElementById("r15d").textContent = Math.round(L * 100) + " %";
+
+          drawCompare(n, pitch, mag, L);
+        }
+
+        /* 左右2分割の比較ビュー */
+        function drawCompare(n, pitch, mag, L) {
+          const W = vf.logicalW,
+            H = vf.logicalH,
+            hw = W / 2;
+          vctx.clearRect(0, 0, W, H);
+          vctx.fillStyle = "#000";
+          vctx.fillRect(0, 0, W, H);
+
+          function panel(x0, text, lensRate) {
+            const copies = [];
+            const spread = pitch * mag * 0.34 * (1 - lensRate);
+            for (let i = 0; i < n; i++) copies.push([(i - (n - 1) / 2) * spread, 0]);
+            vctx.save();
+            vctx.beginPath();
+            vctx.rect(x0, 0, hw, H);
+            vctx.clip();
+            vctx.translate(x0 + hw / 2, H / 2 + 8);
+            vctx.globalCompositeOperation = "lighter";
+            copies.forEach(([ox]) => {
+              vctx.save();
+              vctx.filter = "blur(1.6px)";
+              vctx.globalAlpha = Math.min(1, (1.1 / Math.max(1, copies.length)) * (lensRate > 0.9 ? copies.length * 0.9 : 1) * 1.5);
+              vctx.translate(ox, 0);
+              vctx.scale(-0.72, -0.72);
+              vctx.strokeStyle = "#fff";
+              vctx.lineWidth = 6;
+              vctx.lineCap = "round";
+              vctx.beginPath();
+              vctx.moveTo(0, 46);
+              vctx.lineTo(0, -46);
+              vctx.stroke();
+              vctx.beginPath();
+              vctx.moveTo(-17, -26);
+              vctx.lineTo(0, -48);
+              vctx.lineTo(17, -26);
+              vctx.stroke();
+              vctx.fillStyle = "#fff";
+              [
+                [-54, -32],
+                [48, 20],
+                [-42, 36],
+              ].forEach(([sx, sy]) => {
+                vctx.beginPath();
+                vctx.arc(sx, sy, 2.6, 0, 7);
+                vctx.fill();
+              });
+              vctx.restore();
+            });
+            vctx.restore();
+            vctx.save();
+            vctx.globalCompositeOperation = "source-over";
+            vctx.filter = "none";
+            vctx.fillStyle = MUT;
+            vctx.font = "10px ui-monospace, monospace";
+            vctx.textAlign = "center";
+            vctx.fillText(text, x0 + hw / 2, H - 8);
+            vctx.restore();
+          }
+
+          panel(0, "WITHOUT LENS", 0);
+          panel(hw, "WITH LENS", 1);
+
+          vctx.save();
+          vctx.strokeStyle = RUL;
+          vctx.lineWidth = 1;
+          vctx.beginPath();
+          vctx.moveTo(hw, 0);
+          vctx.lineTo(hw, H);
+          vctx.stroke();
+          vctx.strokeRect(0.5, 0.5, W - 1, H - 1);
+          vctx.fillStyle = ACC;
+          vctx.fillRect(0, 0, W * L, 3);
+          vctx.restore();
+        }
+
+        /* 自動アニメーション */
+        function autoInsert() {
+          if (animId) cancelAnimationFrame(animId);
+          let v = 0;
+          sL.value = 0;
+          const step = () => {
+            v = Math.min(100, v + 1.6);
+            sL.value = v;
+            draw();
+            if (v < 100) animId = requestAnimationFrame(step);
+            else animId = null;
+          };
+          step();
+        }
+
+        let drag = false;
+        cv.addEventListener("pointerdown", (e) => {
+          const x = pointerX(cv, e);
+          if (Math.abs(x - plateX) < 50) {
+            drag = true;
+            cv.setPointerCapture(e.pointerId);
+          }
+        });
+        cv.addEventListener("pointermove", (e) => {
+          if (!drag) return;
+          plateX = Math.max(200, Math.min(cv.logicalW - 200, pointerX(cv, e)));
+          draw();
+        });
+        cv.addEventListener("pointerup", () => (drag = false));
+        cv.addEventListener("pointercancel", () => (drag = false));
+
+        [sN, sP, sL].forEach((s) =>
+          s.addEventListener("input", () => {
+            if (animId) {
+              cancelAnimationFrame(animId);
+              animId = null;
+            }
+            draw();
+          }),
+        );
+        [cTrace, cGhost].forEach((c) => c.addEventListener("change", draw));
+        document.getElementById("b15auto").addEventListener("click", autoInsert);
+        document.getElementById("b15reset").addEventListener("click", () => {
+          if (animId) {
+            cancelAnimationFrame(animId);
+            animId = null;
+          }
+          sN.value = 5;
+          sP.value = 34;
+          sL.value = 0;
+          plateX = 360;
+          draw();
+        });
+        draw();
+      })();
+
+      /* =========================================================
+   SECTION 2 : プリズム → レンズ → 屈折望遠鏡
+   ========================================================= */
+      (function () {
+        const cv = document.getElementById("cv2"),
+          ctx = setupHiDPI(cv);
+        const vf = document.getElementById("vf2"),
+          vctx = setupHiDPI(vf);
+        const sM = document.getElementById("s2m"),
+          sA = document.getElementById("s2a"),
+          sB = document.getElementById("s2b"),
+          sC = document.getElementById("s2c");
+        const cCh = document.getElementById("c2chroma"),
+          cMk = document.getElementById("c2mask");
+        let mode = "prism",
+          lensX = 330,
+          eyeShift = 0;
+
+        document.querySelectorAll("[data-mode2]").forEach((b) => {
+          b.addEventListener("click", () => {
+            mode = b.dataset.mode2;
+            document.querySelectorAll("[data-mode2]").forEach((x) => {
+              x.className = x === b ? "btn btn-primary" : "btn btn-outline";
+            });
+            draw();
+          });
+        });
+
+        function eyeRadius(fe) {
+          return 16 + fe * 0.35;
+        }
+
+        function lensGlyph(ctx, x, cy, R, morph, masked) {
+          ctx.save();
+          const n = 5;
+          if (morph < 0.98) {
+            for (let i = 0; i < n; i++) {
+              const y0 = cy - R + (2 * R * i) / n,
+                y1 = cy - R + (2 * R * (i + 1)) / n,
+                ym = (y0 + y1) / 2;
+              const tilt = (ym - cy) / R;
+              const w = 6 + (1 - Math.abs(tilt)) * 10 * morph;
+              ctx.beginPath();
+              ctx.moveTo(x - w / 2, y0 + 1);
+              ctx.lineTo(x - w / 2 + Math.abs(tilt) * 8 * (1 - morph), y1 - 1);
+              ctx.lineTo(x + w / 2, y1 - 1);
+              ctx.lineTo(x + w / 2, y0 + 1);
+              ctx.closePath();
+              ctx.fillStyle = "rgba(255,177,133,0.16)";
+              ctx.strokeStyle = ACC;
+              ctx.lineWidth = 1;
+              ctx.fill();
+              ctx.stroke();
+            }
+          }
+          if (morph > 0.02) {
+            const bulge = 14 * morph;
+            ctx.globalAlpha = morph;
+            ctx.beginPath();
+            ctx.moveTo(x, cy - R);
+            ctx.quadraticCurveTo(x + bulge, cy, x, cy + R);
+            ctx.quadraticCurveTo(x - bulge, cy, x, cy - R);
+            ctx.closePath();
+            ctx.fillStyle = "rgba(255,177,133,0.13)";
+            ctx.strokeStyle = ACC;
+            ctx.lineWidth = 1.6;
+            ctx.fill();
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
+          if (masked) {
+            ctx.fillStyle = "rgba(20,21,26,0.92)";
+            ctx.fillRect(x - 16, cy - R - 2, 32, R + 2);
+            ctx.strokeStyle = MUT;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(x - 18, cy);
+            ctx.lineTo(x + 18, cy);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        function draw() {
+          const W = cv.logicalW,
+            H = cv.logicalH,
+            cy = H / 2;
+          const morph = +sM.value / 100,
+            D = +sA.value,
+            f = +sB.value,
+            fe = +sC.value;
+          document.getElementById("v2m").textContent = Math.round(morph * 100) + " %";
+          document.getElementById("v2a").textContent = D + " mm";
+          document.getElementById("v2b").textContent = f + " mm";
+          document.getElementById("v2c").textContent = fe + " mm";
+          clear(ctx, cv);
+          axis(ctx, cv, cy);
+
+          const R = Math.max(24, D * 0.62);
+          const masked = cMk.checked;
+          const chroma = cCh.checked;
+
+          if (mode === "prism" || mode === "lens") {
+            const oX = 80,
+              fpx = f * 0.62,
+              imgX = Math.min(W - 60, lensX + fpx * 1.15);
+            ctx.save();
+            ctx.strokeStyle = ACC;
+            ctx.lineWidth = 3;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            ctx.moveTo(oX, cy + 64);
+            ctx.lineTo(oX, cy - 64);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(oX - 9, cy - 50);
+            ctx.lineTo(oX, cy - 64);
+            ctx.lineTo(oX + 9, cy - 50);
+            ctx.stroke();
+            ctx.restore();
+            label(ctx, oX, cy + 86, "OBJECT", ACC);
+
+            const srcs = [cy - 64, cy, cy + 64];
+            srcs.forEach((sy, si) => {
+              const denom = lensX - oX - fpx > 0 ? lensX - oX - fpx : 1;
+              const mag = fpx / denom;
+              const iy = cy - (sy - cy) * Math.max(0.35, Math.min(2.2, mag));
+              const nRay = 7;
+              for (let i = 0; i < nRay; i++) {
+                const hy = cy - R + (2 * R * i) / (nRay - 1);
+                if (masked && hy < cy) continue;
+                const cols = chroma
+                  ? [
+                      ["#7a92ff", -0.05],
+                      ["#ffffff", 0],
+                      ["#ff7a55", 0.06],
+                    ]
+                  : [["hsl(30 90% 72%)", 0]];
+                cols.forEach(([col, k]) => {
+                  const iyk = cy - (iy - cy) * (1 + k);
+                  const targetY = hy + (iyk - hy) * (0.35 + 0.65 * morph);
+                  ray(
+                    ctx,
+                    [
+                      [oX, sy],
+                      [lensX, hy],
+                      [imgX + (chroma ? k * 26 : 0), targetY],
+                    ],
+                    col,
+                    si === 1 ? 0.5 : 0.32,
+                    1,
+                  );
+                });
+              }
+            });
+
+            lensGlyph(ctx, lensX, cy, R, morph, masked);
+            label(ctx, lensX, cy - R - 12, morph > 0.5 ? "CONVEX LENS" : "PRISM ARRAY", ACC);
+            screenPlate(ctx, imgX, 40, H - 40);
+            label(ctx, imgX, 30, "SCREEN / REAL IMAGE", MUT);
+
+            const focusErr = (1 - morph) * 22;
+            document.getElementById("r2a").textContent = "×" + ((D * D) / 100).toFixed(0);
+            document.getElementById("r2b").textContent = focusErr.toFixed(1) + " px";
+            document.getElementById("r2c").textContent = "—";
+            renderView(vf, vctx, {
+              copies: [[0, 0]],
+              blur: focusErr * 0.8,
+              brightness: (masked ? 0.55 : 1) * Math.min(1.5, 0.4 + D / 110),
+              chroma: chroma ? 5 : 0,
+              flip: true,
+              scale: 1,
+            });
+          } else {
+            /* ケプラー式望遠鏡 */
+            const objLX = 170,
+              fpx = Math.max(90, f * 0.42),
+              fepx = Math.max(24, fe * 1.5);
+            const focalX = objLX + fpx;
+            const eyeX = Math.min(W - 70, focalX + fepx + eyeShift);
+            const Robj = R,
+              Reye = eyeRadius(fe);
+
+            const tilts = [-0.05, 0, 0.05];
+            tilts.forEach((t, ti) => {
+              const col = ti === 1 ? "hsl(30 90% 74%)" : ti === 0 ? "hsl(50 80% 72%)" : "hsl(10 85% 70%)";
+              const nRay = 7;
+              for (let i = 0; i < nRay; i++) {
+                const y0 = cy - Robj + (2 * Robj * i) / (nRay - 1);
+                if (masked && y0 < cy) continue;
+                const enterY = y0 + t * 60;
+                const fy = cy - t * fpx;
+                const exitSlope = (-(fy - cy) / fepx) * 1.1;
+                ray(
+                  ctx,
+                  [
+                    [20, enterY],
+                    [objLX, enterY],
+                    [focalX, fy],
+                    [eyeX, fy],
+                    [W - 8, fy + exitSlope * (W - 8 - eyeX)],
+                  ],
+                  col,
+                  0.45,
+                  1,
+                );
+              }
+            });
+
+            lensGlyph(ctx, objLX, cy, Robj, 1, masked);
+            label(ctx, objLX, cy - Robj - 12, "OBJECTIVE", ACC);
+            ctx.save();
+            ctx.strokeStyle = MUT;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(focalX, cy - 70);
+            ctx.lineTo(focalX, cy + 70);
+            ctx.stroke();
+            ctx.restore();
+            label(ctx, focalX, cy + 88, "REAL IMAGE (倒立)", MUT);
+            lensGlyph(ctx, eyeX, cy, Reye, 1, false);
+            label(ctx, eyeX, cy - Reye - 12, "EYEPIECE", ACC);
+            label(ctx, W - 40, cy + Reye + 26, "→ EYE", MUT);
+
+            const magn = f / fe;
+            document.getElementById("r2a").textContent = "×" + ((D * D) / 100).toFixed(0);
+            document.getElementById("r2b").textContent = "0.0 px";
+            document.getElementById("r2c").textContent = "×" + magn.toFixed(0);
+            renderView(vf, vctx, {
+              copies: [[0, 0]],
+              blur: chroma ? 1.5 : 0.4,
+              brightness: (masked ? 0.55 : 1) * Math.min(1.5, 0.45 + D / 120),
+              chroma: chroma ? 6 : 0,
+              flip: true,
+              scale: Math.min(2.2, 0.5 + magn / 28),
+            });
+          }
+        }
+
+        let drag = null;
+        cv.addEventListener("pointerdown", (e) => {
+          const x = pointerX(cv, e);
+          if (mode === "tele") {
+            drag = "eye";
+          } else {
+            drag = Math.abs(x - lensX) < 60 ? "lens" : null;
+          }
+          if (drag) cv.setPointerCapture(e.pointerId);
+        });
+        cv.addEventListener("pointermove", (e) => {
+          if (!drag) return;
+          if (drag === "lens") lensX = Math.max(180, Math.min(cv.logicalW - 220, pointerX(cv, e)));
+          else eyeShift = Math.max(-60, Math.min(120, pointerX(cv, e) - cv.logicalW * 0.72));
+          draw();
+        });
+        cv.addEventListener("pointerup", () => (drag = null));
+        cv.addEventListener("pointercancel", () => (drag = null));
+        [sM, sA, sB, sC].forEach((s) => s.addEventListener("input", draw));
+        [cCh, cMk].forEach((c) => c.addEventListener("change", draw));
+        draw();
+      })();
+
+      /* =========================================================
+   SECTION 3 : 反射望遠鏡
+   ========================================================= */
+      (function () {
+        const cv = document.getElementById("cv3"),
+          ctx = setupHiDPI(cv);
+        const vf = document.getElementById("vf3"),
+          vctx = setupHiDPI(vf);
+        const sA = document.getElementById("s3a"),
+          sB = document.getElementById("s3b"),
+          sC = document.getElementById("s3c");
+        const cR = document.getElementById("c3rays"),
+          cS = document.getElementById("c3spot");
+        let mode = "newton",
+          secOff = 0;
+
+        document.querySelectorAll("[data-mode3]").forEach((b) => {
+          b.addEventListener("click", () => {
+            mode = b.dataset.mode3;
+            document.querySelectorAll("[data-mode3]").forEach((x) => {
+              x.className = x === b ? "btn btn-primary" : "btn btn-outline";
+            });
+            draw();
+          });
+        });
+
+        function mirror(ctx, x, cy, R, dir, col) {
+          ctx.save();
+          ctx.strokeStyle = col || "#cfd3dd";
+          ctx.lineWidth = 4;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          for (let i = 0; i <= 40; i++) {
+            const t = i / 40,
+              y = cy - R + 2 * R * t,
+              k = Math.pow((y - cy) / R, 2) * 22 * dir;
+            i ? ctx.lineTo(x + k, y) : ctx.moveTo(x + k, y);
+          }
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        function draw() {
+          const W = cv.logicalW,
+            H = cv.logicalH,
+            cy = H / 2;
+          const D = +sA.value,
+            f = +sB.value,
+            amp = +sC.value;
+          document.getElementById("v3a").textContent = D + " mm";
+          document.getElementById("v3b").textContent = f + " mm";
+          document.getElementById("v3c").textContent = "×" + amp.toFixed(1);
+          clear(ctx, cv);
+          axis(ctx, cv, cy);
+
+          const R = Math.max(50, Math.min(170, D * 0.32));
+          const primX = W - 110,
+            fpx = Math.max(200, Math.min(W - 260, f * 0.24));
+          const secX = Math.max(140, Math.min(primX - 70, primX - fpx * 0.72 + secOff));
+          const obsR = R * (mode === "casse" ? 0.3 : 0.22) * (cS.checked ? 1.35 : 1);
+
+          /* 鏡筒 */
+          ctx.save();
+          ctx.strokeStyle = RUL;
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(60, cy - R - 16, primX - 60, 2 * (R + 16));
+          ctx.restore();
+          label(ctx, (60 + primX) / 2, cy - R - 24, "TUBE", RUL);
+
+          /* 入射平行光 → 主鏡 → 副鏡 → 焦点 */
+          if (cR.checked) {
+            const nRay = 9;
+            const focusX = primX - fpx;
+            for (let i = 0; i < nRay; i++) {
+              const y = cy - R + (2 * R * i) / (nRay - 1);
+              if (Math.abs(y - cy) < obsR) continue;
+              const col = `hsl(${28 + Math.abs(y - cy) * 0.12} 88% 72%)`;
+              const yAtSec = cy + (y - cy) * ((secX - primX) / (focusX - primX));
+              if (mode === "newton") {
+                const eyeY = cy - R - 70;
+                ray(
+                  ctx,
+                  [
+                    [40, y],
+                    [primX, y],
+                    [secX, yAtSec],
+                    [secX, eyeY + (yAtSec - cy) * 0.9],
+                  ],
+                  col,
+                  0.5,
+                  1.1,
+                );
+              } else {
+                const backX = primX + 70;
+                ray(
+                  ctx,
+                  [
+                    [40, y],
+                    [primX, y],
+                    [secX, yAtSec],
+                    [primX, cy + (yAtSec - cy) * 0.28],
+                    [backX, cy + (yAtSec - cy) * 0.05],
+                  ],
+                  col,
+                  0.5,
+                  1.1,
+                );
+              }
+            }
+          }
+
+          /* 主鏡 */
+          mirror(ctx, primX, cy, R, 1, "#dfe3ee");
+          label(ctx, primX + 26, cy + R + 22, "PRIMARY", MUT);
+          if (mode === "casse") {
+            ctx.save();
+            ctx.strokeStyle = "#14161a";
+            ctx.lineWidth = 7;
+            ctx.beginPath();
+            ctx.moveTo(primX, cy - obsR * 0.5);
+            ctx.lineTo(primX, cy + obsR * 0.5);
+            ctx.stroke();
+            ctx.restore();
+            label(ctx, primX + 56, cy - 8, "HOLE", MUT);
+          }
+
+          /* 副鏡 */
+          if (mode === "newton") {
+            ctx.save();
+            ctx.strokeStyle = "#dfe3ee";
+            ctx.lineWidth = 5;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            ctx.moveTo(secX - obsR, cy + obsR);
+            ctx.lineTo(secX + obsR, cy - obsR);
+            ctx.stroke();
+            ctx.restore();
+            label(ctx, secX, cy + obsR + 24, "DIAGONAL (斜鏡)", MUT);
+            const eyeY = cy - R - 70;
+            ctx.save();
+            ctx.strokeStyle = ACC;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(secX - 22, eyeY - 24, 44, 40);
+            ctx.restore();
+            label(ctx, secX, eyeY - 32, "EYEPIECE", ACC);
+          } else {
+            mirror(ctx, secX, cy, obsR * 1.9, -1, "#dfe3ee");
+            label(ctx, secX, cy - obsR * 1.9 - 14, "SECONDARY (凸・双曲面)", MUT);
+            ctx.save();
+            ctx.strokeStyle = ACC;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(primX + 52, cy - 26, 44, 52);
+            ctx.restore();
+            label(ctx, primX + 74, cy + 44, "FOCUS", ACC);
+          }
+
+          /* 読み出し */
+          const obsRatio = (mode === "casse" ? 0.3 : 0.22) * (cS.checked ? 1.35 : 1);
+          const eff = (1 - obsRatio * obsRatio) * 100;
+          const fEff = mode === "casse" ? f * amp : f;
+          const tube = mode === "casse" ? (f / amp) * 0.75 : f * 0.95;
+          document.getElementById("r3a").textContent = eff.toFixed(1) + " %";
+          document.getElementById("r3b").textContent = Math.round(fEff) + " mm";
+          document.getElementById("r3c").textContent = Math.round(tube) + " mm";
+
+          renderView(vf, vctx, {
+            copies: [[0, 0]],
+            blur: 0.5,
+            brightness: Math.min(1.55, 0.5 + D / 420) * (1 - obsRatio * obsRatio),
+            chroma: 0,
+            flip: true,
+            scale: Math.min(2.4, 0.7 + fEff / 2600),
+          });
+        }
+
+        let drag = false;
+        cv.addEventListener("pointerdown", (e) => {
+          const x = pointerX(cv, e);
+          const primX = cv.logicalW - 110,
+            f = +sB.value;
+          const fpx = Math.max(200, Math.min(cv.logicalW - 260, f * 0.24));
+          const cur = primX - fpx * 0.72 + secOff;
+          if (Math.abs(x - cur) < 70) {
+            drag = true;
+            cv.setPointerCapture(e.pointerId);
+          }
+        });
+        cv.addEventListener("pointermove", (e) => {
+          if (!drag) return;
+          secOff = Math.max(-90, Math.min(110, pointerX(cv, e) - cv.logicalW * 0.45));
+          draw();
+        });
+        cv.addEventListener("pointerup", () => (drag = false));
+        cv.addEventListener("pointercancel", () => (drag = false));
+        [sA, sB, sC].forEach((s) => s.addEventListener("input", draw));
+        [cR, cS].forEach((c) => c.addEventListener("change", draw));
+        draw();
+      })();
+    </script>
+  </body>
+</html>
