@@ -1,0 +1,2708 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>続・光の軌跡から探る望遠鏡の仕組み 〜補正レンズとフィルターが描く宇宙〜</title>
+    <meta name="description" content="コマコレクター・フラットナー、レデューサー、干渉フィルターの仕組みをCanvasによる光線追跡シミュレーションで体験するWeb展示。" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono&display=swap");
+
+      :root {
+        --color-paper: oklch(14% 0.01 260);
+        --color-paper-2: oklch(18% 0.012 260);
+        --color-paper-3: oklch(22% 0.012 260);
+        --color-rule: oklch(28% 0.01 260);
+        --color-neutral: oklch(58% 0.01 260);
+        --color-muted: oklch(72% 0.008 260);
+        --color-ink: oklch(95% 0.005 260);
+        --color-accent: oklch(75% 0.15 45);
+        --color-focus: oklch(75% 0.18 45);
+
+        --font-display: "Geist", system-ui, sans-serif;
+        --font-body: "Geist", system-ui, sans-serif;
+        --font-outlier: "Geist Mono", monospace;
+
+        --space-xs: 0.25rem;
+        --space-sm: 0.5rem;
+        --space-md: 1rem;
+        --space-lg: 1.5rem;
+        --space-xl: 2rem;
+        --space-2xl: 3rem;
+        --space-3xl: 4rem;
+        --space-4xl: 6rem;
+
+        --text-xs: 0.64rem;
+        --text-sm: 0.8rem;
+        --text-base: 1rem;
+        --text-md: 1.25rem;
+        --text-lg: 1.5625rem;
+        --text-xl: 1.9531rem;
+        --text-2xl: 2.4414rem;
+        --text-3xl: 3.0518rem;
+        --text-display: clamp(2.75rem, 5vw + 1rem, 5.25rem);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        background: var(--color-paper);
+        color: var(--color-ink);
+        font-family: var(--font-body);
+        font-weight: 400;
+        line-height: 1.6;
+        overflow-x: clip;
+      }
+      body {
+        background-image: radial-gradient(circle at 15% 30%, oklch(40% 0.08 45 / 0.15) 0%, transparent 40%), radial-gradient(circle at 85% 70%, oklch(35% 0.06 280 / 0.1) 0%, transparent 40%);
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        line-height: 1.1;
+        margin: 0;
+        letter-spacing: -0.03em;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      p {
+        margin: 0 0 var(--space-md);
+      }
+      p:last-child {
+        margin-bottom: 0;
+      }
+
+      .page-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 var(--space-lg) var(--space-4xl);
+      }
+
+      /* N5 Nav */
+      .nav-pill {
+        position: sticky;
+        top: var(--space-md);
+        margin: 0 auto var(--space-4xl) auto;
+        max-width: 680px;
+        background: oklch(18% 0.012 260 / 0.6);
+        backdrop-filter: blur(12px) saturate(150%);
+        border: 1px solid var(--color-rule);
+        border-radius: 9999px;
+        padding: var(--space-xs) var(--space-xs) var(--space-xs) var(--space-lg);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 100;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      }
+      .nav-pill__wordmark {
+        font-family: var(--font-display);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: var(--color-ink);
+      }
+      .nav-pill__actions {
+        display: flex;
+        gap: var(--space-sm);
+        align-items: center;
+      }
+      .nav-pill__link {
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-muted);
+        padding: var(--space-sm) var(--space-md);
+        border-radius: 9999px;
+        letter-spacing: 0.06em;
+      }
+      .nav-pill__link:hover {
+        color: var(--color-ink);
+        background: var(--color-paper-3);
+      }
+      .nav-pill__btn {
+        background: var(--color-accent);
+        color: var(--color-paper);
+        padding: var(--space-sm) var(--space-lg);
+        border-radius: 9999px;
+        font-weight: 600;
+        font-size: var(--text-sm);
+        transition:
+          transform 0.2s ease,
+          opacity 0.2s ease;
+      }
+      .nav-pill__btn:hover {
+        transform: translateY(-1px);
+        opacity: 0.9;
+      }
+
+      /* Header */
+      .portfolio-header {
+        margin-bottom: var(--space-2xl);
+        text-align: center;
+      }
+      .portfolio-header__tagline {
+        font-family: var(--font-outlier);
+        font-size: var(--text-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-accent);
+        margin-bottom: var(--space-md);
+      }
+      .portfolio-header__title {
+        font-size: var(--text-display);
+        margin-bottom: var(--space-md);
+      }
+      .portfolio-header__lead {
+        color: var(--color-muted);
+        max-width: 64ch;
+        margin: 0 auto;
+        font-size: var(--text-md);
+      }
+      .prequel-note {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-sm);
+        margin-top: var(--space-lg);
+        padding: var(--space-sm) var(--space-lg);
+        border: 1px solid var(--color-rule);
+        border-radius: 9999px;
+        background: var(--color-paper-2);
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+      }
+
+      /* Grid */
+      .portfolio-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: var(--space-xl);
+        margin-bottom: var(--space-4xl);
+      }
+      .exhibit-card {
+        background: var(--color-paper-2);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        overflow: hidden;
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+      }
+      .exhibit-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px oklch(75% 0.15 45 / 0.1);
+        border-color: var(--color-neutral);
+      }
+      .exhibit-card__visual {
+        height: 200px;
+        background: var(--color-paper-3);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .exhibit-card__visual::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(var(--color-neutral) 1px, transparent 1px);
+        background-size: 20px 20px;
+        opacity: 0.3;
+      }
+      .exhibit-card__visual canvas {
+        position: relative;
+        z-index: 1;
+      }
+      .exhibit-card__content {
+        padding: var(--space-lg);
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+      }
+      .exhibit-card__meta {
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: var(--space-sm);
+      }
+      .exhibit-card__title {
+        font-size: var(--text-lg);
+        margin-bottom: var(--space-sm);
+      }
+      .exhibit-card__desc {
+        color: var(--color-neutral);
+        font-size: var(--text-sm);
+        margin-bottom: var(--space-lg);
+        flex-grow: 1;
+      }
+      .exhibit-card__link {
+        font-size: var(--text-sm);
+        font-weight: 600;
+        color: var(--color-ink);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-xs);
+      }
+      .exhibit-card__link::after {
+        content: "→";
+        color: var(--color-accent);
+        transition: transform 0.2s ease;
+      }
+      .exhibit-card:hover .exhibit-card__link::after {
+        transform: translateX(4px);
+      }
+
+      /* Footer */
+      .footer-statement {
+        border-top: 1px solid var(--color-rule);
+        padding-top: var(--space-4xl);
+        padding-bottom: var(--space-2xl);
+        text-align: center;
+      }
+      .footer-statement__text {
+        font-size: var(--text-2xl);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0 auto var(--space-2xl);
+        max-width: 38ch;
+      }
+      .footer-statement__meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: var(--font-outlier);
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+      }
+
+      /* Sections */
+      .section-title {
+        font-family: var(--font-display);
+        font-size: var(--text-2xl);
+        font-weight: 600;
+        margin-bottom: var(--space-sm);
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        letter-spacing: -0.02em;
+      }
+      .section-num {
+        font-family: var(--font-outlier);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--color-paper-3);
+        color: var(--color-accent);
+        font-size: var(--text-md);
+        font-weight: 600;
+        flex-shrink: 0;
+        border: 1px solid var(--color-rule);
+      }
+      .section-lead {
+        color: var(--color-muted);
+        font-size: var(--text-md);
+        margin-bottom: var(--space-2xl);
+        max-width: 68ch;
+      }
+      .chapter {
+        margin-bottom: var(--space-4xl);
+        scroll-margin-top: 100px;
+      }
+
+      .card {
+        background: var(--color-paper-2);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        padding: var(--space-xl);
+      }
+      .card h2 {
+        font-size: var(--text-xl);
+        margin-bottom: var(--space-xs);
+        color: var(--color-ink);
+      }
+      .card h3 {
+        font-size: var(--text-md);
+        margin-bottom: var(--space-sm);
+      }
+
+      .chip,
+      .stat-chip,
+      .n-badge {
+        display: inline-block;
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        background: var(--color-paper-3);
+        color: var(--color-accent);
+        border: 1px solid var(--color-rule);
+      }
+      .btn,
+      button.btn-primary,
+      button.btn-outline,
+      button.btn {
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        font-weight: 600;
+        padding: 10px 24px;
+        border-radius: 9999px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition:
+          transform 0.2s ease,
+          filter 0.2s ease,
+          opacity 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn:active {
+        transform: scale(0.97);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .btn-primary,
+      button.btn-primary {
+        background: var(--color-accent);
+        color: var(--color-paper);
+      }
+      .btn-primary:hover:not(:disabled) {
+        filter: brightness(1.1);
+      }
+      .btn-outline,
+      button.btn-outline,
+      button.btn.ghost {
+        background: transparent;
+        color: var(--color-accent);
+        border-color: var(--color-rule);
+      }
+      .btn-outline:hover:not(:disabled) {
+        background: var(--color-paper-3);
+      }
+      .btn-outline[aria-pressed="true"] {
+        background: var(--color-accent);
+        color: var(--color-paper);
+        border-color: transparent;
+      }
+      .hint {
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+        margin-top: var(--space-md);
+        padding: var(--space-md);
+        background: var(--color-paper-2);
+        border-radius: 8px;
+        border: 1px solid var(--color-rule);
+      }
+      .hint b {
+        color: var(--color-accent);
+      }
+      input[type="range"] {
+        accent-color: var(--color-accent);
+        width: 100%;
+      }
+      :focus-visible {
+        outline: 2px solid var(--color-focus);
+        outline-offset: 3px;
+      }
+
+      /* Simulator layout */
+      .sim {
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        background: var(--color-paper-2);
+        overflow: hidden;
+      }
+      .sim__bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-md);
+        padding: var(--space-sm) var(--space-lg);
+        border-bottom: 1px solid var(--color-rule);
+        background: var(--color-paper-3);
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-muted);
+        letter-spacing: 0.06em;
+        flex-wrap: wrap;
+      }
+      .sim__body {
+        display: grid;
+        grid-template-columns: 1.55fr 1fr;
+        gap: 0;
+      }
+      .sim__stage {
+        border-right: 1px solid var(--color-rule);
+        padding: var(--space-md);
+      }
+      .sim__side {
+        padding: var(--space-lg);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-lg);
+      }
+      .stage-label {
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-neutral);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: var(--space-sm);
+      }
+      canvas.stage {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 8px;
+        background: oklch(11% 0.015 265);
+        border: 1px solid var(--color-rule);
+        touch-action: none;
+        cursor: grab;
+      }
+      canvas.stage:active {
+        cursor: grabbing;
+      }
+      canvas.viewer {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 8px;
+        background: #04050a;
+        border: 1px solid var(--color-rule);
+      }
+      .readout {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+        gap: var(--space-sm);
+        padding: var(--space-md);
+        border: 1px solid var(--color-rule);
+        border-radius: 8px;
+        background: var(--color-paper-3);
+      }
+      .readout div {
+        min-width: 0;
+      }
+      .readout .k {
+        display: block;
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-neutral);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .readout .v {
+        font-family: var(--font-outlier);
+        font-size: var(--text-base);
+        font-weight: 600;
+        color: var(--color-accent);
+        white-space: nowrap;
+      }
+      .ctrl {
+        margin-bottom: var(--space-md);
+      }
+      .ctrl > label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: var(--space-sm);
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+        margin-bottom: var(--space-xs);
+      }
+      .ctrl > label b {
+        font-family: var(--font-outlier);
+        color: var(--color-ink);
+        font-weight: 600;
+      }
+      .toggle-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+      }
+      .toggle-row .btn {
+        padding: 8px 16px;
+        font-size: var(--text-xs);
+      }
+      .check-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-md);
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+      }
+      .check-row label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+      }
+
+      .obs {
+        margin-top: var(--space-lg);
+        padding: var(--space-md) var(--space-lg);
+        border-left: 3px solid var(--color-accent);
+        background: var(--color-paper-3);
+        border-radius: 0 8px 8px 0;
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+      }
+      .refs {
+        margin-top: var(--space-xl);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        background: var(--color-paper-2);
+        overflow: hidden;
+      }
+      .refs > summary {
+        padding: var(--space-md) var(--space-lg);
+        cursor: pointer;
+        font-family: var(--font-outlier);
+        font-size: var(--text-sm);
+        color: var(--color-accent);
+        letter-spacing: 0.05em;
+      }
+      .refs__body {
+        padding: 0 var(--space-lg) var(--space-lg);
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+      }
+      .refs__body ul {
+        padding-left: 1.2em;
+        margin: 0 0 var(--space-md);
+      }
+      .refs__body li {
+        margin-bottom: var(--space-sm);
+      }
+      .callout {
+        padding: var(--space-md);
+        border: 1px dashed var(--color-neutral);
+        border-radius: 8px;
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+      }
+      .callout b {
+        color: var(--color-accent);
+      }
+
+      .term {
+        border-bottom: 1px dashed var(--color-accent);
+        cursor: help;
+        position: relative;
+        color: var(--color-ink);
+      }
+      .term::after {
+        content: attr(data-tip);
+        position: absolute;
+        left: 50%;
+        bottom: 145%;
+        transform: translateX(-50%);
+        width: max-content;
+        max-width: 280px;
+        background: var(--color-paper-3);
+        color: var(--color-muted);
+        border: 1px solid var(--color-rule);
+        border-radius: 8px;
+        padding: var(--space-sm) var(--space-md);
+        font-size: var(--text-sm);
+        line-height: 1.5;
+        text-align: left;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease;
+        z-index: 60;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+        pointer-events: none;
+      }
+      .term:hover::after,
+      .term:focus::after {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .divider {
+        border: 0;
+        border-top: 1px solid var(--color-rule);
+        margin: var(--space-2xl) 0;
+      }
+      .chapter-nav {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-md);
+        margin-top: var(--space-xl);
+        flex-wrap: wrap;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--space-lg);
+      }
+      .spec-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: var(--text-sm);
+      }
+      .spec-table th,
+      .spec-table td {
+        text-align: left;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--color-rule);
+      }
+      .spec-table th {
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-neutral);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .spec-table td:first-child {
+        color: var(--color-ink);
+        font-weight: 600;
+      }
+      .bf-chain {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        flex-wrap: wrap;
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-muted);
+        margin-top: var(--space-md);
+      }
+      .bf-chain span.node {
+        padding: 6px 10px;
+        border: 1px solid var(--color-rule);
+        border-radius: 6px;
+        background: var(--color-paper-3);
+      }
+      .cta-band {
+        margin-top: var(--space-2xl);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        padding: var(--space-2xl);
+        text-align: center;
+        background: radial-gradient(circle at 80% 10%, oklch(45% 0.09 45 / 0.25) 0%, transparent 55%), var(--color-paper-2);
+      }
+      .cta-band__actions {
+        display: flex;
+        gap: var(--space-md);
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: var(--space-lg);
+      }
+
+      @media (max-width: 900px) {
+        .sim__body {
+          grid-template-columns: 1fr;
+        }
+        .sim__stage {
+          border-right: 0;
+          border-bottom: 1px solid var(--color-rule);
+        }
+      }
+      @media (max-width: 768px) {
+        .nav-pill {
+          margin: var(--space-sm);
+          max-width: none;
+          padding: var(--space-sm);
+          border-radius: 12px;
+        }
+        .nav-pill__link {
+          display: none;
+        }
+        .portfolio-header__title {
+          font-size: var(--text-3xl);
+        }
+        .portfolio-grid {
+          grid-template-columns: 1fr;
+        }
+        .footer-statement__meta {
+          flex-direction: column;
+          gap: var(--space-md);
+        }
+        .footer-statement__text {
+          font-size: var(--text-xl);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="nav-pill" aria-label="メインナビゲーション">
+      <a class="nav-pill__wordmark" href="#top">Optics Trail II</a>
+      <div class="nav-pill__actions">
+        <a class="nav-pill__link" href="#s04">04 補正</a>
+        <a class="nav-pill__link" href="#s05">05 レデューサー</a>
+        <a class="nav-pill__link" href="#s06">06 フィルター</a>
+        <a class="nav-pill__btn" href="#setup">実践セットアップ</a>
+      </div>
+    </nav>
+
+    <main class="page-container" id="top">
+      <header class="portfolio-header">
+        <p class="portfolio-header__tagline">Interactive Optics Exhibition · Part II</p>
+        <h1 class="portfolio-header__title">補正レンズとフィルターが<br />描く宇宙</h1>
+        <p class="portfolio-header__lead">望遠鏡は、それ単体では完成品ではありません。焦点の手前にわずか数枚のガラスを足すだけで、 隅の星は円に戻り、視野は広がり、街明かりの下でも星雲が浮かび上がる。 光の軌跡をコントロールする「光学アクセサリー」の仕組みを、光線を動かしながら辿ります。</p>
+        <p class="prequel-note">前編：光の軌跡から探る望遠鏡の仕組み（ピンホール → 屈折 → 反射）の続編です</p>
+      </header>
+
+      <!-- =============== Portfolio Grid =============== -->
+      <section class="portfolio-grid" aria-label="セクション一覧">
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"><canvas id="thumb4" width="640" height="400" aria-hidden="true"></canvas></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Section 04 / Correction</p>
+            <h2 class="exhibit-card__title">周辺像を整える</h2>
+            <p class="exhibit-card__desc">フラットナーとコマコレクター。視野の隅で羽を広げた星像が、補正レンズの挿入とともに円へ戻る瞬間を観察します。</p>
+            <a class="exhibit-card__link" href="#s04">シミュレータへ</a>
+          </div>
+        </article>
+
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"><canvas id="thumb5" width="640" height="400" aria-hidden="true"></canvas></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Section 05 / Reducer</p>
+            <h2 class="exhibit-card__title">光を集め、視野を広げる</h2>
+            <p class="exhibit-card__desc">なぜレデューサーはアクロマート2枚で構成されるのか。単玉・1枚・2枚向かい合わせを切り替えて理由を確かめます。</p>
+            <a class="exhibit-card__link" href="#s05">シミュレータへ</a>
+          </div>
+        </article>
+
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"><canvas id="thumb6" width="640" height="400" aria-hidden="true"></canvas></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Section 06 / Filter</p>
+            <h2 class="exhibit-card__title">宇宙の光をえり分ける</h2>
+            <p class="exhibit-card__desc">干渉フィルターが波長を選ぶ仕組み。光害の連続光を切り、Hα・OIIIだけを通したときのコントラストを体感します。</p>
+            <a class="exhibit-card__link" href="#s06">シミュレータへ</a>
+          </div>
+        </article>
+
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"><canvas id="thumb7" width="640" height="400" aria-hidden="true"></canvas></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Section 07 / Practice</p>
+            <h2 class="exhibit-card__title">バックフォーカスを組む</h2>
+            <p class="exhibit-card__desc">ZWO ASI2600MC Pro / Sony α7S II を例に、ミリ単位の光路長合わせを実際に計算してみます。</p>
+            <a class="exhibit-card__link" href="#setup">セットアップへ</a>
+          </div>
+        </article>
+      </section>
+
+      <!-- =============== Section 04 =============== -->
+      <section class="chapter" id="s04" aria-labelledby="s04t">
+        <h2 class="section-title" id="s04t"><span class="section-num">04</span>周辺像を整える</h2>
+        <p class="section-lead">
+          光を1点に集めるだけの単純なレンズや鏡では、視野の中心から離れるほど星は円でいられなくなります。 斜めから入った光線がレンズ・鏡の場所ごとに違う点へ結ぶ<span class="term" tabindex="0" data-tip="軸外の点像が、彗星（コマ）のように尾を引いた非対称な形に崩れる収差。放物面主鏡のニュートン式で顕著に現れます。">コマ収差</span>、 そしてピント面そのものがお椀状に反る<span
+            class="term"
+            tabindex="0"
+            data-tip="結像面が平面ではなく曲面になる収差。平面センサーでは中心と周辺の両方に同時にピントが合いません。"
+            >像面湾曲</span
+          >。 平面のセンサーを使う以上、この2つは避けて通れません。 焦点の手前に置かれた数枚のガラスが、軸外光線の角度をどう微調整しているのかを見てみましょう。
+        </p>
+
+        <div class="sim">
+          <div class="sim__bar">
+            <span>Drag: 補正レンズ群を光軸方向に移動 / 上下ドラッグで軸外角度を変更</span>
+            <span id="s4bf">BACKFOCUS 55.0 mm</span>
+          </div>
+          <div class="sim__body">
+            <div class="sim__stage">
+              <p class="stage-label">シミュレーションステージ（光路断面）</p>
+              <canvas class="stage" id="cv4" width="760" height="420" aria-label="補正レンズによる軸外光線の補正を示す光路図"></canvas>
+            </div>
+            <div class="sim__side">
+              <div>
+                <p class="stage-label">ビューファインダー（センサー面）</p>
+                <canvas class="viewer" id="vw4" width="520" height="520" aria-label="補正レンズ挿入率に応じた星像の変化"></canvas>
+              </div>
+
+              <div class="readout" aria-live="polite">
+                <div><span class="k">周辺星像径</span><span class="v" id="r4a">18.4 ″</span></div>
+                <div><span class="k">像面湾曲</span><span class="v" id="r4b">42 µm</span></div>
+                <div><span class="k">平坦視野率</span><span class="v" id="r4c">31 %</span></div>
+                <div><span class="k">補正挿入率</span><span class="v" id="r4d">0 %</span></div>
+              </div>
+
+              <div>
+                <div class="ctrl">
+                  <label for="s4ins"
+                    >補正レンズ挿入率 <b><span id="s4insv">0</span> %</b></label
+                  >
+                  <input type="range" id="s4ins" min="0" max="100" step="1" value="0" />
+                </div>
+                <div class="ctrl">
+                  <label for="s4type">補正の種類</label>
+                  <div class="toggle-row" id="s4type" role="group">
+                    <button class="btn btn-outline" type="button" data-v="coma" aria-pressed="true">コマコレクター</button>
+                    <button class="btn btn-outline" type="button" data-v="flat" aria-pressed="false">フラットナー</button>
+                    <button class="btn btn-outline" type="button" data-v="both" aria-pressed="false">複合補正</button>
+                  </div>
+                </div>
+                <div class="ctrl">
+                  <label for="s4img"
+                    >イメージサークル要求 <b><span id="s4imgv">28</span> mm</b></label
+                  >
+                  <input type="range" id="s4img" min="12" max="44" step="1" value="28" />
+                </div>
+                <div class="check-row">
+                  <label><input type="checkbox" id="s4grid" /> センサー枠を表示</label>
+                  <label><input type="checkbox" id="s4spot" checked /> スポットダイアグラム</label>
+                </div>
+                <div class="toggle-row" style="margin-top: var(--space-md)">
+                  <button class="btn btn-primary" type="button" id="s4auto">自動で挿入する</button>
+                  <button class="btn btn-outline" type="button" id="s4reset">初期化</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="obs">観察：挿入率0%では、中心の星は点でも四隅の星が外向きに尾を引いています。これがコマ収差です。 スライダーを右へ動かすと、補正レンズ群が軸外光線だけをわずかに内側へ曲げ直し、 尾が縮んで円に戻ります。同時に、湾曲していたピント面（ステージ内の破線）が センサー面と平行な直線へと近づくことにも注目してください。</p>
+
+        <details class="refs">
+          <summary>学術的背景・参考文献</summary>
+          <div class="refs__body">
+            <ul>
+              <li>コマ収差はザイデルの5収差のひとつで、放物面主鏡では軸外画角の1乗に比例して増大します。ニュートン式反射では焦点距離が短い（F値が小さい）ほど顕著となるため、F5以下では実用上コマコレクターがほぼ必須となります。</li>
+              <li>像面湾曲は屈折望遠鏡でも生じ、フラットナーによって平面センサーに合わせた結像面へ整えられます。基礎理論はHecht『Optics』、Schroeder『Astronomical Optics』等の標準的教科書を参照。</li>
+              <li>補正レンズは<b>設計されたバックフォーカス位置に置かれたときだけ</b>本来の性能を発揮します。取り付け位置が数mmずれると、補正不足・補正過剰となって周辺像が別の形に崩れます（Section 07で実際に計算します）。</li>
+            </ul>
+            <p class="callout"><b>よくある誤解：</b>「補正レンズを入れると視野が狭くなる」→ コマコレクター／フラットナー単体は 焦点距離をほぼ変えません（倍率1.0倍前後）。焦点距離を積極的に縮めるのは次のSection 05で扱うレデューサーです。</p>
+          </div>
+        </details>
+
+        <div class="chapter-nav">
+          <a class="btn btn-outline" href="#top">← 目次へ</a>
+          <a class="btn btn-outline" href="#s05">Section 05：レデューサー →</a>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- =============== Section 05 =============== -->
+      <section class="chapter" id="s05" aria-labelledby="s05t">
+        <h2 class="section-title" id="s05t"><span class="section-num">05</span>光を集め、視野を広げる</h2>
+        <p class="section-lead">
+          焦点距離を縮めれば、同じ口径でもF値は小さくなり、写野は広がり、単位面積あたりの明るさは増します。 ならば凸レンズを1枚足せばよいはずです——ところが、単玉で急に光路を曲げると ガラスの<span class="term" tabindex="0" data-tip="屈折率が波長ごとに異なる性質。青い光ほど強く曲がるため、色ごとに焦点位置がずれます。">分散</span>によって 赤と青の焦点がずれ、周辺像も大きく崩れてしまいます。 レデューサーが「アクロマート2枚を向かい合わせ」という構成をとる理由が、ここにあります。
+        </p>
+
+        <div class="sim">
+          <div class="sim__bar">
+            <span>Drag: レデューサー群を光軸方向に移動</span>
+            <span id="s5cfg">CONFIG: ACHROMAT ×2</span>
+          </div>
+          <div class="sim__body">
+            <div class="sim__stage">
+              <p class="stage-label">シミュレーションステージ（波長別光線追跡）</p>
+              <canvas class="stage" id="cv5" width="760" height="420" aria-label="レンズ構成ごとの色収差と光路の違いを示す光路図"></canvas>
+            </div>
+            <div class="sim__side">
+              <div>
+                <p class="stage-label">ビューファインダー（星像拡大）</p>
+                <canvas class="viewer" id="vw5" width="520" height="520" aria-label="レンズ構成ごとの星像の色ズレと崩れ"></canvas>
+              </div>
+
+              <div class="readout" aria-live="polite">
+                <div><span class="k">合成焦点距離</span><span class="v" id="r5a">1600 mm</span></div>
+                <div><span class="k">F値</span><span class="v" id="r5b">F4.0</span></div>
+                <div><span class="k">相対光量</span><span class="v" id="r5c">×1.00</span></div>
+                <div><span class="k">実視野</span><span class="v" id="r5d">0.80 °</span></div>
+                <div><span class="k">色ズレ</span><span class="v" id="r5e">0.0 µm</span></div>
+                <div><span class="k">周辺コマ</span><span class="v" id="r5f">0 %</span></div>
+              </div>
+
+              <div>
+                <div class="ctrl">
+                  <label>レンズ構成</label>
+                  <div class="toggle-row" id="s5cfgBtns" role="group">
+                    <button class="btn btn-outline" type="button" data-v="single" aria-pressed="false">単玉凸レンズ</button>
+                    <button class="btn btn-outline" type="button" data-v="ach1" aria-pressed="false">アクロマート1枚</button>
+                    <button class="btn btn-outline" type="button" data-v="ach2" aria-pressed="true">アクロマート2枚</button>
+                  </div>
+                </div>
+                <div class="ctrl">
+                  <label for="s5red"
+                    >縮小率 <b>×<span id="s5redv">0.72</span></b></label
+                  >
+                  <input type="range" id="s5red" min="50" max="100" step="1" value="72" />
+                </div>
+                <div class="ctrl">
+                  <label for="s5fl"
+                    >主鏡 焦点距離 <b><span id="s5flv">1600</span> mm</b></label
+                  >
+                  <input type="range" id="s5fl" min="600" max="2400" step="20" value="1600" />
+                </div>
+                <div class="check-row">
+                  <label><input type="checkbox" id="s5rgb" checked /> 波長別光線（RGB）</label>
+                  <label><input type="checkbox" id="s5edge" /> 軸外光線を追加</label>
+                </div>
+                <div class="toggle-row" style="margin-top: var(--space-md)">
+                  <button class="btn btn-primary" type="button" id="s5tour">3構成を順に比較</button>
+                  <button class="btn btn-outline" type="button" id="s5reset">初期化</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="obs">
+          観察：<b>単玉</b>では焦点の直前で赤・緑・青の光線が明確に分かれ、どこにピントを置いても 星が色縁をまといます。<b>アクロマート1枚</b>にすると3色はほぼ1点に集まりますが、 1枚で全ての屈折を担うため軸外光線の曲がりが急で、周辺に尾が残ります。
+          <b>アクロマート2枚向かい合わせ</b>では、屈折を2段階に分けて1面あたりの負担を半減させ、 さらに前後対称の配置がコマ収差と歪曲収差を互いに打ち消します。
+        </p>
+
+        <div class="grid-2" style="margin-top: var(--space-xl)">
+          <div class="card">
+            <h3>なぜ2枚に分けると収差が減るのか</h3>
+            <p style="font-size: var(--text-sm); color: var(--color-muted)">収差の大きさは、おおまかに1面で光線を曲げる角度の<b>2乗〜3乗</b>で効いてきます。 同じ縮小量を2組で分担すれば、1組あたりの曲げ角は半分。 収差は半分ではなく、4分の1〜8分の1へと急激に小さくなります。 さらにコマ収差と歪曲収差は光路の前後を反転させると符号が反転する性質があるため、 前後対称に近い配置では2組の残存収差が相殺し合います。</p>
+          </div>
+          <div class="card">
+            <h3>アクロマートの原理</h3>
+            <p style="font-size: var(--text-sm); color: var(--color-muted)">屈折率が低く分散の小さいクラウンガラスの凸レンズと、 屈折率が高く分散の大きいフリントガラスの凹レンズを貼り合わせます。 凸で曲げた光を凹でわずかに戻す際、<b>色による広がりだけを優先的に打ち消す</b>ように 曲率とガラスを選ぶことで、2波長（通常はC線656nmとF線486nm）の焦点を一致させます。</p>
+          </div>
+        </div>
+
+        <details class="refs">
+          <summary>学術的背景・参考文献</summary>
+          <div class="refs__body">
+            <ul>
+              <li>レデューサー装着時の合成焦点距離は「主鏡焦点距離 × 縮小率」、F値も同じ比率で小さくなります。単位面積あたりの光量はF値の2乗に反比例するため、×0.72のレデューサーでは露出時間を約半分（1/0.72² ≒ 1.93倍の明るさ）に短縮できます。</li>
+              <li>色消し（アクロマート）条件の導出、および対称配置による収差相殺の理論は、光学設計の標準文献に詳述されています（Hecht『Optics』、Kingslake『Lens Design Fundamentals』等）。</li>
+              <li>レデューサーは<b>縮小率に応じてバックフォーカスも変化</b>します。メーカー指定値からのずれは補正性能に直結するため、実機では専用のスペーサーリング（0.5mm刻み等）で調整します。</li>
+            </ul>
+            <p class="callout"><b>注意：</b>縮小率を上げるほどイメージサークルは小さくなります。 フルサイズセンサー（Sony α7S II 等・対角43.3mm）では、強めのレデューサーで四隅が 光量落ち（周辺減光）や像の崩れを起こしやすく、APS-Cクラス（ZWO ASI2600MC Pro・対角28.3mm） の方が余裕をもって使えます。</p>
+          </div>
+        </details>
+
+        <div class="chapter-nav">
+          <a class="btn btn-outline" href="#s04">← Section 04</a>
+          <a class="btn btn-outline" href="#s06">Section 06：干渉フィルター →</a>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- =============== Section 06 =============== -->
+      <section class="chapter" id="s06" aria-labelledby="s06t">
+        <h2 class="section-title" id="s06t"><span class="section-num">06</span>宇宙の光をえり分ける</h2>
+        <p class="section-lead">
+          街明かりは、あらゆる波長にまたがる連続光として空全体を白く染めます。 一方、星雲が放つ光は<span class="term" tabindex="0" data-tip="水素原子が放つ波長656.3nmの赤い輝線。散光星雲が赤く写る主要因です。">Hα 656nm</span>や <span class="term" tabindex="0" data-tip="二階電離した酸素が放つ495.9nm／500.7nmの青緑の輝線。惑星状星雲や超新星残骸で強く現れます。">OIII 501nm</span>など、 ごく狭い波長に集中しています。ならば、必要な波長だけを通す「ふるい」を光路に挟めばよい。
+          それを反射の干渉で実現するのが<span class="term" tabindex="0" data-tip="ガラス上に屈折率の異なる薄膜を数十〜百層以上重ね、層間の反射光の干渉によって特定波長だけを透過させる光学部品。染料による吸収フィルターとは原理が異なります。">干渉フィルター</span>です。
+        </p>
+
+        <div class="sim">
+          <div class="sim__bar">
+            <span>フィルターを切り替えて、スペクトルとコントラストの変化を比較</span>
+            <span id="s6mode">FILTER: NONE</span>
+          </div>
+          <div class="sim__body">
+            <div class="sim__stage">
+              <p class="stage-label">ビューファインダー（星雲・光害シミュレーション）</p>
+              <canvas class="viewer" id="vw6" width="760" height="380" aria-label="フィルターごとの星雲の見え方"></canvas>
+              <p class="stage-label" style="margin-top: var(--space-md)">波長スペクトルグラフ</p>
+              <canvas class="stage" id="cv6" width="760" height="260" style="cursor: default" aria-label="光害の連続スペクトルと星雲の輝線、フィルター透過帯の関係"></canvas>
+            </div>
+            <div class="sim__side">
+              <div class="readout" aria-live="polite">
+                <div><span class="k">星雲信号</span><span class="v" id="r6a">100 %</span></div>
+                <div><span class="k">背景光</span><span class="v" id="r6b">100 %</span></div>
+                <div><span class="k">コントラスト比</span><span class="v" id="r6c">×1.0</span></div>
+                <div><span class="k">総透過光量</span><span class="v" id="r6d">100 %</span></div>
+              </div>
+
+              <div>
+                <div class="ctrl">
+                  <label>フィルター選択</label>
+                  <div class="toggle-row" id="s6btns" role="group">
+                    <button class="btn btn-outline" type="button" data-v="none" aria-pressed="true">なし</button>
+                    <button class="btn btn-outline" type="button" data-v="lp" aria-pressed="false">光害カット</button>
+                    <button class="btn btn-outline" type="button" data-v="dual" aria-pressed="false">デュアルナローバンド</button>
+                  </div>
+                </div>
+                <div class="ctrl">
+                  <label for="s6sky"
+                    >光害レベル <b><span id="s6skyv">中</span></b></label
+                  >
+                  <input type="range" id="s6sky" min="0" max="100" step="1" value="55" />
+                </div>
+                <div class="ctrl">
+                  <label for="s6fwhm"
+                    >透過帯幅 FWHM <b><span id="s6fwhmv">7</span> nm</b></label
+                  >
+                  <input type="range" id="s6fwhm" min="3" max="40" step="1" value="7" />
+                </div>
+                <div class="check-row">
+                  <label><input type="checkbox" id="s6star" checked /> 恒星を表示</label>
+                  <label><input type="checkbox" id="s6band" checked /> 透過帯を塗る</label>
+                </div>
+                <div class="toggle-row" style="margin-top: var(--space-md)">
+                  <button class="btn btn-primary" type="button" id="s6cmp">なし↔適用を比較</button>
+                  <button class="btn btn-outline" type="button" id="s6reset">初期化</button>
+                </div>
+              </div>
+
+              <p class="callout"><b>ポイント：</b>フィルターは光を「増やす」装置ではありません。 総透過光量はむしろ減ります。それでも星雲が浮かび上がるのは、 <b>背景光だけを大幅に削る</b>ことで信号対背景比が改善するためです。</p>
+            </div>
+          </div>
+        </div>
+
+        <p class="obs">観察：<b>光害カット</b>は、かつての水銀灯・ナトリウム灯の輝線に対応する帯を刻むように削り、 星雲の輝線と広い可視域を残します。<b>デュアルナローバンド</b>はHαとOIIIの2つの窓だけを開け、 それ以外を遮断。透過帯幅を狭めるほど背景は暗くなりますが、恒星も一緒に減光し、 色再現も変化します。目的に応じた選択が必要です。</p>
+
+        <div class="card" style="margin-top: var(--space-xl)">
+          <h3>干渉フィルターの仕組み</h3>
+          <p style="font-size: var(--text-sm); color: var(--color-muted)">ガラス基板の上に、屈折率の高い膜と低い膜を交互に数十〜百層以上、 それぞれ光学的な厚さが目的波長の4分の1になるよう蒸着します。 各界面で反射した光が層ごとに位相を揃えて強め合う波長帯は反射され、 それ以外は透過する——この干渉の設計により、染料の吸収では不可能な 切れ味の鋭い透過特性が得られます。</p>
+          <p style="font-size: var(--text-sm); color: var(--color-muted)">ただし干渉である以上、<b>入射角に依存</b>します。斜めから入る光は膜内の光路長が伸びるため、 透過帯が短波長側にずれます。F値の小さい明るい光学系では、周辺の光線が斜めに入るため 透過中心が数nmずれ、四隅の輝線が窓から外れて減光することがあります。 ナローバンドフィルターの適用可能なF値の下限は、この性質に由来します。</p>
+          <table class="spec-table" style="margin-top: var(--space-lg)">
+            <thead>
+              <tr>
+                <th>種別</th>
+                <th>透過帯</th>
+                <th>主な用途</th>
+                <th>留意点</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>UV/IRカット</td>
+                <td>約400–700nm</td>
+                <td>センサー保護・色再現</td>
+                <td>屈折系ではピント位置に影響</td>
+              </tr>
+              <tr>
+                <td>光害カット</td>
+                <td>可視域の大半＋人工光の帯を除去</td>
+                <td>星景・銀河・星団</td>
+                <td>LED照明の広い発光には効果が限定的</td>
+              </tr>
+              <tr>
+                <td>デュアルナローバンド</td>
+                <td>Hα・OIII付近 各3–12nm</td>
+                <td>散光星雲・惑星状星雲</td>
+                <td>反射星雲・銀河には不向き</td>
+              </tr>
+              <tr>
+                <td>単色ナローバンド</td>
+                <td>Hα / OIII / SII 各3–7nm</td>
+                <td>モノクロ合成（SHO等）</td>
+                <td>露出時間が大幅に増加</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <details class="refs">
+          <summary>学術的背景・参考文献</summary>
+          <div class="refs__body">
+            <ul>
+              <li>多層膜干渉フィルターの設計理論（特性行列法による透過率計算）は、Macleod『Thin-Film Optical Filters』が標準的な文献です。</li>
+              <li>星雲の主要輝線：Hα 656.3nm、Hβ 486.1nm、OIII 495.9/500.7nm、SII 671.6/673.1nm。Section 04〜06のスペクトル表示はこれらの実測波長に基づいています。</li>
+              <li>夜空の明るさと光害の定量評価については、環境省の光害対策ガイドラインや国際ダークスカイ協会（IDA）の資料、および各地の公開天文台による夜空輝度測定の報告が参考になります。</li>
+            </ul>
+          </div>
+        </details>
+
+        <div class="chapter-nav">
+          <a class="btn btn-outline" href="#s05">← Section 05</a>
+          <a class="btn btn-outline" href="#setup">Section 07：実践セットアップ →</a>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- =============== Section 07 =============== -->
+      <section class="chapter" id="setup" aria-labelledby="s07t">
+        <h2 class="section-title" id="s07t"><span class="section-num">07</span>理論を、ミリ単位の実践へ</h2>
+        <p class="section-lead">補正レンズもレデューサーも、設計されたバックフォーカス位置に置かれて初めて性能を発揮します。 ここまでのシミュレーションを、実際の機材構成に落とし込んでみましょう。 センサー面までの距離を、リングとスペーサーの積み上げで指定値に合わせる——それが最後の工程です。</p>
+
+        <div class="sim">
+          <div class="sim__bar">
+            <span>カメラと補正光学系を選び、必要なスペーサー厚を算出</span>
+            <span id="s7stat">STATUS: —</span>
+          </div>
+          <div class="sim__body">
+            <div class="sim__stage">
+              <p class="stage-label">光路長チェーン（模式図）</p>
+              <canvas class="stage" id="cv7" width="760" height="300" style="cursor: default" aria-label="補正レンズからセンサー面までの光路長の内訳"></canvas>
+              <div class="bf-chain" aria-hidden="true">
+                <span class="node">補正光学系 後端</span> → <span class="node">延長筒</span> → <span class="node">フィルター</span> → <span class="node">スペーサー</span> → <span class="node">カメラ</span> →
+                <span class="node">センサー面</span>
+              </div>
+            </div>
+            <div class="sim__side">
+              <div class="readout" aria-live="polite">
+                <div><span class="k">指定BF</span><span class="v" id="r7a">55.0 mm</span></div>
+                <div><span class="k">現在BF</span><span class="v" id="r7b">55.0 mm</span></div>
+                <div><span class="k">差分</span><span class="v" id="r7c">0.0 mm</span></div>
+                <div><span class="k">周辺像評価</span><span class="v" id="r7d">良好</span></div>
+              </div>
+
+              <div>
+                <div class="ctrl">
+                  <label>カメラ</label>
+                  <div class="toggle-row" id="s7cam" role="group">
+                    <button class="btn btn-outline" type="button" data-v="asi" aria-pressed="true">ASI2600MC Pro</button>
+                    <button class="btn btn-outline" type="button" data-v="a7s" aria-pressed="false">α7S II</button>
+                  </div>
+                </div>
+                <div class="ctrl">
+                  <label for="s7ext"
+                    >延長筒・アダプター合計 <b><span id="s7extv">28.0</span> mm</b></label
+                  >
+                  <input type="range" id="s7ext" min="0" max="60" step="0.5" value="28" />
+                </div>
+                <div class="ctrl">
+                  <label for="s7fil"
+                    >フィルター厚による光路延長 <b><span id="s7filv">0.7</span> mm</b></label
+                  >
+                  <input type="range" id="s7fil" min="0" max="3" step="0.1" value="0.7" />
+                </div>
+                <div class="ctrl">
+                  <label for="s7spa"
+                    >スペーサー <b><span id="s7spav">0.0</span> mm</b></label
+                  >
+                  <input type="range" id="s7spa" min="0" max="15" step="0.5" value="0" />
+                </div>
+                <div class="toggle-row" style="margin-top: var(--space-md)">
+                  <button class="btn btn-primary" type="button" id="s7fit">自動で合わせる</button>
+                  <button class="btn btn-outline" type="button" id="s7reset">初期化</button>
+                </div>
+              </div>
+
+              <p class="callout"><b>フィルター厚の効き方：</b>厚さ <i>t</i>、屈折率 <i>n</i> のガラスを光路に挿入すると、 光路長は約 <i>t</i>×(1 − 1/<i>n</i>) だけ<b>伸びます</b>。 n≈1.52 の板を2mm入れると、約0.68mm分の延長に相当します。 フィルターを追加・交換したときは、この分をスペーサーで引き算してください。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: var(--space-xl)">
+          <div class="card">
+            <h3>センサー仕様の比較</h3>
+            <table class="spec-table">
+              <thead>
+                <tr>
+                  <th>項目</th>
+                  <th>ASI2600MC Pro</th>
+                  <th>α7S II</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>センサー</td>
+                  <td>APS-C 相当</td>
+                  <td>フルサイズ</td>
+                </tr>
+                <tr>
+                  <td>対角長</td>
+                  <td>約28.3 mm</td>
+                  <td>約43.3 mm</td>
+                </tr>
+                <tr>
+                  <td>画素ピッチ</td>
+                  <td>約3.76 µm</td>
+                  <td>約8.4 µm</td>
+                </tr>
+                <tr>
+                  <td>特徴</td>
+                  <td>冷却・低ノイズ長時間露出</td>
+                  <td>高感度・星景動画</td>
+                </tr>
+                <tr>
+                  <td>周辺像の要求</td>
+                  <td>中程度</td>
+                  <td>厳しい（要大イメージサークル）</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h3>現場のチェックリスト</h3>
+            <ul style="font-size: var(--text-sm); color: var(--color-muted); padding-left: 1.2em; margin: 0">
+              <li>補正光学系の指定バックフォーカスを取扱説明書で確認する</li>
+              <li>フィルター厚ぶんの光路延長を差し引く</li>
+              <li>四隅の星像を等倍で確認し、放射方向／同心方向どちらに伸びているかを見る</li>
+              <li>放射方向に伸びる＝距離が短い、同心方向＝長い、を目安に0.5mm刻みで調整</li>
+              <li>ピント合わせは中心ではなく、四隅と中心の折り合いで決める</li>
+              <li>気温変化で金属が伸縮するため、長時間撮影では途中の再確認を</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="cta-band">
+          <p class="portfolio-header__tagline">Call to Action</p>
+          <h3 style="font-size: var(--text-xl); margin-bottom: var(--space-md)">画面の光路を、実物の光路へ。</h3>
+          <p style="max-width: 54ch; margin: 0 auto; color: var(--color-muted); font-size: var(--text-sm)">公開天文台では、実機のレデューサー・フィルターを用いた撮影実習や、 分光器のセットアップ見学を実施しています。 ご自身のカメラを持ち込んでのバックフォーカス調整相談も受け付けています。</p>
+          <div class="cta-band__actions">
+            <button class="btn btn-primary" type="button">撮影実習に申し込む</button>
+            <button class="btn btn-outline" type="button">機材貸出について</button>
+            <button class="btn btn-outline" type="button">前編の展示を見る</button>
+          </div>
+          <p style="font-size: var(--text-xs); color: var(--color-neutral); margin-top: var(--space-lg)">※ ボタンのリンク先・日程・料金等は運用時に実際の情報へ差し替えてください。</p>
+        </div>
+      </section>
+
+      <footer class="footer-statement">
+        <p class="footer-statement__text">光を曲げ、選び、整える。宇宙を見るとは、光の行き先を決める技術のことだった。</p>
+        <div class="footer-statement__meta">
+          <span>Web Exhibition / Optics Trail II</span>
+          <span>Interactive Ray-Casting Simulation</span>
+          <span>© 2026</span>
+        </div>
+      </footer>
+    </main>
+
+    <script>
+      /* =========================================================
+   共通ユーティリティ：HiDPI 対応 Canvas
+   ========================================================= */
+      function setupCanvas(cv) {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = cv.getBoundingClientRect();
+        const w = rect.width || cv.width;
+        const h = w * (cv.height / cv.width);
+        cv.style.height = h + "px";
+        cv.width = Math.round(w * dpr);
+        cv.height = Math.round(h * dpr);
+        const ctx = cv.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        cv._w = w;
+        cv._h = h;
+        cv._dpr = dpr;
+        return ctx;
+      }
+      const CSSV = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+      const COL = {
+        ink: "#f2f2f5",
+        muted: "#b4b6bd",
+        neutral: "#8a8d96",
+        rule: "#3c3f48",
+        accent: "#ff9a5c",
+        paper: "#141519",
+      };
+      const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+      const lerp = (a, b, t) => a + (b - a) * t;
+
+      function dashLine(ctx, x1, y1, x2, y2, col, dash) {
+        ctx.save();
+        ctx.setLineDash(dash || [4, 4]);
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.restore();
+      }
+      function label(ctx, txt, x, y, col, size, align) {
+        ctx.save();
+        ctx.fillStyle = col || COL.neutral;
+        ctx.font = (size || 10) + 'px "Geist Mono", monospace';
+        ctx.textAlign = align || "left";
+        ctx.fillText(txt, x, y);
+        ctx.restore();
+      }
+      /* 星像（ガウシアン＋コマ尾）描画 */
+      function drawStarBlob(ctx, x, y, radius, coma, angle, color, intensity) {
+        const steps = 14;
+        for (let i = steps; i >= 1; i--) {
+          const t = i / steps;
+          const r = radius * t;
+          const ox = Math.cos(angle) * coma * (1 - t) * radius * 1.6;
+          const oy = Math.sin(angle) * coma * (1 - t) * radius * 1.6;
+          ctx.beginPath();
+          ctx.globalAlpha = (1 - t) * 0.22 * intensity + 0.03;
+          ctx.fillStyle = color;
+          ctx.ellipse(x + ox, y + oy, r * (1 + coma * 0.5), r, angle, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      /* =========================================================
+   Section 04 : コマコレクター / フラットナー
+   ========================================================= */
+      const S4 = {
+        ins: 0,
+        type: "coma",
+        img: 28,
+        lensX: 0.62,
+        offAxis: 0.75,
+        grid: false,
+        spot: true,
+        anim: null,
+      };
+      let cv4, ctx4, vw4, vctx4;
+
+      function s4Layout() {
+        ctx4 = setupCanvas(cv4);
+        vctx4 = setupCanvas(vw4);
+      }
+
+      function s4Draw() {
+        const W = cv4._w,
+          H = cv4._h,
+          ax = H * 0.5;
+        ctx4.clearRect(0, 0, W, H);
+
+        // 背景グリッド
+        ctx4.strokeStyle = "rgba(140,145,160,0.07)";
+        ctx4.lineWidth = 1;
+        for (let x = 0; x < W; x += 38) {
+          ctx4.beginPath();
+          ctx4.moveTo(x, 0);
+          ctx4.lineTo(x, H);
+          ctx4.stroke();
+        }
+        for (let y = 0; y < H; y += 38) {
+          ctx4.beginPath();
+          ctx4.moveTo(0, y);
+          ctx4.lineTo(W, y);
+          ctx4.stroke();
+        }
+
+        // 光軸
+        dashLine(ctx4, 0, ax, W, ax, "rgba(200,205,220,0.35)", [6, 6]);
+        label(ctx4, "光軸", 8, ax - 8, COL.neutral, 10);
+
+        const mirrorX = W * 0.08;
+        const lensX = W * S4.lensX;
+        const sensorX = W * 0.92;
+        const apert = H * 0.36;
+        const ins = S4.ins / 100;
+
+        // 主鏡（曲面）
+        ctx4.strokeStyle = COL.muted;
+        ctx4.lineWidth = 3;
+        ctx4.beginPath();
+        ctx4.arc(mirrorX + apert * 2.4, ax, apert * 2.4, Math.PI - 0.16, Math.PI + 0.16);
+        ctx4.stroke();
+        label(ctx4, "主鏡 / 対物", mirrorX - 4, ax + apert + 22, COL.neutral, 10);
+
+        // センサー面
+        ctx4.strokeStyle = COL.accent;
+        ctx4.lineWidth = 3;
+        ctx4.beginPath();
+        ctx4.moveTo(sensorX, ax - apert * 0.75);
+        ctx4.lineTo(sensorX, ax + apert * 0.75);
+        ctx4.stroke();
+        label(ctx4, "センサー面", sensorX + 6, ax - apert * 0.75 - 8, COL.accent, 10);
+
+        // 補正レンズ群（挿入率で不透明度・枚数表現）
+        const nEl = S4.type === "both" ? 3 : 2;
+        for (let i = 0; i < nEl; i++) {
+          const lx = lensX + (i - (nEl - 1) / 2) * 16;
+          const half = apert * (0.42 - i * 0.02);
+          ctx4.save();
+          ctx4.globalAlpha = 0.18 + ins * 0.72;
+          ctx4.strokeStyle = i % 2 ? "#8fd6ff" : COL.accent;
+          ctx4.fillStyle = i % 2 ? "rgba(143,214,255,0.10)" : "rgba(255,154,92,0.10)";
+          ctx4.lineWidth = 2;
+          ctx4.beginPath();
+          const bul = 7 * (i % 2 ? -1 : 1);
+          ctx4.moveTo(lx, ax - half);
+          ctx4.quadraticCurveTo(lx + bul, ax, lx, ax + half);
+          ctx4.quadraticCurveTo(lx - bul, ax, lx, ax - half);
+          ctx4.closePath();
+          ctx4.fill();
+          ctx4.stroke();
+          ctx4.restore();
+        }
+        ctx4.save();
+        ctx4.globalAlpha = 0.4 + ins * 0.6;
+        const tName = S4.type === "coma" ? "コマコレクター" : S4.type === "flat" ? "フラットナー" : "複合補正レンズ群";
+        label(ctx4, tName + "（挿入 " + S4.ins + "%）", lensX - 40, ax - apert * 0.5 - 12, COL.ink, 10);
+        ctx4.restore();
+
+        // 光線追跡：軸上＋軸外
+        const fields = [0, S4.offAxis * 0.55, S4.offAxis];
+        fields.forEach((f, fi) => {
+          const col = fi === 0 ? "rgba(255,255,255,0.85)" : fi === 1 ? "rgba(143,214,255,0.8)" : "rgba(255,154,92,0.85)";
+          // 収差量（挿入で減衰）
+          const comaRaw = f * f * 1.0;
+          const coma = comaRaw * (1 - ins * (S4.type === "flat" ? 0.35 : 0.95));
+          const curvRaw = f * f * 1.0;
+          const curv = curvRaw * (1 - ins * (S4.type === "coma" ? 0.3 : 0.95));
+
+          const nRay = 7;
+          for (let i = 0; i < nRay; i++) {
+            const t = nRay === 1 ? 0 : (i / (nRay - 1)) * 2 - 1; // -1..1 瞳位置
+            const yIn = ax - f * apert * 0.55 + t * apert * 0.92 * 0.0; // 平行入射
+            const yEnter = ax + t * apert * 0.92;
+            // 主鏡で反射 → 収束
+            const targetY = ax + f * apert * 0.62;
+            const focX = sensorX - curv * 40; // 像面湾曲：焦点が前後にずれる
+            // 収差により到達点が瞳位置に依存
+            const hitY = targetY + coma * apert * 0.3 * (t * t) * Math.sign(f || 1) + coma * apert * 0.1 * t;
+            ctx4.strokeStyle = col;
+            ctx4.lineWidth = 1;
+            ctx4.beginPath();
+            ctx4.moveTo(0, yEnter - f * apert * 0.0);
+            ctx4.lineTo(mirrorX + 6, yEnter);
+            // 主鏡 → レンズ手前
+            const yAtLens = lerp(yEnter, targetY, (lensX - mirrorX) / (focX - mirrorX));
+            ctx4.lineTo(lensX, yAtLens);
+            // レンズ通過後
+            const yFinal = lerp(hitY, targetY, ins * 0.0);
+            ctx4.lineTo(sensorX, yFinal + (1 - ins) * 0);
+            ctx4.stroke();
+
+            // 焦点前後のずれを可視化（湾曲）
+            if (Math.abs(curv) > 0.01) {
+              ctx4.save();
+              ctx4.globalAlpha = 0.35;
+              ctx4.strokeStyle = col;
+              ctx4.beginPath();
+              ctx4.moveTo(sensorX, yFinal);
+              ctx4.lineTo(focX, targetY);
+              ctx4.stroke();
+              ctx4.restore();
+            }
+          }
+        });
+
+        // ピント面（湾曲曲線）
+        const curvAmt = 1 - ins * (S4.type === "coma" ? 0.3 : 0.95);
+        ctx4.save();
+        ctx4.setLineDash([3, 4]);
+        ctx4.strokeStyle = "rgba(143,214,255,0.9)";
+        ctx4.lineWidth = 1.6;
+        ctx4.beginPath();
+        for (let i = 0; i <= 40; i++) {
+          const t = (i / 40) * 2 - 1;
+          const y = ax + t * apert * 0.75;
+          const x = sensorX - curvAmt * t * t * 36;
+          i === 0 ? ctx4.moveTo(x, y) : ctx4.lineTo(x, y);
+        }
+        ctx4.stroke();
+        ctx4.restore();
+        label(ctx4, "ピント面（破線）", sensorX - 130, ax + apert * 0.75 + 18, "rgba(143,214,255,0.9)", 10);
+
+        label(ctx4, "← ドラッグでレンズ群を移動", W - 8, H - 10, COL.neutral, 10, "right");
+      }
+
+      function s4View() {
+        const W = vw4._w,
+          H = vw4._h;
+        vctx4.clearRect(0, 0, W, H);
+        vctx4.fillStyle = "#04050a";
+        vctx4.fillRect(0, 0, W, H);
+
+        const ins = S4.ins / 100;
+        const cx = W / 2,
+          cy = H / 2;
+        const maxR = Math.min(W, H) * 0.46;
+
+        // イメージサークル
+        vctx4.save();
+        vctx4.strokeStyle = "rgba(255,154,92,0.25)";
+        vctx4.setLineDash([4, 4]);
+        vctx4.beginPath();
+        vctx4.arc(cx, cy, maxR * (S4.img / 44), 0, Math.PI * 2);
+        vctx4.stroke();
+        vctx4.restore();
+
+        // 星をグリッド配置
+        const N = 7;
+        for (let i = 0; i < N; i++) {
+          for (let j = 0; j < N; j++) {
+            const fx = (i / (N - 1)) * 2 - 1;
+            const fy = (j / (N - 1)) * 2 - 1;
+            const r = Math.hypot(fx, fy);
+            if (r > 1.06) continue;
+            const x = cx + fx * maxR,
+              y = cy + fy * maxR;
+            const ang = Math.atan2(fy, fx);
+
+            const comaBase = r * r * 1.5;
+            const coma = comaBase * (1 - ins * (S4.type === "flat" ? 0.35 : 0.95));
+            const defocus = r * r * (1 - ins * (S4.type === "coma" ? 0.3 : 0.95));
+            const rad = 1.6 + defocus * 4.2;
+            const bright = 0.55 + 0.45 * Math.abs(Math.sin(i * 2.3 + j * 1.7));
+
+            drawStarBlob(vctx4, x, y, rad, coma, ang, "#dfe6ff", bright);
+            // 芯
+            vctx4.fillStyle = "rgba(255,255,255," + 0.85 * bright + ")";
+            vctx4.beginPath();
+            vctx4.arc(x, y, Math.max(0.7, 1.5 - defocus), 0, Math.PI * 2);
+            vctx4.fill();
+          }
+        }
+
+        // センサー枠
+        if (S4.grid) {
+          const halfW = maxR * 0.86,
+            halfH = halfW * 0.667;
+          vctx4.strokeStyle = "rgba(255,154,92,0.8)";
+          vctx4.lineWidth = 1.5;
+          vctx4.strokeRect(cx - halfW, cy - halfH, halfW * 2, halfH * 2);
+          label(vctx4, "SENSOR", cx - halfW, cy - halfH - 6, COL.accent, 9);
+        }
+
+        // スポットダイアグラム（四隅拡大）
+        if (S4.spot) {
+          const boxes = [
+            [0.13, 0.13],
+            [0.87, 0.13],
+            [0.13, 0.87],
+            [0.87, 0.87],
+          ];
+          boxes.forEach(([bx, by], k) => {
+            const px = bx * W,
+              py = by * H,
+              s = Math.min(W, H) * 0.11;
+            vctx4.save();
+            vctx4.strokeStyle = "rgba(255,154,92,0.55)";
+            vctx4.lineWidth = 1;
+            vctx4.strokeRect(px - s, py - s, s * 2, s * 2);
+            vctx4.beginPath();
+            vctx4.rect(px - s, py - s, s * 2, s * 2);
+            vctx4.clip();
+            const ang = Math.atan2(by - 0.5, bx - 0.5);
+            const coma = 1.5 * (1 - ins * (S4.type === "flat" ? 0.35 : 0.95));
+            const defocus = 1 * (1 - ins * (S4.type === "coma" ? 0.3 : 0.95));
+            // レイ交点を点群で
+            for (let m = 0; m < 160; m++) {
+              const rr = Math.sqrt(Math.random());
+              const th = Math.random() * Math.PI * 2;
+              const u = rr * Math.cos(th),
+                v = rr * Math.sin(th);
+              const spread = s * 0.55;
+              const dx = u * spread * (0.25 + defocus * 0.6) + Math.cos(ang) * coma * spread * (u * u + v * v) * 0.9;
+              const dy = v * spread * (0.25 + defocus * 0.6) + Math.sin(ang) * coma * spread * (u * u + v * v) * 0.9;
+              vctx4.fillStyle = "rgba(223,230,255,0.55)";
+              vctx4.fillRect(px + dx, py + dy, 1.2, 1.2);
+            }
+            vctx4.restore();
+            label(vctx4, "CORNER", px - s, py + s + 11, "rgba(255,154,92,0.7)", 8);
+          });
+        }
+
+        label(vctx4, ins > 0.95 ? "CORRECTED" : ins < 0.05 ? "UNCORRECTED" : "PARTIAL", 10, H - 10, ins > 0.5 ? "#8fd6ff" : COL.accent, 10);
+      }
+
+      function s4Update() {
+        const ins = S4.ins / 100;
+        const comaK = S4.type === "flat" ? 0.35 : 0.95;
+        const curvK = S4.type === "coma" ? 0.3 : 0.95;
+        const starSize = 18.4 * (1 - ins * comaK) + 1.8;
+        const curv = 42 * (1 - ins * curvK);
+        const flatPct = Math.round(31 + ins * 67);
+        document.getElementById("r4a").textContent = starSize.toFixed(1) + " ″";
+        document.getElementById("r4b").textContent = Math.round(curv) + " µm";
+        document.getElementById("r4c").textContent = flatPct + " %";
+        document.getElementById("r4d").textContent = S4.ins + " %";
+        document.getElementById("s4insv").textContent = S4.ins;
+        document.getElementById("s4imgv").textContent = S4.img;
+        document.getElementById("s4bf").textContent = "BACKFOCUS " + (55 + (S4.lensX - 0.62) * 120).toFixed(1) + " mm";
+        s4Draw();
+        s4View();
+      }
+
+      function s4Init() {
+        cv4 = document.getElementById("cv4");
+        vw4 = document.getElementById("vw4");
+        s4Layout();
+
+        const ins = document.getElementById("s4ins");
+        ins.addEventListener("input", () => {
+          S4.ins = +ins.value;
+          s4Update();
+        });
+        document.getElementById("s4img").addEventListener("input", (e) => {
+          S4.img = +e.target.value;
+          s4Update();
+        });
+        document.querySelectorAll("#s4type [data-v]").forEach((b) => {
+          b.addEventListener("click", () => {
+            S4.type = b.dataset.v;
+            document.querySelectorAll("#s4type [data-v]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+            s4Update();
+          });
+        });
+        document.getElementById("s4grid").addEventListener("change", (e) => {
+          S4.grid = e.target.checked;
+          s4Update();
+        });
+        document.getElementById("s4spot").addEventListener("change", (e) => {
+          S4.spot = e.target.checked;
+          s4Update();
+        });
+        document.getElementById("s4reset").addEventListener("click", () => {
+          if (S4.anim) {
+            cancelAnimationFrame(S4.anim);
+            S4.anim = null;
+          }
+          S4.ins = 0;
+          S4.type = "coma";
+          S4.img = 28;
+          S4.lensX = 0.62;
+          ins.value = 0;
+          document.getElementById("s4img").value = 28;
+          document.querySelectorAll("#s4type [data-v]").forEach((x, i) => x.setAttribute("aria-pressed", String(i === 0)));
+          s4Update();
+        });
+        document.getElementById("s4auto").addEventListener("click", () => {
+          if (S4.anim) cancelAnimationFrame(S4.anim);
+          const t0 = performance.now(),
+            from = S4.ins;
+          const step = (now) => {
+            const p = clamp((now - t0) / 1800, 0, 1);
+            const e = 1 - Math.pow(1 - p, 3);
+            S4.ins = Math.round(lerp(from, 100, e));
+            ins.value = S4.ins;
+            s4Update();
+            if (p < 1) S4.anim = requestAnimationFrame(step);
+            else S4.anim = null;
+          };
+          S4.anim = requestAnimationFrame(step);
+        });
+
+        // ドラッグ操作
+        let drag = false;
+        const pos = (e) => {
+          const r = cv4.getBoundingClientRect();
+          const p = e.touches ? e.touches[0] : e;
+          return { x: (p.clientX - r.left) / r.width, y: (p.clientY - r.top) / r.height };
+        };
+        const down = (e) => {
+          drag = true;
+          e.preventDefault();
+        };
+        const move = (e) => {
+          if (!drag) return;
+          const p = pos(e);
+          S4.lensX = clamp(p.x, 0.3, 0.86);
+          S4.offAxis = clamp(Math.abs(p.y - 0.5) * 2.2, 0.15, 1.0);
+          s4Update();
+          e.preventDefault();
+        };
+        const up = () => {
+          drag = false;
+        };
+        cv4.addEventListener("mousedown", down);
+        cv4.addEventListener("touchstart", down, { passive: false });
+        window.addEventListener("mousemove", move);
+        window.addEventListener("touchmove", move, { passive: false });
+        window.addEventListener("mouseup", up);
+        window.addEventListener("touchend", up);
+
+        s4Update();
+      }
+
+      /* =========================================================
+   Section 05 : レデューサー
+   ========================================================= */
+      const S5 = { cfg: "ach2", red: 0.72, fl: 1600, rgb: true, edge: false, lensX: 0.6, tour: null };
+      let cv5, ctx5, vw5, vctx5;
+
+      const S5PROF = {
+        single: { chroma: 1.0, coma: 1.0, label: "SINGLE LENS" },
+        ach1: { chroma: 0.1, coma: 0.55, label: "ACHROMAT ×1" },
+        ach2: { chroma: 0.04, coma: 0.1, label: "ACHROMAT ×2" },
+      };
+
+      function s5Layout() {
+        ctx5 = setupCanvas(cv5);
+        vctx5 = setupCanvas(vw5);
+      }
+
+      function s5Draw() {
+        const W = cv5._w,
+          H = cv5._h,
+          ax = H * 0.5;
+        ctx5.clearRect(0, 0, W, H);
+        ctx5.strokeStyle = "rgba(140,145,160,0.07)";
+        for (let x = 0; x < W; x += 38) {
+          ctx5.beginPath();
+          ctx5.moveTo(x, 0);
+          ctx5.lineTo(x, H);
+          ctx5.stroke();
+        }
+        for (let y = 0; y < H; y += 38) {
+          ctx5.beginPath();
+          ctx5.moveTo(0, y);
+          ctx5.lineTo(W, y);
+          ctx5.stroke();
+        }
+        dashLine(ctx5, 0, ax, W, ax, "rgba(200,205,220,0.35)", [6, 6]);
+
+        const p = S5PROF[S5.cfg];
+        const apert = H * 0.34;
+        const lensX = W * S5.lensX;
+        const origFoc = W * 0.9;
+        const newFoc = lensX + (origFoc - lensX) * S5.red;
+        const sensorX = newFoc;
+
+        // 対物
+        ctx5.strokeStyle = COL.muted;
+        ctx5.lineWidth = 3;
+        ctx5.beginPath();
+        ctx5.ellipse(W * 0.07, ax, 8, apert, 0, -Math.PI / 2, Math.PI / 2);
+        ctx5.stroke();
+        label(ctx5, "対物（主鏡）", W * 0.07 - 10, ax + apert + 20, COL.neutral, 10);
+
+        // レンズ群描画
+        const groups = S5.cfg === "ach2" ? 2 : 1;
+        for (let g = 0; g < groups; g++) {
+          const gx = lensX + (g - (groups - 1) / 2) * 40;
+          const nEl = S5.cfg === "single" ? 1 : 2;
+          for (let i = 0; i < nEl; i++) {
+            const lx = gx + (i - (nEl - 1) / 2) * 11;
+            const half = apert * 0.46;
+            const crown = i === 0;
+            ctx5.save();
+            ctx5.strokeStyle = crown ? "#8fd6ff" : "#ffc78f";
+            ctx5.fillStyle = crown ? "rgba(143,214,255,0.12)" : "rgba(255,199,143,0.12)";
+            ctx5.lineWidth = 2;
+            ctx5.beginPath();
+            // 前群は凸、後群（フリント）は凹寄り
+            const bul = crown ? 9 : -6;
+            ctx5.moveTo(lx, ax - half);
+            ctx5.quadraticCurveTo(lx + bul, ax, lx, ax + half);
+            ctx5.quadraticCurveTo(lx - bul, ax, lx, ax - half);
+            ctx5.closePath();
+            ctx5.fill();
+            ctx5.stroke();
+            ctx5.restore();
+          }
+          label(ctx5, groups === 2 ? "第" + (g + 1) + "群" : "", gx - 12, ax - apert * 0.55 - 8, COL.muted, 9);
+        }
+        label(ctx5, p.label, lensX - 30, ax - apert * 0.55 - 24, COL.ink, 10);
+
+        // センサー
+        ctx5.strokeStyle = COL.accent;
+        ctx5.lineWidth = 3;
+        ctx5.beginPath();
+        ctx5.moveTo(sensorX, ax - apert * 0.8);
+        ctx5.lineTo(sensorX, ax + apert * 0.8);
+        ctx5.stroke();
+        label(ctx5, "センサー", sensorX + 6, ax - apert * 0.8 - 8, COL.accent, 10);
+        // 元の焦点位置
+        dashLine(ctx5, origFoc, ax - apert * 0.6, origFoc, ax + apert * 0.6, "rgba(180,185,200,0.5)", [3, 3]);
+        label(ctx5, "元の焦点", origFoc + 5, ax + apert * 0.6 + 14, COL.neutral, 9);
+
+        // 波長別光線
+        const waves = S5.rgb
+          ? [
+              { c: "rgba(255,90,80,0.9)", d: 1.0 },
+              { c: "rgba(120,255,150,0.9)", d: 0.0 },
+              { c: "rgba(120,170,255,0.9)", d: -1.0 },
+            ]
+          : [{ c: "rgba(255,255,255,0.85)", d: 0.0 }];
+
+        const fields = S5.edge ? [0, 0.85] : [0];
+        fields.forEach((f, fi) => {
+          waves.forEach((w) => {
+            const chroma = p.chroma * w.d * 26;
+            const nRay = 5;
+            for (let i = 0; i < nRay; i++) {
+              const t = (i / (nRay - 1)) * 2 - 1;
+              const yIn = ax + t * apert * 0.9 - f * apert * 0.35;
+              const yAtLens = lerp(yIn, ax + f * apert * 0.5, (lensX - W * 0.07) / (origFoc - W * 0.07));
+              const hitBase = ax + f * apert * 0.42;
+              const comaOff = p.coma * f * f * apert * 0.16 * (t * t) * (fi ? 1 : 0);
+              const hit = hitBase + comaOff;
+              ctx5.strokeStyle = w.c;
+              ctx5.lineWidth = 1;
+              ctx5.beginPath();
+              ctx5.moveTo(0, yIn);
+              ctx5.lineTo(W * 0.07, yIn);
+              ctx5.lineTo(lensX - (S5.cfg === "ach2" ? 20 : 0), yAtLens);
+              if (S5.cfg === "ach2") {
+                // 2段階で緩やかに
+                const mid = lensX + 20;
+                const yMid = lerp(yAtLens, hit, 0.55);
+                ctx5.lineTo(mid, yMid);
+              }
+              // 色収差：焦点位置が色でずれる
+              const fx = sensorX + chroma;
+              ctx5.lineTo(fx, hit);
+              if (chroma !== 0) ctx5.lineTo(sensorX + chroma * 1.9, hit + (hit - ax) * 0.06 + t * 3.2 * p.chroma);
+              ctx5.stroke();
+
+              // 焦点マーク
+              if (i === Math.floor(nRay / 2)) {
+                ctx5.fillStyle = w.c;
+                ctx5.beginPath();
+                ctx5.arc(fx, hit, 2.4, 0, Math.PI * 2);
+                ctx5.fill();
+              }
+            }
+          });
+        });
+
+        if (p.chroma > 0.3) label(ctx5, "← 色ごとに焦点がずれる（色収差）", sensorX - 190, ax + apert * 0.95, "rgba(255,120,110,0.95)", 10);
+        else label(ctx5, "3色が一致", sensorX - 74, ax + apert * 0.95, "rgba(140,255,180,0.9)", 10);
+
+        label(ctx5, "← ドラッグでレデューサー位置を移動", W - 8, H - 10, COL.neutral, 10, "right");
+      }
+
+      function s5View() {
+        const W = vw5._w,
+          H = vw5._h;
+        vctx5.clearRect(0, 0, W, H);
+        vctx5.fillStyle = "#04050a";
+        vctx5.fillRect(0, 0, W, H);
+        const p = S5PROF[S5.cfg];
+        const cx = W / 2,
+          cy = H / 2;
+        const maxR = Math.min(W, H) * 0.44;
+
+        // 視野が広がる → 星の間隔が縮む
+        const scale = S5.red;
+        const N = 6;
+        for (let i = 0; i < N; i++) {
+          for (let j = 0; j < N; j++) {
+            const fx = ((i + 0.5) / N) * 2 - 1;
+            const fy = ((j + 0.5) / N) * 2 - 1;
+            const r = Math.hypot(fx, fy);
+            if (r > 1.1) continue;
+            const x = cx + fx * maxR,
+              y = cy + fy * maxR;
+            const ang = Math.atan2(fy, fx);
+            const coma = p.coma * r * r * 1.5;
+            const rad = (2.4 + coma * 2) * clamp(scale + 0.3, 0.6, 1.2);
+            const bright = 0.5 + 0.5 * Math.abs(Math.cos(i * 1.9 + j * 2.7));
+
+            if (p.chroma > 0.05) {
+              const sh = p.chroma * 3.6;
+              drawStarBlob(vctx5, x - sh, y - sh * 0.4, rad, coma, ang, "#5aa0ff", bright * 0.9);
+              drawStarBlob(vctx5, x + sh, y + sh * 0.4, rad, coma, ang, "#ff6a5a", bright * 0.9);
+              drawStarBlob(vctx5, x, y, rad * 0.9, coma, ang, "#eaffea", bright);
+            } else {
+              drawStarBlob(vctx5, x, y, rad, coma, ang, "#e6ecff", bright);
+            }
+            vctx5.fillStyle = "rgba(255,255,255," + 0.9 * bright + ")";
+            vctx5.beginPath();
+            vctx5.arc(x, y, 1.1, 0, Math.PI * 2);
+            vctx5.fill();
+          }
+        }
+
+        // 中央に模擬天体（縮小率で小さくなる）
+        const gr = maxR * 0.42 * scale;
+        const g = vctx5.createRadialGradient(cx, cy, 0, cx, cy, gr);
+        g.addColorStop(0, "rgba(255,150,120,0.45)");
+        g.addColorStop(0.5, "rgba(200,90,140,0.20)");
+        g.addColorStop(1, "rgba(60,40,90,0)");
+        vctx5.fillStyle = g;
+        vctx5.beginPath();
+        vctx5.arc(cx, cy, gr, 0, Math.PI * 2);
+        vctx5.fill();
+
+        // 視野枠
+        vctx5.strokeStyle = "rgba(255,154,92,0.5)";
+        vctx5.lineWidth = 1.5;
+        vctx5.strokeRect(W * 0.06, H * 0.06, W * 0.88, H * 0.88);
+        label(vctx5, p.label, W * 0.06 + 4, H * 0.06 - 6, COL.accent, 10);
+        label(vctx5, "実視野 ×" + (1 / scale).toFixed(2) + "（広角化）", W * 0.06 + 4, H * 0.94 + 14, COL.muted, 10);
+      }
+
+      function s5Update() {
+        const p = S5PROF[S5.cfg];
+        const eff = S5.fl * S5.red;
+        const aperture = 400;
+        const fnum = eff / aperture;
+        document.getElementById("r5a").textContent = Math.round(eff) + " mm";
+        document.getElementById("r5b").textContent = "F" + fnum.toFixed(1);
+        document.getElementById("r5c").textContent = "×" + (1 / (S5.red * S5.red)).toFixed(2);
+        document.getElementById("r5d").textContent = (0.8 / S5.red).toFixed(2) + " °";
+        document.getElementById("r5e").textContent = (p.chroma * 52).toFixed(1) + " µm";
+        document.getElementById("r5f").textContent = Math.round(p.coma * 100) + " %";
+        document.getElementById("s5redv").textContent = S5.red.toFixed(2);
+        document.getElementById("s5flv").textContent = S5.fl;
+        document.getElementById("s5cfg").textContent = "CONFIG: " + p.label;
+        s5Draw();
+        s5View();
+      }
+
+      function s5Init() {
+        cv5 = document.getElementById("cv5");
+        vw5 = document.getElementById("vw5");
+        s5Layout();
+        document.querySelectorAll("#s5cfgBtns [data-v]").forEach((b) => {
+          b.addEventListener("click", () => {
+            S5.cfg = b.dataset.v;
+            document.querySelectorAll("#s5cfgBtns [data-v]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+            s5Update();
+          });
+        });
+        document.getElementById("s5red").addEventListener("input", (e) => {
+          S5.red = +e.target.value / 100;
+          s5Update();
+        });
+        document.getElementById("s5fl").addEventListener("input", (e) => {
+          S5.fl = +e.target.value;
+          s5Update();
+        });
+        document.getElementById("s5rgb").addEventListener("change", (e) => {
+          S5.rgb = e.target.checked;
+          s5Update();
+        });
+        document.getElementById("s5edge").addEventListener("change", (e) => {
+          S5.edge = e.target.checked;
+          s5Update();
+        });
+        document.getElementById("s5reset").addEventListener("click", () => {
+          if (S5.tour) {
+            clearTimeout(S5.tour);
+            S5.tour = null;
+          }
+          S5.cfg = "ach2";
+          S5.red = 0.72;
+          S5.fl = 1600;
+          S5.edge = false;
+          S5.lensX = 0.6;
+          document.getElementById("s5red").value = 72;
+          document.getElementById("s5fl").value = 1600;
+          document.getElementById("s5edge").checked = false;
+          document.querySelectorAll("#s5cfgBtns [data-v]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.v === "ach2")));
+          s5Update();
+        });
+        document.getElementById("s5tour").addEventListener("click", () => {
+          const seq = ["single", "ach1", "ach2"];
+          let k = 0;
+          S5.edge = true;
+          document.getElementById("s5edge").checked = true;
+          const run = () => {
+            S5.cfg = seq[k];
+            document.querySelectorAll("#s5cfgBtns [data-v]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.v === seq[k])));
+            s5Update();
+            k++;
+            if (k < seq.length) S5.tour = setTimeout(run, 1900);
+            else S5.tour = null;
+          };
+          run();
+        });
+
+        let drag = false;
+        const down = (e) => {
+          drag = true;
+          e.preventDefault();
+        };
+        const move = (e) => {
+          if (!drag) return;
+          const r = cv5.getBoundingClientRect();
+          const p = e.touches ? e.touches[0] : e;
+          S5.lensX = clamp((p.clientX - r.left) / r.width, 0.32, 0.74);
+          s5Update();
+          e.preventDefault();
+        };
+        cv5.addEventListener("mousedown", down);
+        cv5.addEventListener("touchstart", down, { passive: false });
+        window.addEventListener("mousemove", move);
+        window.addEventListener("touchmove", move, { passive: false });
+        window.addEventListener("mouseup", () => (drag = false));
+        window.addEventListener("touchend", () => (drag = false));
+
+        s5Update();
+      }
+
+      /* =========================================================
+   Section 06 : 干渉フィルター
+   ========================================================= */
+      const S6 = { mode: "none", sky: 55, fwhm: 7, star: true, band: true, cmp: null };
+      let cv6, ctx6, vw6, vctx6;
+
+      const LINES = [
+        { wl: 486.1, name: "Hβ", str: 0.35 },
+        { wl: 495.9, name: "OIII", str: 0.55 },
+        { wl: 500.7, name: "OIII", str: 0.95 },
+        { wl: 656.3, name: "Hα", str: 1.0 },
+        { wl: 671.6, name: "SII", str: 0.25 },
+      ];
+      const POLLUTION = [
+        { wl: 546.1, w: 4, s: 0.55 },
+        { wl: 577, w: 8, s: 0.45 },
+        { wl: 589.0, w: 5, s: 0.85 },
+        { wl: 615, w: 10, s: 0.4 },
+        { wl: 436, w: 6, s: 0.4 },
+      ];
+      const WL0 = 400,
+        WL1 = 700;
+
+      function wl2rgb(wl) {
+        let r = 0,
+          g = 0,
+          b = 0;
+        if (wl >= 380 && wl < 440) {
+          r = -(wl - 440) / 60;
+          b = 1;
+        } else if (wl < 490) {
+          g = (wl - 440) / 50;
+          b = 1;
+        } else if (wl < 510) {
+          g = 1;
+          b = -(wl - 510) / 20;
+        } else if (wl < 580) {
+          r = (wl - 510) / 70;
+          g = 1;
+        } else if (wl < 645) {
+          r = 1;
+          g = -(wl - 645) / 65;
+        } else if (wl <= 780) {
+          r = 1;
+        }
+        const c = (v) => Math.round(255 * Math.pow(Math.max(v, 0), 0.8));
+        return [c(r), c(g), c(b)];
+      }
+      function transmission(wl) {
+        const f = S6.fwhm;
+        if (S6.mode === "none") return 1;
+        if (S6.mode === "lp") {
+          let t = 0.92;
+          POLLUTION.forEach((p) => {
+            const d = Math.abs(wl - p.wl);
+            if (d < p.w * 1.4) t *= clamp(d / (p.w * 1.4), 0.04, 1);
+          });
+          if (wl > 690) t *= 0.15;
+          return t;
+        }
+        // dual narrowband
+        const centers = [500.7, 656.3];
+        let t = 0.002;
+        centers.forEach((c) => {
+          const g = Math.exp(-Math.pow((wl - c) / (f / 2.3548), 2) / 2);
+          t = Math.max(t, 0.95 * g);
+        });
+        return t;
+      }
+
+      function s6Spectrum() {
+        const W = cv6._w,
+          H = cv6._h;
+        ctx6.clearRect(0, 0, W, H);
+        const L = 44,
+          R = 12,
+          T = 16,
+          B = 34;
+        const x0 = L,
+          x1 = W - R,
+          y0 = T,
+          y1 = H - B;
+        const X = (wl) => x0 + ((wl - WL0) / (WL1 - WL0)) * (x1 - x0);
+        const Y = (v) => y1 - v * (y1 - y0);
+
+        // 可視色の帯
+        for (let x = x0; x < x1; x++) {
+          const wl = WL0 + ((x - x0) / (x1 - x0)) * (WL1 - WL0);
+          const [r, g, b] = wl2rgb(wl);
+          ctx6.fillStyle = `rgba(${r},${g},${b},0.13)`;
+          ctx6.fillRect(x, y0, 1, y1 - y0);
+        }
+        // 軸
+        ctx6.strokeStyle = COL.rule;
+        ctx6.lineWidth = 1;
+        ctx6.beginPath();
+        ctx6.moveTo(x0, y1);
+        ctx6.lineTo(x1, y1);
+        ctx6.moveTo(x0, y0);
+        ctx6.lineTo(x0, y1);
+        ctx6.stroke();
+        [400, 450, 500, 550, 600, 650, 700].forEach((wl) => {
+          dashLine(ctx6, X(wl), y0, X(wl), y1, "rgba(140,145,160,0.18)", [3, 4]);
+          label(ctx6, wl, X(wl), y1 + 14, COL.neutral, 9, "center");
+        });
+        label(ctx6, "波長 [nm]", (x0 + x1) / 2, H - 6, COL.neutral, 9, "center");
+        label(ctx6, "相対強度", x0 - 4, y0 + 8, COL.neutral, 9, "right");
+
+        // 透過帯の塗り
+        if (S6.band && S6.mode !== "none") {
+          ctx6.beginPath();
+          ctx6.moveTo(x0, y1);
+          for (let wl = WL0; wl <= WL1; wl += 0.5) ctx6.lineTo(X(wl), Y(transmission(wl)));
+          ctx6.lineTo(x1, y1);
+          ctx6.closePath();
+          ctx6.fillStyle = "rgba(255,154,92,0.13)";
+          ctx6.fill();
+          ctx6.strokeStyle = "rgba(255,154,92,0.9)";
+          ctx6.lineWidth = 1.6;
+          ctx6.beginPath();
+          for (let wl = WL0; wl <= WL1; wl += 0.5) {
+            const x = X(wl),
+              y = Y(transmission(wl));
+            wl === WL0 ? ctx6.moveTo(x, y) : ctx6.lineTo(x, y);
+          }
+          ctx6.stroke();
+          label(ctx6, "フィルター透過率", x1 - 4, y0 + 12, COL.accent, 9, "right");
+        }
+
+        // 光害の連続光＋輝線
+        const skyBase = (S6.sky / 100) * 0.55;
+        ctx6.beginPath();
+        ctx6.moveTo(x0, y1);
+        for (let wl = WL0; wl <= WL1; wl += 2) {
+          let v = skyBase * (0.55 + 0.45 * Math.exp(-Math.pow((wl - 570) / 130, 2)));
+          POLLUTION.forEach((p) => {
+            v += p.s * skyBase * 1.5 * Math.exp(-Math.pow((wl - p.wl) / p.w, 2));
+          });
+          v *= transmission(wl);
+          ctx6.lineTo(X(wl), Y(clamp(v, 0, 1)));
+        }
+        ctx6.lineTo(x1, y1);
+        ctx6.closePath();
+        ctx6.fillStyle = "rgba(190,190,205,0.28)";
+        ctx6.fill();
+        ctx6.strokeStyle = "rgba(210,210,225,0.7)";
+        ctx6.lineWidth = 1;
+        ctx6.stroke();
+        label(ctx6, "光害（連続光＋人工光輝線）", x0 + 6, y0 + 12, "rgba(210,210,225,0.9)", 9);
+
+        // 星雲輝線
+        LINES.forEach((l) => {
+          const t = transmission(l.wl);
+          const h = l.str * t;
+          const [r, g, b] = wl2rgb(l.wl);
+          ctx6.strokeStyle = `rgba(${r},${g},${b},0.95)`;
+          ctx6.lineWidth = 3;
+          ctx6.beginPath();
+          ctx6.moveTo(X(l.wl), y1);
+          ctx6.lineTo(X(l.wl), Y(h));
+          ctx6.stroke();
+          ctx6.save();
+          ctx6.globalAlpha = 0.25 + t * 0.6;
+          label(ctx6, l.name, X(l.wl), Y(h) - 6, `rgb(${r},${g},${b})`, 9, "center");
+          ctx6.restore();
+          if (t < 0.15) {
+            ctx6.save();
+            ctx6.setLineDash([2, 3]);
+            ctx6.strokeStyle = "rgba(255,90,90,0.5)";
+            ctx6.lineWidth = 1;
+            ctx6.beginPath();
+            ctx6.moveTo(X(l.wl), y1);
+            ctx6.lineTo(X(l.wl), Y(l.str));
+            ctx6.stroke();
+            ctx6.restore();
+          }
+        });
+      }
+
+      function s6View() {
+        const W = vw6._w,
+          H = vw6._h;
+        vctx6.clearRect(0, 0, W, H);
+
+        // 背景（光害でかぶる）
+        let bgSum = 0,
+          n = 0;
+        for (let wl = WL0; wl <= WL1; wl += 4) {
+          let v = 0.55 + 0.45 * Math.exp(-Math.pow((wl - 570) / 130, 2));
+          POLLUTION.forEach((p) => {
+            v += p.s * 1.5 * Math.exp(-Math.pow((wl - p.wl) / p.w, 2));
+          });
+          bgSum += v * transmission(wl);
+          n++;
+        }
+        const bg = (bgSum / n) * (S6.sky / 100);
+        const bgL = clamp(bg * 0.55, 0, 0.75);
+        const grd = vctx6.createLinearGradient(0, 0, 0, H);
+        grd.addColorStop(0, `rgba(${Math.round(40 + bgL * 150)},${Math.round(44 + bgL * 130)},${Math.round(58 + bgL * 95)},1)`);
+        grd.addColorStop(1, `rgba(${Math.round(28 + bgL * 120)},${Math.round(30 + bgL * 105)},${Math.round(44 + bgL * 80)},1)`);
+        vctx6.fillStyle = grd;
+        vctx6.fillRect(0, 0, W, H);
+
+        // 星雲（Hα赤 + OIII青緑）
+        const tHa = transmission(656.3),
+          tO3 = transmission(500.7);
+        const cx = W * 0.5,
+          cy = H * 0.5,
+          R = Math.min(W, H) * 0.42;
+        // 拡散成分
+        for (let k = 0; k < 3; k++) {
+          const ox = cx + (k - 1) * R * 0.32,
+            oy = cy + (k === 1 ? -R * 0.12 : R * 0.1);
+          const rr = R * (0.9 - k * 0.16);
+          const g1 = vctx6.createRadialGradient(ox, oy, 0, ox, oy, rr);
+          g1.addColorStop(0, `rgba(255,${Math.round(70 + tO3 * 90)},90,${0.3 * tHa + 0.05})`);
+          g1.addColorStop(0.45, `rgba(200,60,110,${0.16 * tHa})`);
+          g1.addColorStop(1, "rgba(120,40,90,0)");
+          vctx6.fillStyle = g1;
+          vctx6.beginPath();
+          vctx6.arc(ox, oy, rr, 0, Math.PI * 2);
+          vctx6.fill();
+        }
+        // OIII コア
+        const g2 = vctx6.createRadialGradient(cx + R * 0.15, cy - R * 0.05, 0, cx + R * 0.15, cy - R * 0.05, R * 0.42);
+        g2.addColorStop(0, `rgba(120,255,220,${0.34 * tO3})`);
+        g2.addColorStop(0.6, `rgba(60,180,200,${0.14 * tO3})`);
+        g2.addColorStop(1, "rgba(30,80,120,0)");
+        vctx6.fillStyle = g2;
+        vctx6.beginPath();
+        vctx6.arc(cx + R * 0.15, cy - R * 0.05, R * 0.42, 0, Math.PI * 2);
+        vctx6.fill();
+
+        // 暗黒帯
+        vctx6.save();
+        vctx6.globalCompositeOperation = "multiply";
+        vctx6.strokeStyle = "rgba(20,16,28,0.55)";
+        vctx6.lineWidth = R * 0.13;
+        vctx6.beginPath();
+        vctx6.moveTo(cx - R * 1.0, cy + R * 0.5);
+        vctx6.quadraticCurveTo(cx, cy - R * 0.1, cx + R * 1.0, cy + R * 0.35);
+        vctx6.stroke();
+        vctx6.restore();
+
+        // 恒星
+        if (S6.star) {
+          const starT = S6.mode === "dual" ? 0.3 : S6.mode === "lp" ? 0.8 : 1.0;
+          let seed = 12345;
+          const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+          for (let i = 0; i < 130; i++) {
+            const x = rnd() * W,
+              y = rnd() * H,
+              m = rnd();
+            const r = 0.5 + m * 1.9;
+            vctx6.fillStyle = `rgba(255,252,244,${(0.25 + m * 0.7) * starT})`;
+            vctx6.beginPath();
+            vctx6.arc(x, y, r, 0, Math.PI * 2);
+            vctx6.fill();
+            if (m > 0.9) {
+              vctx6.fillStyle = `rgba(255,250,240,${0.12 * starT})`;
+              vctx6.beginPath();
+              vctx6.arc(x, y, r * 3.4, 0, Math.PI * 2);
+              vctx6.fill();
+            }
+          }
+        }
+
+        // ラベル
+        const modeName = S6.mode === "none" ? "NO FILTER" : S6.mode === "lp" ? "LIGHT POLLUTION CUT" : "DUAL NARROWBAND";
+        vctx6.fillStyle = "rgba(0,0,0,0.45)";
+        vctx6.fillRect(8, H - 30, 210, 22);
+        label(vctx6, modeName, 14, H - 15, COL.accent, 10);
+        label(vctx6, "SKY " + S6.sky, W - 10, H - 15, "rgba(255,255,255,0.6)", 10, "right");
+      }
+
+      function s6Update() {
+        // 数値評価
+        let sig = 0,
+          sig0 = 0,
+          bg = 0,
+          bg0 = 0,
+          tot = 0,
+          tot0 = 0;
+        LINES.forEach((l) => {
+          sig += l.str * transmission(l.wl);
+          sig0 += l.str;
+        });
+        for (let wl = WL0; wl <= WL1; wl += 1) {
+          let v = 0.55 + 0.45 * Math.exp(-Math.pow((wl - 570) / 130, 2));
+          POLLUTION.forEach((p) => {
+            v += p.s * 1.5 * Math.exp(-Math.pow((wl - p.wl) / p.w, 2));
+          });
+          bg += v * transmission(wl);
+          bg0 += v;
+          tot += transmission(wl);
+          tot0 += 1;
+        }
+        const sigP = (sig / sig0) * 100,
+          bgP = (bg / bg0) * 100;
+        const contrast = sig / sig0 / Math.max(bg / bg0, 1e-6);
+        document.getElementById("r6a").textContent = Math.round(sigP) + " %";
+        document.getElementById("r6b").textContent = bgP.toFixed(bgP < 10 ? 1 : 0) + " %";
+        document.getElementById("r6c").textContent = "×" + contrast.toFixed(contrast < 10 ? 1 : 0);
+        document.getElementById("r6d").textContent = Math.round((tot / tot0) * 100) + " %";
+        document.getElementById("s6skyv").textContent = S6.sky < 25 ? "暗夜" : S6.sky < 50 ? "小" : S6.sky < 75 ? "中" : "大";
+        document.getElementById("s6fwhmv").textContent = S6.fwhm;
+        document.getElementById("s6mode").textContent = "FILTER: " + (S6.mode === "none" ? "NONE" : S6.mode === "lp" ? "LP-CUT" : "DUAL NB");
+        s6Spectrum();
+        s6View();
+      }
+
+      function s6Init() {
+        cv6 = document.getElementById("cv6");
+        vw6 = document.getElementById("vw6");
+        ctx6 = setupCanvas(cv6);
+        vctx6 = setupCanvas(vw6);
+        document.querySelectorAll("#s6btns [data-v]").forEach((b) => {
+          b.addEventListener("click", () => {
+            S6.mode = b.dataset.v;
+            document.querySelectorAll("#s6btns [data-v]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+            s6Update();
+          });
+        });
+        document.getElementById("s6sky").addEventListener("input", (e) => {
+          S6.sky = +e.target.value;
+          s6Update();
+        });
+        document.getElementById("s6fwhm").addEventListener("input", (e) => {
+          S6.fwhm = +e.target.value;
+          s6Update();
+        });
+        document.getElementById("s6star").addEventListener("change", (e) => {
+          S6.star = e.target.checked;
+          s6Update();
+        });
+        document.getElementById("s6band").addEventListener("change", (e) => {
+          S6.band = e.target.checked;
+          s6Update();
+        });
+        document.getElementById("s6reset").addEventListener("click", () => {
+          if (S6.cmp) {
+            clearInterval(S6.cmp);
+            S6.cmp = null;
+          }
+          S6.mode = "none";
+          S6.sky = 55;
+          S6.fwhm = 7;
+          document.getElementById("s6sky").value = 55;
+          document.getElementById("s6fwhm").value = 7;
+          document.querySelectorAll("#s6btns [data-v]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.v === "none")));
+          s6Update();
+        });
+        document.getElementById("s6cmp").addEventListener("click", () => {
+          if (S6.cmp) {
+            clearInterval(S6.cmp);
+            S6.cmp = null;
+            return;
+          }
+          let on = false;
+          S6.cmp = setInterval(() => {
+            on = !on;
+            S6.mode = on ? "dual" : "none";
+            document.querySelectorAll("#s6btns [data-v]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.v === S6.mode)));
+            s6Update();
+          }, 1400);
+        });
+        s6Update();
+      }
+
+      /* =========================================================
+   Section 07 : バックフォーカス
+   ========================================================= */
+      const S7 = { cam: "asi", ext: 28, fil: 0.7, spa: 0 };
+      const CAMS = {
+        asi: { name: "ASI2600MC Pro", flange: 17.5, diag: 28.3, target: 55.0 },
+        a7s: { name: "α7S II", flange: 18.0, diag: 43.3, target: 55.0 },
+      };
+      let cv7, ctx7;
+
+      function s7Draw(cur, tgt) {
+        const W = cv7._w,
+          H = cv7._h;
+        ctx7.clearRect(0, 0, W, H);
+        ctx7.fillStyle = "rgba(255,255,255,0.02)";
+        ctx7.fillRect(0, 0, W, H);
+        const y = H * 0.45,
+          x0 = W * 0.08,
+          x1 = W * 0.92;
+        const c = CAMS[S7.cam];
+        const total = Math.max(cur, tgt, 1);
+        const segs = [
+          { len: S7.ext, name: "延長筒", col: "#8fd6ff" },
+          { len: S7.fil, name: "フィルター", col: "#ffd06a" },
+          { len: S7.spa, name: "スペーサー", col: "#ff9a5c" },
+          { len: c.flange, name: "カメラ内", col: "#b9a6ff" },
+        ];
+        // 指定BFのスケール枠
+        const scale = (x1 - x0) / total;
+        dashLine(ctx7, x0, y - 46, x0 + tgt * scale, y - 46, "rgba(255,154,92,0.9)", [5, 4]);
+        label(ctx7, "指定バックフォーカス " + tgt.toFixed(1) + " mm", x0, y - 54, COL.accent, 10);
+
+        let x = x0;
+        segs.forEach((s) => {
+          const w = s.len * scale;
+          ctx7.fillStyle = s.col + "33";
+          ctx7.strokeStyle = s.col;
+          ctx7.lineWidth = 1.5;
+          ctx7.fillRect(x, y - 22, w, 44);
+          ctx7.strokeRect(x, y - 22, w, 44);
+          if (w > 34) {
+            label(ctx7, s.name, x + w / 2, y + 4, "#e8eaf2", 10, "center");
+            label(ctx7, s.len.toFixed(1), x + w / 2, y + 18, s.col, 9, "center");
+          }
+          x += w;
+        });
+
+        // 補正光学系後端
+        ctx7.strokeStyle = COL.muted;
+        ctx7.lineWidth = 3;
+        ctx7.beginPath();
+        ctx7.moveTo(x0, y - 40);
+        ctx7.lineTo(x0, y + 40);
+        ctx7.stroke();
+        label(ctx7, "補正光学系 後端", x0 - 4, y + 58, COL.neutral, 10, "left");
+        // センサー面
+        ctx7.strokeStyle = COL.accent;
+        ctx7.lineWidth = 3;
+        ctx7.beginPath();
+        ctx7.moveTo(x, y - 34);
+        ctx7.lineTo(x, y + 34);
+        ctx7.stroke();
+        label(ctx7, "センサー面", x + 6, y - 42, COL.accent, 10);
+
+        // 差分表示
+        const diff = cur - tgt;
+        const tx = x0 + tgt * scale;
+        if (Math.abs(diff) > 0.05) {
+          ctx7.strokeStyle = diff > 0 ? "rgba(255,110,110,0.95)" : "rgba(255,210,110,0.95)";
+          ctx7.lineWidth = 2;
+          ctx7.beginPath();
+          ctx7.moveTo(tx, y + 30);
+          ctx7.lineTo(x, y + 30);
+          ctx7.stroke();
+          label(ctx7, (diff > 0 ? "+" : "") + diff.toFixed(1) + " mm", (tx + x) / 2, y + 46, diff > 0 ? "rgba(255,130,130,1)" : "rgba(255,215,130,1)", 10, "center");
+        } else {
+          label(ctx7, "✓ 一致", tx + 6, y + 46, "rgba(140,255,180,1)", 11);
+        }
+
+        // 星像予測
+        const bx = W * 0.5,
+          by = H * 0.86;
+        label(ctx7, "四隅の星像予測：", W * 0.08, by + 4, COL.muted, 10);
+        const err = Math.abs(diff);
+        for (let k = 0; k < 4; k++) {
+          const px = W * 0.42 + k * 46,
+            py = by;
+          const ang = [0.4, 1.9, 3.5, 5.0][k];
+          const coma = clamp(err / 3, 0, 1.6);
+          drawStarBlob(ctx7, px, py, 3 + coma * 2.2, coma, diff > 0 ? ang : ang + Math.PI, "#dfe6ff", 1);
+          ctx7.fillStyle = "#fff";
+          ctx7.beginPath();
+          ctx7.arc(px, py, 1.1, 0, Math.PI * 2);
+          ctx7.fill();
+        }
+        label(ctx7, err < 0.3 ? "円形（良好）" : diff > 0 ? "同心方向に伸長（長すぎ）" : "放射方向に伸長（短すぎ）", W * 0.42 + 4 * 46 + 6, by + 4, err < 0.3 ? "rgba(140,255,180,1)" : COL.accent, 10);
+      }
+
+      function s7Update() {
+        const c = CAMS[S7.cam];
+        const cur = S7.ext + S7.fil + S7.spa + c.flange;
+        const tgt = c.target;
+        const diff = cur - tgt;
+        document.getElementById("r7a").textContent = tgt.toFixed(1) + " mm";
+        document.getElementById("r7b").textContent = cur.toFixed(1) + " mm";
+        document.getElementById("r7c").textContent = (diff >= 0 ? "+" : "") + diff.toFixed(1) + " mm";
+        const err = Math.abs(diff);
+        const ev = err < 0.3 ? "良好" : err < 1.0 ? "やや崩れ" : err < 2.5 ? "崩れ" : "不良";
+        document.getElementById("r7d").textContent = ev;
+        document.getElementById("r7d").style.color = err < 0.3 ? "#8effb4" : err < 1.0 ? "#ffd06a" : "#ff8a7a";
+        document.getElementById("s7stat").textContent = "STATUS: " + c.name + " / " + (err < 0.3 ? "MATCHED" : "OFFSET " + diff.toFixed(1) + "mm");
+        document.getElementById("s7extv").textContent = S7.ext.toFixed(1);
+        document.getElementById("s7filv").textContent = S7.fil.toFixed(1);
+        document.getElementById("s7spav").textContent = S7.spa.toFixed(1);
+        s7Draw(cur, tgt);
+      }
+
+      function s7Init() {
+        cv7 = document.getElementById("cv7");
+        ctx7 = setupCanvas(cv7);
+        document.querySelectorAll("#s7cam [data-v]").forEach((b) => {
+          b.addEventListener("click", () => {
+            S7.cam = b.dataset.v;
+            document.querySelectorAll("#s7cam [data-v]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+            s7Update();
+          });
+        });
+        document.getElementById("s7ext").addEventListener("input", (e) => {
+          S7.ext = +e.target.value;
+          s7Update();
+        });
+        document.getElementById("s7fil").addEventListener("input", (e) => {
+          S7.fil = +e.target.value;
+          s7Update();
+        });
+        document.getElementById("s7spa").addEventListener("input", (e) => {
+          S7.spa = +e.target.value;
+          s7Update();
+        });
+        document.getElementById("s7fit").addEventListener("click", () => {
+          const c = CAMS[S7.cam];
+          let need = c.target - c.flange - S7.fil - S7.ext;
+          if (need < 0) {
+            S7.ext = clamp(c.target - c.flange - S7.fil, 0, 60);
+            need = c.target - c.flange - S7.fil - S7.ext;
+          }
+          S7.spa = clamp(Math.round(need * 2) / 2, 0, 15);
+          document.getElementById("s7ext").value = S7.ext;
+          document.getElementById("s7spa").value = S7.spa;
+          s7Update();
+        });
+        document.getElementById("s7reset").addEventListener("click", () => {
+          S7.cam = "asi";
+          S7.ext = 28;
+          S7.fil = 0.7;
+          S7.spa = 0;
+          document.getElementById("s7ext").value = 28;
+          document.getElementById("s7fil").value = 0.7;
+          document.getElementById("s7spa").value = 0;
+          document.querySelectorAll("#s7cam [data-v]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.v === "asi")));
+          s7Update();
+        });
+        s7Update();
+      }
+
+      /* =========================================================
+   サムネイル描画
+   ========================================================= */
+      function drawThumbs() {
+        // 04: 四隅コマ → 円
+        (() => {
+          const cv = document.getElementById("thumb4");
+          const ctx = setupCanvas(cv);
+          const W = cv._w,
+            H = cv._h;
+          ctx.clearRect(0, 0, W, H);
+          for (let i = 0; i < 5; i++)
+            for (let j = 0; j < 4; j++) {
+              const fx = (i / 4) * 2 - 1,
+                fy = (j / 3) * 2 - 1,
+                r = Math.hypot(fx, fy);
+              const x = W * 0.5 + fx * W * 0.4,
+                y = H * 0.5 + fy * H * 0.36;
+              const left = x < W * 0.5;
+              const coma = left ? r * r * 1.6 : 0.05;
+              drawStarBlob(ctx, x, y, 2.6, coma, Math.atan2(fy, fx), "#dfe6ff", 1);
+            }
+          dashLine(ctx, W * 0.5, 0, W * 0.5, H, "rgba(255,154,92,0.8)", [5, 5]);
+          label(ctx, "UNCORR", 8, H - 8, "rgba(255,154,92,0.9)", 9);
+          label(ctx, "CORRECTED", W - 8, H - 8, "#8fd6ff", 9, "right");
+        })();
+        // 05: 3色収束
+        (() => {
+          const cv = document.getElementById("thumb5");
+          const ctx = setupCanvas(cv);
+          const W = cv._w,
+            H = cv._h;
+          ctx.clearRect(0, 0, W, H);
+          dashLine(ctx, 0, H / 2, W, H / 2, "rgba(200,205,220,0.3)", [5, 5]);
+          const cols = ["rgba(255,90,80,0.9)", "rgba(120,255,150,0.9)", "rgba(120,170,255,0.9)"];
+          cols.forEach((c, k) => {
+            for (let i = -2; i <= 2; i++) {
+              if (!i) continue;
+              ctx.strokeStyle = c;
+              ctx.lineWidth = 1.2;
+              ctx.beginPath();
+              ctx.moveTo(0, H / 2 + i * H * 0.16);
+              ctx.lineTo(W * 0.42, H / 2 + i * H * 0.16);
+              ctx.lineTo(W * 0.62, H / 2 + i * H * 0.07);
+              ctx.lineTo(W * 0.86 + (k - 1) * 10, H / 2);
+              ctx.stroke();
+            }
+          });
+          ctx.strokeStyle = "#8fd6ff";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.ellipse(W * 0.44, H / 2, 7, H * 0.24, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.strokeStyle = "#ffc78f";
+          ctx.beginPath();
+          ctx.ellipse(W * 0.62, H / 2, 6, H * 0.17, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          label(ctx, "ACHROMAT ×2", 8, H - 8, "rgba(255,154,92,0.9)", 9);
+        })();
+        // 06: スペクトル窓
+        (() => {
+          const cv = document.getElementById("thumb6");
+          const ctx = setupCanvas(cv);
+          const W = cv._w,
+            H = cv._h;
+          ctx.clearRect(0, 0, W, H);
+          for (let x = 0; x < W; x++) {
+            const wl = 400 + (x / W) * 300;
+            const [r, g, b] = wl2rgb(wl);
+            const g1 = Math.exp(-Math.pow((wl - 500.7) / 3, 2)),
+              g2 = Math.exp(-Math.pow((wl - 656.3) / 3, 2));
+            const pass = Math.max(g1, g2);
+            ctx.fillStyle = `rgba(${r},${g},${b},${0.1 + pass * 0.85})`;
+            ctx.fillRect(x, H * 0.2, 1, H * 0.6);
+          }
+          label(ctx, "OIII 501", W * 0.34, H * 0.14, "#8effe0", 9, "center");
+          label(ctx, "Hα 656", W * 0.85, H * 0.14, "#ff8a7a", 9, "center");
+          label(ctx, "DUAL NARROWBAND", 8, H - 8, "rgba(255,154,92,0.9)", 9);
+        })();
+        // 07: BFチェーン
+        (() => {
+          const cv = document.getElementById("thumb7");
+          const ctx = setupCanvas(cv);
+          const W = cv._w,
+            H = cv._h;
+          ctx.clearRect(0, 0, W, H);
+          const y = H * 0.5;
+          const parts = [
+            [0.3, "#8fd6ff"],
+            [0.08, "#ffd06a"],
+            [0.1, "#ff9a5c"],
+            [0.26, "#b9a6ff"],
+          ];
+          let x = W * 0.08;
+          parts.forEach(([f, c]) => {
+            const w = W * 0.72 * f;
+            ctx.fillStyle = c + "33";
+            ctx.strokeStyle = c;
+            ctx.lineWidth = 1.5;
+            ctx.fillRect(x, y - 18, w, 36);
+            ctx.strokeRect(x, y - 18, w, 36);
+            x += w;
+          });
+          ctx.strokeStyle = "#ff9a5c";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(x, y - 28);
+          ctx.lineTo(x, y + 28);
+          ctx.stroke();
+          label(ctx, "55.0 mm", W * 0.08, y - 28, "rgba(255,154,92,0.9)", 10);
+          label(ctx, "SENSOR", x + 6, y + 4, "#ffb98a", 9);
+        })();
+      }
+
+      /* =========================================================
+   起動
+   ========================================================= */
+      function boot() {
+        s4Init();
+        s5Init();
+        s6Init();
+        s7Init();
+        drawThumbs();
+      }
+      window.addEventListener("load", boot);
+
+      let rt;
+      window.addEventListener("resize", () => {
+        clearTimeout(rt);
+        rt = setTimeout(() => {
+          s4Layout();
+          s5Layout();
+          ctx6 = setupCanvas(cv6);
+          vctx6 = setupCanvas(vw6);
+          ctx7 = setupCanvas(cv7);
+          s4Update();
+          s5Update();
+          s6Update();
+          s7Update();
+          drawThumbs();
+        }, 180);
+      });
+    </script>
+  </body>
+</html>

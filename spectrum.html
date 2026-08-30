@@ -1,0 +1,1990 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>星の光を解読する旅 〜光が語る宇宙の姿〜 | 公開天文台Web展示</title>
+    <meta name="description" content="星の光をスペクトル解析で読み解くインタラクティブWeb展示。星の色、波長、黒体放射、吸収線・輝線、分光観測までを体験できます。" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <style>
+      /* Hallmark · genre: atmospheric · macrostructure: 18-portfolio-grid · theme: bloom · enrichment: none · nav: N5 · footer: Ft5 */
+
+      @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono&display=swap");
+
+      :root {
+        --color-paper: oklch(14% 0.01 260);
+        --color-paper-2: oklch(18% 0.012 260);
+        --color-paper-3: oklch(22% 0.012 260);
+        --color-rule: oklch(28% 0.01 260);
+        --color-neutral: oklch(58% 0.01 260);
+        --color-muted: oklch(72% 0.008 260);
+        --color-ink: oklch(95% 0.005 260);
+
+        --color-accent: oklch(75% 0.15 45);
+        --color-focus: oklch(75% 0.18 45);
+
+        --font-display: "Geist", system-ui, sans-serif;
+        --font-body: "Geist", system-ui, sans-serif;
+        --font-outlier: "Geist Mono", monospace;
+
+        --space-xs: 0.25rem;
+        --space-sm: 0.5rem;
+        --space-md: 1rem;
+        --space-lg: 1.5rem;
+        --space-xl: 2rem;
+        --space-2xl: 3rem;
+        --space-3xl: 4rem;
+        --space-4xl: 6rem;
+
+        --text-xs: 0.64rem;
+        --text-sm: 0.8rem;
+        --text-base: 1rem;
+        --text-md: 1.25rem;
+        --text-lg: 1.5625rem;
+        --text-xl: 1.9531rem;
+        --text-2xl: 2.4414rem;
+        --text-3xl: 3.0518rem;
+        --text-display: clamp(2.75rem, 5vw + 1rem, 5.25rem);
+      }
+
+      /* Base */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        background: var(--color-paper);
+        color: var(--color-ink);
+        font-family: var(--font-body);
+        font-weight: 400;
+        line-height: 1.6;
+        overflow-x: clip;
+      }
+
+      body {
+        background-image: radial-gradient(circle at 15% 30%, oklch(40% 0.08 45 / 0.15) 0%, transparent 40%), radial-gradient(circle at 85% 70%, oklch(35% 0.06 280 / 0.1) 0%, transparent 40%);
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+      }
+
+      /* Typography */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        line-height: 1.1;
+        margin: 0;
+        letter-spacing: -0.03em;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      /* Layout */
+      .page-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 var(--space-lg);
+        padding-bottom: var(--space-4xl);
+      }
+
+      /* N5 Floating Pill Nav */
+      .nav-pill {
+        position: sticky;
+        top: var(--space-md);
+        margin: 0 auto var(--space-4xl) auto;
+        max-width: 560px;
+        background: oklch(18% 0.012 260 / 0.6);
+        backdrop-filter: blur(12px) saturate(150%);
+        border: 1px solid var(--color-rule);
+        border-radius: 9999px;
+        padding: var(--space-xs) var(--space-xs) var(--space-xs) var(--space-lg);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 100;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      }
+      .nav-pill__wordmark {
+        font-family: var(--font-display);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: var(--color-ink);
+      }
+      .nav-pill__actions {
+        display: flex;
+        gap: var(--space-sm);
+      }
+      .nav-pill__btn {
+        background: var(--color-accent);
+        color: var(--color-paper);
+        padding: var(--space-sm) var(--space-lg);
+        border-radius: 9999px;
+        font-weight: 600;
+        font-size: var(--text-sm);
+        transition:
+          transform 0.2s ease,
+          opacity 0.2s ease;
+      }
+      .nav-pill__btn:hover {
+        transform: translateY(-1px);
+        opacity: 0.9;
+      }
+      .nav-pill__link {
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+        padding: var(--space-sm) var(--space-md);
+        border-radius: 9999px;
+      }
+      .nav-pill__link:hover {
+        color: var(--color-ink);
+        background: var(--color-paper-3);
+      }
+
+      /* Portfolio Grid Header */
+      .portfolio-header {
+        margin-bottom: var(--space-2xl);
+        text-align: center;
+      }
+      .portfolio-header__tagline {
+        font-family: var(--font-outlier);
+        font-size: var(--text-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-accent);
+        margin-bottom: var(--space-md);
+      }
+      .portfolio-header__title {
+        font-size: var(--text-display);
+        margin-bottom: var(--space-md);
+      }
+      .portfolio-header__lead {
+        color: var(--color-muted);
+        max-width: 62ch;
+        margin: 0 auto;
+        font-size: var(--text-md);
+      }
+
+      /* Portfolio Grid */
+      .portfolio-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: var(--space-xl);
+        margin-bottom: var(--space-4xl);
+      }
+      .exhibit-card {
+        background: var(--color-paper-2);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        overflow: hidden;
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+      }
+      .exhibit-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px oklch(75% 0.15 45 / 0.1);
+        border-color: var(--color-neutral);
+      }
+      .exhibit-card__visual {
+        height: 200px;
+        background: var(--color-paper-3);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .exhibit-card__visual::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: radial-gradient(var(--color-neutral) 1px, transparent 1px);
+        background-size: 20px 20px;
+        opacity: 0.3;
+      }
+      .exhibit-card__visual img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: relative;
+        z-index: 1;
+      }
+      .exhibit-card__content {
+        padding: var(--space-lg);
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+      }
+      .exhibit-card__meta {
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: var(--space-sm);
+      }
+      .exhibit-card__title {
+        font-size: var(--text-lg);
+        margin-bottom: var(--space-sm);
+      }
+      .exhibit-card__desc {
+        color: var(--color-neutral);
+        font-size: var(--text-sm);
+        margin-bottom: var(--space-lg);
+        flex-grow: 1;
+      }
+      .exhibit-card__link {
+        font-size: var(--text-sm);
+        font-weight: 600;
+        color: var(--color-ink);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-xs);
+      }
+      .exhibit-card__link::after {
+        content: "→";
+        color: var(--color-accent);
+        transition: transform 0.2s ease;
+      }
+      .exhibit-card:hover .exhibit-card__link::after {
+        transform: translateX(4px);
+      }
+
+      /* Ft5 Statement Footer */
+      .footer-statement {
+        border-top: 1px solid var(--color-rule);
+        padding-top: var(--space-4xl);
+        padding-bottom: var(--space-2xl);
+        text-align: center;
+      }
+      .footer-statement__text {
+        font-size: var(--text-2xl);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin-bottom: var(--space-2xl);
+        max-width: 38ch;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .footer-statement__meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: var(--font-outlier);
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+      }
+
+      @media (max-width: 768px) {
+        .nav-pill {
+          margin: var(--space-sm);
+          max-width: none;
+          padding: var(--space-sm);
+          border-radius: 12px;
+        }
+        .portfolio-header__title {
+          font-size: var(--text-3xl);
+        }
+        .portfolio-grid {
+          grid-template-columns: 1fr;
+        }
+        .footer-statement__meta {
+          flex-direction: column;
+          gap: var(--space-md);
+        }
+        .footer-statement__text {
+          font-size: var(--text-xl);
+        }
+      }
+
+      /* =========================================
+   Shared Component Styles (Exhibits)
+   ========================================= */
+      .section-title {
+        font-family: var(--font-display);
+        font-size: var(--text-2xl);
+        font-weight: 600;
+        margin-bottom: var(--space-sm);
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        letter-spacing: -0.02em;
+      }
+      .section-num {
+        font-family: var(--font-outlier);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--color-paper-3);
+        color: var(--color-accent);
+        font-size: var(--text-md);
+        font-weight: 600;
+        flex-shrink: 0;
+        border: 1px solid var(--color-rule);
+      }
+      .section-lead {
+        color: var(--color-muted);
+        font-size: var(--text-md);
+        margin-bottom: var(--space-2xl);
+        max-width: 65ch;
+      }
+      .card {
+        background: var(--color-paper-2);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        padding: var(--space-xl);
+      }
+      .card h2 {
+        font-size: var(--text-xl);
+        margin-bottom: var(--space-xs);
+        color: var(--color-ink);
+      }
+      .chip,
+      .stat-chip,
+      .n-badge {
+        display: inline-block;
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        background: var(--color-paper-3);
+        color: var(--color-accent);
+        border: 1px solid var(--color-rule);
+      }
+      .btn,
+      button.btn-primary,
+      button.btn-outline,
+      button.btn {
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        font-weight: 600;
+        padding: 10px 24px;
+        border-radius: 9999px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition:
+          transform 0.2s ease,
+          filter 0.2s ease,
+          opacity 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn:active,
+      button.btn-primary:active,
+      button.btn-outline:active {
+        transform: scale(0.97);
+      }
+      .btn:disabled,
+      button.btn-primary:disabled,
+      button.btn-outline:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .btn-primary,
+      button.btn-primary {
+        background: var(--color-accent);
+        color: var(--color-paper);
+      }
+      .btn-primary:hover:not(:disabled) {
+        filter: brightness(1.1);
+      }
+      .btn-outline,
+      button.btn-outline,
+      button.btn.ghost {
+        background: transparent;
+        color: var(--color-accent);
+        border-color: var(--color-rule);
+      }
+      .btn-outline:hover:not(:disabled),
+      button.btn.ghost:hover:not(:disabled) {
+        background: var(--color-paper-3);
+      }
+      .hint {
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+        margin-top: var(--space-md);
+        padding: var(--space-md);
+        background: var(--color-paper-2);
+        border-radius: 8px;
+        border: 1px solid var(--color-rule);
+      }
+      .hint b {
+        color: var(--color-accent);
+      }
+      input[type="range"] {
+        accent-color: var(--color-accent);
+      }
+
+      /* =========================================
+   Exhibit-specific additions
+   ========================================= */
+      :focus-visible {
+        outline: 2px solid var(--color-focus);
+        outline-offset: 3px;
+      }
+
+      .chapter {
+        margin-bottom: var(--space-4xl);
+        scroll-margin-top: 96px;
+      }
+      .chapter__head {
+        margin-bottom: var(--space-xl);
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--space-lg);
+      }
+      .stack > * + * {
+        margin-top: var(--space-md);
+      }
+      p {
+        margin: 0 0 var(--space-md);
+      }
+      p:last-child {
+        margin-bottom: 0;
+      }
+      .body-text {
+        color: var(--color-muted);
+      }
+      .label {
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--color-neutral);
+        display: block;
+        margin-bottom: var(--space-xs);
+      }
+      .value-readout {
+        font-family: var(--font-outlier);
+        font-size: var(--text-md);
+        color: var(--color-accent);
+        font-weight: 600;
+      }
+      .control-row {
+        margin-bottom: var(--space-lg);
+      }
+      .control-row input[type="range"] {
+        width: 100%;
+      }
+      .divider {
+        border: 0;
+        border-top: 1px solid var(--color-rule);
+        margin: var(--space-2xl) 0;
+      }
+
+      /* Tooltip (term glossary) */
+      .term {
+        border-bottom: 1px dashed var(--color-accent);
+        cursor: help;
+        position: relative;
+        color: var(--color-ink);
+      }
+      .term::after {
+        content: attr(data-tip);
+        position: absolute;
+        left: 50%;
+        bottom: 140%;
+        transform: translateX(-50%);
+        width: max-content;
+        max-width: 260px;
+        background: var(--color-paper-3);
+        color: var(--color-muted);
+        border: 1px solid var(--color-rule);
+        border-radius: 8px;
+        padding: var(--space-sm) var(--space-md);
+        font-size: var(--text-sm);
+        line-height: 1.5;
+        text-transform: none;
+        letter-spacing: 0;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease;
+        z-index: 50;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+      }
+      .term:hover::after,
+      .term:focus::after {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      /* Ch1: Sky canvas */
+      .sky {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        min-height: 280px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--color-rule);
+        background: radial-gradient(circle at 70% 25%, oklch(35% 0.07 280 / 0.35) 0%, transparent 45%), radial-gradient(circle at 25% 75%, oklch(38% 0.07 45 / 0.25) 0%, transparent 45%), oklch(10% 0.02 265);
+      }
+      .sky__dust {
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(oklch(95% 0.005 260 / 0.9) 0.6px, transparent 0.7px), radial-gradient(oklch(90% 0.005 260 / 0.6) 0.5px, transparent 0.6px);
+        background-size:
+          43px 37px,
+          71px 83px;
+        background-position:
+          0 0,
+          20px 30px;
+        opacity: 0.5;
+      }
+      .star-btn {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        background: transparent;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+      }
+      .star-btn__dot {
+        display: block;
+        border-radius: 50%;
+        box-shadow:
+          0 0 12px 4px currentColor,
+          0 0 30px 10px currentColor;
+        background: currentColor;
+        transition: transform 0.25s ease;
+      }
+      .star-btn:hover .star-btn__dot,
+      .star-btn[aria-pressed="true"] .star-btn__dot {
+        transform: scale(1.6);
+      }
+      .star-btn__name {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-muted);
+        white-space: nowrap;
+        text-shadow: 0 1px 4px #000;
+      }
+      .star-panel {
+        margin-top: var(--space-lg);
+        background: var(--color-paper-2);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        padding: var(--space-lg);
+      }
+      .star-panel__title {
+        font-size: var(--text-lg);
+        margin-bottom: var(--space-xs);
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        flex-wrap: wrap;
+      }
+      .swatch {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: inline-block;
+        border: 1px solid var(--color-rule);
+      }
+      .data-list {
+        list-style: none;
+        margin: var(--space-md) 0 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: var(--space-md);
+      }
+      .data-list dt,
+      .data-list .k {
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-neutral);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .data-list .v {
+        font-size: var(--text-base);
+        color: var(--color-ink);
+        font-weight: 600;
+      }
+      .capsule-msg {
+        margin-top: var(--space-lg);
+        padding: var(--space-md) var(--space-lg);
+        border-left: 3px solid var(--color-accent);
+        background: var(--color-paper-3);
+        border-radius: 0 8px 8px 0;
+        color: var(--color-muted);
+        font-size: var(--text-sm);
+      }
+
+      /* Ch2: Prism & spectrum bar */
+      .prism-stage {
+        position: relative;
+        height: 200px;
+        border-radius: 12px;
+        background: oklch(11% 0.015 265);
+        border: 1px solid var(--color-rule);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+      }
+      .prism-beam {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        height: 3px;
+        width: 42%;
+        transform: translateY(-50%);
+        background: linear-gradient(90deg, transparent, #fff);
+        box-shadow: 0 0 12px 2px rgba(255, 255, 255, 0.6);
+      }
+      .prism-shape {
+        position: absolute;
+        left: 40%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 0;
+        height: 0;
+        border-left: 34px solid transparent;
+        border-right: 34px solid transparent;
+        border-bottom: 60px solid oklch(85% 0.02 260 / 0.18);
+        filter: drop-shadow(0 0 8px oklch(85% 0.02 260 / 0.35));
+      }
+      .prism-fan {
+        position: absolute;
+        left: 44%;
+        right: 4%;
+        top: 50%;
+        height: 96px;
+        transform: translateY(-50%);
+        clip-path: polygon(0 44%, 100% 0, 100% 100%, 0 56%);
+        background: linear-gradient(90deg, transparent, currentColor 12%);
+        color: transparent;
+        background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, #8b00ff 10%, #4b00ff 22%, #0080ff 34%, #00ff7f 50%, #ffe000 66%, #ff8000 80%, #ff2000 100%);
+        opacity: 0;
+        animation: fanIn 1.6s ease forwards 0.3s;
+        filter: blur(0.4px) saturate(1.15);
+      }
+      @keyframes fanIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 0.9;
+        }
+      }
+
+      .spectrum-bar {
+        height: 56px;
+        border-radius: 8px;
+        border: 1px solid var(--color-rule);
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(90deg, #4b0082 0%, #6a00cc 8%, #0033ff 18%, #0099ff 28%, #00e5a0 40%, #4dff00 50%, #d4ff00 60%, #ffd000 70%, #ff8c00 82%, #ff2b00 92%, #6b0000 100%);
+      }
+      .spectrum-bar__marker {
+        position: absolute;
+        top: -6px;
+        bottom: -6px;
+        width: 3px;
+        background: var(--color-ink);
+        box-shadow:
+          0 0 0 1px #000,
+          0 0 12px 2px rgba(255, 255, 255, 0.7);
+        transform: translateX(-50%);
+        transition: left 0.08s linear;
+      }
+      .spectrum-scale {
+        display: flex;
+        justify-content: space-between;
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-neutral);
+        margin-top: var(--space-xs);
+      }
+      .color-preview {
+        height: 84px;
+        border-radius: 8px;
+        border: 1px solid var(--color-rule);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-outlier);
+        font-weight: 600;
+        color: #05060a;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+        transition: background-color 0.1s linear;
+      }
+
+      /* Ch3: Blackbody chart */
+      .chart-wrap {
+        background: oklch(11% 0.015 265);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        padding: var(--space-md);
+      }
+      .chart-wrap svg {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      .axis-line {
+        stroke: var(--color-rule);
+        stroke-width: 1;
+      }
+      .grid-line {
+        stroke: var(--color-rule);
+        stroke-width: 0.5;
+        stroke-dasharray: 3 4;
+      }
+      .axis-text {
+        fill: var(--color-neutral);
+        font-family: "Geist Mono", monospace;
+        font-size: 10px;
+      }
+      .curve {
+        fill: none;
+        stroke: var(--color-accent);
+        stroke-width: 2.5;
+        stroke-linejoin: round;
+      }
+      .curve-ghost {
+        fill: none;
+        stroke: var(--color-neutral);
+        stroke-width: 1;
+        stroke-dasharray: 4 4;
+        opacity: 0.7;
+      }
+      .peak-line {
+        stroke: var(--color-ink);
+        stroke-width: 1;
+        stroke-dasharray: 2 3;
+      }
+
+      .star-preview {
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        margin: 0 auto var(--space-md);
+        transition:
+          background-color 0.15s linear,
+          box-shadow 0.15s linear;
+      }
+      .temp-classes {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+        margin-top: var(--space-md);
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        text-align: center;
+      }
+      .temp-classes span {
+        padding: 6px 0;
+        border-radius: 4px;
+        color: #05060a;
+        font-weight: 600;
+      }
+      .temp-classes span.is-active {
+        outline: 2px solid var(--color-ink);
+        outline-offset: 1px;
+      }
+
+      /* Ch4: Absorption / emission */
+      .spec-strip {
+        height: 64px;
+        border-radius: 8px;
+        border: 1px solid var(--color-rule);
+        position: relative;
+        overflow: hidden;
+      }
+      .spec-strip--cont {
+        background: linear-gradient(90deg, #4b0082 0%, #0033ff 18%, #0099ff 28%, #00e5a0 42%, #7dff00 52%, #ffd000 68%, #ff8c00 82%, #ff2b00 96%);
+      }
+      .spec-strip--emit {
+        background: #05060a;
+      }
+      .spec-line {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        transform: translateX(-50%);
+      }
+      .spec-line--abs {
+        background: #04050a;
+        box-shadow: 0 0 3px 1px #04050a;
+      }
+      .spec-line--emit {
+        box-shadow: 0 0 10px 2px currentColor;
+        background: currentColor;
+      }
+      .element-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-lg);
+      }
+      .element-tabs .btn[aria-pressed="true"] {
+        background: var(--color-accent);
+        color: var(--color-paper);
+        border-color: transparent;
+      }
+      .kirchhoff {
+        position: relative;
+        height: 190px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--color-rule);
+        background: oklch(11% 0.015 265);
+        display: flex;
+        align-items: center;
+      }
+      .kirchhoff__core {
+        position: absolute;
+        left: 6%;
+        top: 50%;
+        transform: translate(-0%, -50%);
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #fff 0%, #ffe9b0 35%, #ff9a3c 75%, #b33c00 100%);
+        box-shadow: 0 0 40px 12px oklch(75% 0.15 45 / 0.45);
+      }
+      .kirchhoff__atmo {
+        position: absolute;
+        left: 4%;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 116px;
+        height: 132px;
+        border-radius: 50%;
+        border: 1px dashed var(--color-neutral);
+        background: oklch(60% 0.05 200 / 0.1);
+      }
+      .kirchhoff__ray {
+        position: absolute;
+        left: 22%;
+        height: 2px;
+        width: 0;
+        background: currentColor;
+        opacity: 0.9;
+        box-shadow: 0 0 8px 1px currentColor;
+        animation: rayGo 3.4s ease-in-out infinite;
+      }
+      @keyframes rayGo {
+        0% {
+          width: 0;
+          opacity: 0;
+        }
+        15% {
+          opacity: 0.95;
+        }
+        70% {
+          width: 62%;
+          opacity: 0.95;
+        }
+        100% {
+          width: 62%;
+          opacity: 0;
+        }
+      }
+      .kirchhoff__detector {
+        position: absolute;
+        right: 4%;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 72px;
+        padding: var(--space-sm);
+        border: 1px solid var(--color-rule);
+        border-radius: 8px;
+        background: var(--color-paper-2);
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-muted);
+        text-align: center;
+      }
+      .fraunhofer {
+        height: 74px;
+        border-radius: 8px;
+        border: 1px solid var(--color-rule);
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(90deg, #3a006b 0%, #1b00c4 14%, #0072ff 27%, #00d9a0 41%, #8dff00 53%, #ffdb00 68%, #ff8a00 82%, #e02000 96%);
+      }
+      .fraunhofer__label {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-muted);
+      }
+      .fh-wrap {
+        position: relative;
+        margin-bottom: var(--space-2xl);
+      }
+
+      /* Ch5: Slideshow */
+      .slideshow {
+        position: relative;
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        overflow: hidden;
+        background: var(--color-paper-2);
+      }
+      .slide {
+        display: none;
+      }
+      .slide.is-active {
+        display: block;
+      }
+      .slide__visual {
+        height: 260px;
+        position: relative;
+        overflow: hidden;
+        background: oklch(11% 0.015 265);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .slide__visual::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(var(--color-neutral) 1px, transparent 1px);
+        background-size: 22px 22px;
+        opacity: 0.25;
+      }
+      .slide__figure {
+        position: relative;
+        z-index: 1;
+        width: 82%;
+        height: 60%;
+        border-radius: 8px;
+        border: 1px solid var(--color-rule);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .slide__caption {
+        padding: var(--space-lg);
+      }
+      .slide__caption h3 {
+        font-size: var(--text-md);
+        margin-bottom: var(--space-xs);
+      }
+      .slideshow__controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-md);
+        padding: 0 var(--space-lg) var(--space-lg);
+      }
+      .slideshow__dots {
+        display: flex;
+        gap: var(--space-sm);
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        padding: 0;
+        border: 1px solid var(--color-rule);
+        background: var(--color-paper-3);
+        cursor: pointer;
+      }
+      .dot[aria-current="true"] {
+        background: var(--color-accent);
+        border-color: transparent;
+      }
+      .cta-band {
+        margin-top: var(--space-2xl);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        padding: var(--space-2xl);
+        background: radial-gradient(circle at 80% 10%, oklch(45% 0.09 45 / 0.25) 0%, transparent 55%), var(--color-paper-2);
+        text-align: center;
+      }
+      .cta-band__title {
+        font-size: var(--text-xl);
+        margin-bottom: var(--space-md);
+      }
+      .cta-band__actions {
+        display: flex;
+        gap: var(--space-md);
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: var(--space-lg);
+      }
+
+      .chapter-nav {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-md);
+        margin-top: var(--space-xl);
+        flex-wrap: wrap;
+      }
+      .toc-link-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+        justify-content: center;
+        margin-bottom: var(--space-4xl);
+      }
+
+      @media (max-width: 768px) {
+        .nav-pill__link {
+          display: none;
+        }
+        .temp-classes {
+          grid-template-columns: repeat(4, 1fr);
+        }
+        .kirchhoff {
+          height: 160px;
+        }
+        .kirchhoff__detector {
+          display: none;
+        }
+        .slide__visual {
+          height: 200px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ============ N5 Floating Pill Nav ============ -->
+    <nav class="nav-pill" aria-label="メインナビゲーション">
+      <a class="nav-pill__wordmark" href="#top">星の光を解読する旅</a>
+      <div class="nav-pill__actions">
+        <a class="nav-pill__link" href="#ch1">章一覧</a>
+        <a class="nav-pill__link" href="#ch5">観測会</a>
+        <a class="nav-pill__btn" href="#cta">来館予約</a>
+      </div>
+    </nav>
+
+    <main class="page-container" id="top">
+      <!-- ============ Portfolio Header ============ -->
+      <header class="portfolio-header">
+        <p class="portfolio-header__tagline">Web Exhibition / Spectroscopy</p>
+        <h1 class="portfolio-header__title">星の光を解読する旅</h1>
+        <p class="portfolio-header__lead">
+          夜空に瞬く一点の光は、何百年、何千年もの旅を経て私たちの目に届いた「情報カプセル」です。 その光を分解し、隠された宇宙の姿を読み解く——天文学の基本手法
+          <span class="term" tabindex="0" data-tip="光を波長ごとに分解して、その強度分布を調べる観測手法。星の温度・成分・運動などがわかります。">分光観測</span>
+          を、5つの章で体験してください。
+        </p>
+      </header>
+
+      <!-- ============ 18: Portfolio Grid（章一覧） ============ -->
+      <section class="portfolio-grid" aria-label="展示チャプター一覧">
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual" aria-hidden="true"></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Chapter 01 / Introduction</p>
+            <h2 class="exhibit-card__title">夜空のキャンバス</h2>
+            <p class="exhibit-card__desc">星はなぜ違う色をしているのか。ベテルギウスの赤、リゲルの青白。全天図の星をタップして、色の違いに気づく体験から始めます。</p>
+            <a class="exhibit-card__link" href="#ch1">星を選んでみる</a>
+          </div>
+        </article>
+
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual" aria-hidden="true"></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Chapter 02 / Wavelength</p>
+            <h2 class="exhibit-card__title">光を分解する</h2>
+            <p class="exhibit-card__desc">光は電磁波という「波」。プリズムで虹色に分かれるアニメーションと、波長スライダーで色と波長の対応を体感します。</p>
+            <a class="exhibit-card__link" href="#ch2">スライダーを動かす</a>
+          </div>
+        </article>
+
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual" aria-hidden="true"></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Chapter 03 / Blackbody</p>
+            <h2 class="exhibit-card__title">星の温度計</h2>
+            <p class="exhibit-card__desc">プランクの法則に基づく黒体放射曲線を動的に描画。温度ダイヤルを回すと、ピーク波長が青へ、赤へと移動します。</p>
+            <a class="exhibit-card__link" href="#ch3">温度を変えてみる</a>
+          </div>
+        </article>
+
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual" aria-hidden="true"></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Chapter 04 / Spectral Lines</p>
+            <h2 class="exhibit-card__title">星の指紋を照合する</h2>
+            <p class="exhibit-card__desc">吸収線と輝線は元素の指紋。キルヒホッフの法則のモデル図と、太陽のフラウンホーファー線から元素を特定します。</p>
+            <a class="exhibit-card__link" href="#ch4">指紋を照合する</a>
+          </div>
+        </article>
+
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual" aria-hidden="true"></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Chapter 05 / Outreach</p>
+            <h2 class="exhibit-card__title">分光観測がひらく宇宙への旅</h2>
+            <p class="exhibit-card__desc">分光器の仕組みと実観測データのスライドショー。そして、この地域の星空を実際に見に行くためのご案内。</p>
+            <a class="exhibit-card__link" href="#ch5">観測会を見る</a>
+          </div>
+        </article>
+
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual" aria-hidden="true"></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Appendix / Guide</p>
+            <h2 class="exhibit-card__title">用語ミニ辞典</h2>
+            <p class="exhibit-card__desc">波長、スペクトル型、ウィーンの変位則など、本展示に登場する専門用語をまとめて確認できます。</p>
+            <a class="exhibit-card__link" href="#glossary">用語を確認する</a>
+          </div>
+        </article>
+      </section>
+
+      <!-- ============ 第1章 ============ -->
+      <section class="chapter" id="ch1" aria-labelledby="ch1-title">
+        <div class="chapter__head">
+          <h2 class="section-title" id="ch1-title"><span class="section-num">01</span>夜空のキャンバス</h2>
+          <p class="section-lead">
+            星はなぜ違う色をしているのか。オリオン座を見上げると、右上の
+            <strong>ベテルギウス</strong>は赤く、左下の<strong>リゲル</strong>は青白い。 肉眼でもわかるこの違いは、決して気のせいではありません。星をひとつ選んでみてください。
+          </p>
+        </div>
+
+        <div class="sky" id="sky" role="group" aria-label="インタラクティブ全天図：星を選択できます">
+          <div class="sky__dust" aria-hidden="true"></div>
+          <!-- 星ボタンはJSで生成 -->
+        </div>
+
+        <div class="star-panel" id="starPanel" aria-live="polite">
+          <h3 class="star-panel__title">
+            <span class="swatch" id="starSwatch" style="background: #cfd8ff"></span>
+            <span id="starName">星を選択してください</span>
+            <span class="chip" id="starType">SPECTRAL TYPE —</span>
+          </h3>
+          <p class="body-text" id="starDesc" style="font-size: var(--text-sm)">上の夜空から星をクリック／タップすると、その星のデータが表示されます。</p>
+          <div class="data-list">
+            <div>
+              <span class="k">見かけの色</span>
+              <div class="v" id="dColor">—</div>
+            </div>
+            <div>
+              <span class="k">表面温度</span>
+              <div class="v" id="dTemp">—</div>
+            </div>
+            <div>
+              <span class="k">距離</span>
+              <div class="v" id="dDist">—</div>
+            </div>
+            <div>
+              <span class="k">星座</span>
+              <div class="v" id="dConst">—</div>
+            </div>
+          </div>
+          <p class="capsule-msg">星の光は、単なる点ではありません。<strong>宇宙空間を旅してきた情報カプセル</strong>です。 いま目に届いた光は、この星が何千年も前に放ったもの。 その中には温度・成分・速度までもが刻まれています。</p>
+        </div>
+
+        <div class="hint"><b>気づきのポイント：</b> 赤い星と青白い星、どちらが「熱い」でしょうか？ 焚き火より青いガスバーナーの炎が熱いのと同じ答えが、第3章で明らかになります。</div>
+
+        <div class="chapter-nav">
+          <span></span>
+          <a class="btn btn-outline" href="#ch2">第2章：光を分解する →</a>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ============ 第2章 ============ -->
+      <section class="chapter" id="ch2" aria-labelledby="ch2-title">
+        <div class="chapter__head">
+          <h2 class="section-title" id="ch2-title"><span class="section-num">02</span>光を分解する</h2>
+          <p class="section-lead">
+            光の正体は<span class="term" tabindex="0" data-tip="電場と磁場の振動が空間を伝わる波。電波・赤外線・可視光線・紫外線・X線・ガンマ線はすべて電磁波で、波長が違うだけです。">電磁波</span>という「波」です。 その<span class="term" tabindex="0" data-tip="波の山から次の山までの長さ。可視光線では約380〜780ナノメートル（nm）の範囲が目に見えます。1nm = 10億分の1メートル。">波長</span>の違いが、
+            私たちの目には「色」の違いとして認識されます。プリズムを通すと、白色光は虹色の帯——<strong>連続スペクトル</strong>——に分かれます。
+          </p>
+        </div>
+
+        <div class="prism-stage" aria-label="プリズムによる分光アニメーション">
+          <div class="prism-beam" aria-hidden="true"></div>
+          <div class="prism-shape" aria-hidden="true"></div>
+          <div class="prism-fan" aria-hidden="true"></div>
+        </div>
+
+        <div class="card" style="margin-top: var(--space-xl)">
+          <h2>波長スライダー</h2>
+          <p class="body-text" style="font-size: var(--text-sm)">つまみを動かして、波長と色の対応を確かめてみましょう。380nmより短い光（紫外線）、 780nmより長い光（赤外線）は、人間の目には見えません。</p>
+
+          <div class="control-row" style="margin-top: var(--space-lg)">
+            <label class="label" for="wlRange">波長 λ（ナノメートル）</label>
+            <input type="range" id="wlRange" min="340" max="820" step="1" value="550" aria-describedby="wlReadout" />
+            <div class="spectrum-scale" aria-hidden="true"><span>340nm</span><span>460nm</span><span>580nm</span><span>700nm</span><span>820nm</span></div>
+          </div>
+
+          <div class="spectrum-bar" aria-hidden="true">
+            <div class="spectrum-bar__marker" id="wlMarker" style="left: 43%"></div>
+          </div>
+          <div class="spectrum-scale" aria-hidden="true"><span>380nm 紫</span><span>500nm 青緑</span><span>580nm 黄</span><span>780nm 赤</span></div>
+
+          <div class="grid-2" style="margin-top: var(--space-lg)">
+            <div>
+              <span class="label">この波長の色</span>
+              <div class="color-preview" id="colorPreview">λ = 550 nm</div>
+            </div>
+            <div class="stack">
+              <div>
+                <span class="label">波長</span>
+                <span class="value-readout" id="wlReadout">550 nm</span>
+              </div>
+              <div>
+                <span class="label">周波数（振動数）</span>
+                <span class="value-readout" id="freqReadout">545 THz</span>
+              </div>
+              <div>
+                <span class="label">領域</span>
+                <span class="value-readout" id="bandReadout">可視光線・緑</span>
+              </div>
+              <div>
+                <span class="label">光子エネルギー</span>
+                <span class="value-readout" id="evReadout">2.25 eV</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hint"><b>ミニ知識：</b> 波長が短いほど周波数は高く、光子1個のエネルギーも大きくなります。 紫外線が日焼けを起こすのは、可視光より一段エネルギーが高いためです。</div>
+        </div>
+
+        <div class="chapter-nav">
+          <a class="btn btn-outline" href="#ch1">← 第1章</a>
+          <a class="btn btn-outline" href="#ch3">第3章：星の温度計 →</a>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ============ 第3章 ============ -->
+      <section class="chapter" id="ch3" aria-labelledby="ch3-title">
+        <div class="chapter__head">
+          <h2 class="section-title" id="ch3-title"><span class="section-num">03</span>星の温度計</h2>
+          <p class="section-lead">
+            星の色が違う理由——その答えは星の<strong>表面温度</strong>にあります。 高温の物体は<span class="term" tabindex="0" data-tip="入射した光をすべて吸収する理想的な物体からの熱放射。その強度分布は温度だけで決まります（プランクの法則）。星の光はこれに近い分布をもちます。">黒体放射</span> という決まった形のスペクトルを放ち、温度が高いほどピークは短い波長（青側）へ移動します （<span
+              class="term"
+              tabindex="0"
+              data-tip="ピーク波長 λmax ≒ 2.898×10⁶ / T [nm]（Tは絶対温度K）。温度が2倍になるとピーク波長は半分になります。"
+              >ウィーンの変位則</span
+            >）。
+          </p>
+        </div>
+
+        <div class="grid-2">
+          <div class="chart-wrap">
+            <svg id="bbChart" viewBox="0 0 520 320" role="img" aria-label="黒体放射スペクトル曲線のグラフ。横軸は波長、縦軸は相対強度。">
+              <!-- JSで描画 -->
+            </svg>
+            <p class="body-text" style="font-size: var(--text-xs); margin-top: var(--space-sm)">縦軸は各温度でのピーク強度を1に正規化した相対値。点線は太陽（5,772K）の曲線。</p>
+          </div>
+
+          <div class="card">
+            <h2>温度ダイヤル</h2>
+            <div class="star-preview" id="starPreview" aria-hidden="true"></div>
+
+            <div class="control-row">
+              <label class="label" for="tempRange">星の表面温度 T（ケルビン）</label>
+              <input type="range" id="tempRange" min="2500" max="30000" step="100" value="5800" />
+              <div class="spectrum-scale" aria-hidden="true"><span>2,500K</span><span>15,000K</span><span>30,000K</span></div>
+            </div>
+
+            <div class="data-list">
+              <div>
+                <span class="k">表面温度</span>
+                <div class="v" id="tOut">5,800 K</div>
+              </div>
+              <div>
+                <span class="k">ピーク波長</span>
+                <div class="v" id="pOut">500 nm</div>
+              </div>
+              <div>
+                <span class="k">スペクトル型</span>
+                <div class="v" id="cOut">G型</div>
+              </div>
+              <div>
+                <span class="k">見かけの色</span>
+                <div class="v" id="colOut">黄白色</div>
+              </div>
+            </div>
+
+            <div class="temp-classes" id="tempClasses" aria-hidden="true">
+              <span style="background: #9bb0ff">O</span>
+              <span style="background: #aabfff">B</span>
+              <span style="background: #cad7ff">A</span>
+              <span style="background: #f8f7ff">F</span>
+              <span style="background: #fff4ea">G</span>
+              <span style="background: #ffd2a1">K</span>
+              <span style="background: #ffb56c">M</span>
+            </div>
+
+            <div style="display: flex; gap: var(--space-sm); flex-wrap: wrap; margin-top: var(--space-lg)">
+              <button class="btn btn-outline" type="button" data-temp="3500">ベテルギウス級 3,500K</button>
+              <button class="btn btn-outline" type="button" data-temp="5772">太陽 5,772K</button>
+              <button class="btn btn-outline" type="button" data-temp="12100">リゲル級 12,100K</button>
+            </div>
+
+            <div class="hint"><b>体感してみる：</b> 温度を上げるとカーブの山が左（青）へ動き、全体の高さも急激に増します。 放射する総エネルギーは温度の4乗に比例します（シュテファン＝ボルツマンの法則）。</div>
+          </div>
+        </div>
+
+        <div class="chapter-nav">
+          <a class="btn btn-outline" href="#ch2">← 第2章</a>
+          <a class="btn btn-outline" href="#ch4">第4章：星の指紋 →</a>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ============ 第4章 ============ -->
+      <section class="chapter" id="ch4" aria-labelledby="ch4-title">
+        <div class="chapter__head">
+          <h2 class="section-title" id="ch4-title"><span class="section-num">04</span>星の指紋を照合する</h2>
+          <p class="section-lead">なめらかな虹色のはずのスペクトルを細かく見ると、暗い線（<strong>吸収線</strong>）や 明るい線（<strong>輝線</strong>）が刻まれています。この線の位置は元素ごとに決まっていて、 まさに<strong>元素の指紋</strong>。光を読めば、何万光年も離れた星の成分がわかるのです。</p>
+        </div>
+
+        <div class="element-tabs" id="elementTabs" role="group" aria-label="元素を選択">
+          <button class="btn btn-outline" type="button" data-el="H" aria-pressed="true">水素 H</button>
+          <button class="btn btn-outline" type="button" data-el="He" aria-pressed="false">ヘリウム He</button>
+          <button class="btn btn-outline" type="button" data-el="Na" aria-pressed="false">ナトリウム Na</button>
+          <button class="btn btn-outline" type="button" data-el="Ca" aria-pressed="false">カルシウム Ca</button>
+          <button class="btn btn-outline" type="button" data-el="Fe" aria-pressed="false">鉄 Fe</button>
+        </div>
+
+        <div class="card">
+          <h2 id="specTitle">水素（H）の指紋</h2>
+          <p class="body-text" style="font-size: var(--text-sm)" id="specNote">バルマー系列。Hα 656nm の赤い線は、天体写真の赤い星雲の色そのものです。</p>
+
+          <div style="margin-top: var(--space-xl)">
+            <span class="label">吸収スペクトル ─ 高温の光源＋低温ガス（星の大気）</span>
+            <div class="spec-strip spec-strip--cont" id="absStrip" aria-hidden="true"></div>
+          </div>
+
+          <div style="margin-top: var(--space-xl)">
+            <span class="label">輝線スペクトル ─ 高温ガスそのものの発光（星雲など）</span>
+            <div class="spec-strip spec-strip--emit" id="emitStrip" aria-hidden="true"></div>
+            <div class="spectrum-scale" aria-hidden="true"><span>400nm</span><span>500nm</span><span>600nm</span><span>700nm</span></div>
+          </div>
+
+          <div class="hint"><b>同じ位置に現れる：</b> 吸収線と輝線は、同じ元素なら<b>まったく同じ波長</b>に現れます。 暗く欠けるか、明るく光るかは「光源とガスの温度差」と「見る方向」で決まります。</div>
+        </div>
+
+        <div class="card" style="margin-top: var(--space-xl)">
+          <h2>キルヒホッフの法則モデル</h2>
+          <p class="body-text" style="font-size: var(--text-sm)">星の高温の芯から出た連続光が、周囲の比較的低温なガス（星の大気）を通過するとき、 そのガスを構成する元素が「自分の指紋の波長」だけを吸い取ります。 結果、地球に届く光は、その波長が欠けた=暗い線をもつスペクトルになります。</p>
+          <div class="kirchhoff" aria-label="キルヒホッフの法則の模式アニメーション" style="margin-top: var(--space-lg)">
+            <div class="kirchhoff__atmo" aria-hidden="true"></div>
+            <div class="kirchhoff__core" aria-hidden="true"></div>
+            <div class="kirchhoff__ray" style="top: 38%; color: #ff5a3c; animation-delay: 0s"></div>
+            <div class="kirchhoff__ray" style="top: 50%; color: #7dff9a; animation-delay: 0.4s"></div>
+            <div class="kirchhoff__ray" style="top: 62%; color: #7db8ff; animation-delay: 0.8s"></div>
+            <div class="kirchhoff__detector" aria-hidden="true">分光器<br />→ 吸収線</div>
+          </div>
+          <ul class="body-text" style="font-size: var(--text-sm); margin-top: var(--space-lg); padding-left: 1.2em">
+            <li>高温の固体・液体・高密度ガス → <strong>連続スペクトル</strong></li>
+            <li>高温の希薄ガス → <strong>輝線スペクトル</strong></li>
+            <li>連続光の手前に低温の希薄ガス → <strong>吸収線スペクトル</strong></li>
+          </ul>
+        </div>
+
+        <div class="card" style="margin-top: var(--space-xl)">
+          <h2>太陽の<span class="term" tabindex="0" data-tip="太陽スペクトルに見える無数の暗線。19世紀初頭にフラウンホーファーが体系的に記録し、主要な線にA〜Kの記号を付けました。">フラウンホーファー線</span></h2>
+          <p class="body-text" style="font-size: var(--text-sm)">もっとも身近な恒星＝太陽にも、無数の指紋が隠れています。 主要な吸収線には歴史的にA〜Kの記号が与えられ、それぞれの原因元素が特定されています。 （下図は主要線の位置を模式的に示したものです。実際の展示では公開天文台で取得した実写スペクトル画像を掲載します。）</p>
+          <div class="fh-wrap" style="margin-top: var(--space-lg)">
+            <div class="fraunhofer" id="fhStrip" aria-hidden="true"></div>
+            <span class="fraunhofer__label">← 短波長（青）　　太陽スペクトル　　長波長（赤）→</span>
+          </div>
+          <div class="data-list" style="margin-top: var(--space-2xl)">
+            <div>
+              <span class="k">K線 393nm</span>
+              <div class="v" style="font-size: var(--text-sm)">カルシウム</div>
+            </div>
+            <div>
+              <span class="k">G線 431nm</span>
+              <div class="v" style="font-size: var(--text-sm)">鉄・CH分子</div>
+            </div>
+            <div>
+              <span class="k">F線 486nm</span>
+              <div class="v" style="font-size: var(--text-sm)">水素 Hβ</div>
+            </div>
+            <div>
+              <span class="k">b線 517nm</span>
+              <div class="v" style="font-size: var(--text-sm)">マグネシウム</div>
+            </div>
+            <div>
+              <span class="k">D線 589nm</span>
+              <div class="v" style="font-size: var(--text-sm)">ナトリウム</div>
+            </div>
+            <div>
+              <span class="k">C線 656nm</span>
+              <div class="v" style="font-size: var(--text-sm)">水素 Hα</div>
+            </div>
+          </div>
+          <div class="hint"><b>歴史のひとこま：</b> 太陽スペクトルの未知の吸収線から発見された元素が <b>ヘリウム</b>です。地球で見つかる前に、太陽の光の中から見つかりました。</div>
+        </div>
+
+        <div class="chapter-nav">
+          <a class="btn btn-outline" href="#ch3">← 第3章</a>
+          <a class="btn btn-outline" href="#ch5">第5章：宇宙への旅 →</a>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ============ 第5章 ============ -->
+      <section class="chapter" id="ch5" aria-labelledby="ch5-title">
+        <div class="chapter__head">
+          <h2 class="section-title" id="ch5-title"><span class="section-num">05</span>分光観測がひらく宇宙への旅</h2>
+          <p class="section-lead">たった一筋の光を分解する。この単純な手法が、星の成分、星の一生、 そして宇宙が膨張しているという事実までを明らかにしてきました。 いま、あなたの町の夜空にも、読み解かれるのを待っている光が満ちています。</p>
+        </div>
+
+        <div class="slideshow" id="slideshow" aria-roledescription="スライドショー" aria-label="分光観測ギャラリー">
+          <div class="slide is-active" role="group" aria-label="1 / 5">
+            <div class="slide__visual">
+              <div class="slide__figure" style="background: linear-gradient(90deg, #3a006b, #1b00c4, #0072ff, #00d9a0, #8dff00, #ffdb00, #ff8a00, #e02000)"></div>
+            </div>
+            <div class="slide__caption">
+              <p class="exhibit-card__meta">01 / Instrument</p>
+              <h3>分光器という「翻訳機」</h3>
+              <p class="body-text" style="font-size: var(--text-sm)">望遠鏡が集めた光を、回折格子やプリズムで波長ごとに並べ替える装置。 天体からの微かな光を、読み取り可能な「グラフ」へと翻訳します。</p>
+            </div>
+          </div>
+
+          <div class="slide" role="group" aria-label="2 / 5">
+            <div class="slide__visual">
+              <div class="slide__figure" style="background: linear-gradient(90deg, #0b0b2a, #1b1b6b, #2a2ab0, #0b0b2a)"></div>
+            </div>
+            <div class="slide__caption">
+              <p class="exhibit-card__meta">02 / Composition</p>
+              <h3>星は何でできているのか</h3>
+              <p class="body-text" style="font-size: var(--text-sm)">吸収線の組み合わせと強さから、水素・ヘリウムを主体とする星の組成が読み取れます。 重元素の量は、その星が生まれた時代の宇宙の履歴書でもあります。</p>
+            </div>
+          </div>
+
+          <div class="slide" role="group" aria-label="3 / 5">
+            <div class="slide__visual">
+              <div class="slide__figure" style="background: radial-gradient(circle at 50% 60%, #ff6a3c 0%, #b3204a 45%, #24123a 100%)"></div>
+            </div>
+            <div class="slide__caption">
+              <p class="exhibit-card__meta">03 / Evolution</p>
+              <h3>星の一生を読む</h3>
+              <p class="body-text" style="font-size: var(--text-sm)">スペクトル型と明るさを並べると、星々は帯状に分布します（HR図）。 主系列から赤色巨星へ——一枚の図の中に、星の進化の物語が刻まれています。</p>
+            </div>
+          </div>
+
+          <div class="slide" role="group" aria-label="4 / 5">
+            <div class="slide__visual">
+              <div class="slide__figure" style="background: linear-gradient(90deg, #2a0040, #5a0060, #8a0040, #c02020, #e04000)"></div>
+            </div>
+            <div class="slide__caption">
+              <p class="exhibit-card__meta">04 / Redshift</p>
+              <h3>宇宙は膨張している</h3>
+              <p class="body-text" style="font-size: var(--text-sm)">遠方銀河の吸収線は、本来の波長より長い方（赤）へずれています。 この<span class="term" tabindex="0" data-tip="天体が遠ざかることで、スペクトル線の波長が長い方（赤い方）へずれる現象。遠い銀河ほどずれが大きいことが、宇宙膨張の証拠となりました。">赤方偏移</span>の発見が、 膨張する宇宙像へと私たちを導きました。</p>
+            </div>
+          </div>
+
+          <div class="slide" role="group" aria-label="5 / 5">
+            <div class="slide__visual">
+              <div class="slide__figure" style="background: radial-gradient(circle at 30% 30%, #ffd9a0 0%, #9a5a20 40%, #14162a 100%)"></div>
+            </div>
+            <div class="slide__caption">
+              <p class="exhibit-card__meta">05 / Local Sky</p>
+              <h3>地域資源としての星空</h3>
+              <p class="body-text" style="font-size: var(--text-sm)">暗い夜空は、失われつつある貴重な地域資源です。 公開天文台での観測会やアストロツーリズムを通じて、 この土地の空でしか味わえない体験を次の世代へ引き継いでいきます。</p>
+            </div>
+          </div>
+
+          <div class="slideshow__controls">
+            <button class="btn btn-outline" type="button" id="prevSlide">← 前へ</button>
+            <div class="slideshow__dots" id="slideDots" role="tablist" aria-label="スライド選択"></div>
+            <button class="btn btn-outline" type="button" id="nextSlide">次へ →</button>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-band" id="cta">
+          <p class="portfolio-header__tagline">Call to Action</p>
+          <h3 class="cta-band__title">次は、あなた自身の目で。</h3>
+          <p class="body-text" style="max-width: 52ch; margin: 0 auto">画面の中の光を読み解いたら、ぜひ本物の星空へ。 公開天文台では、大型望遠鏡による観望会と、実際の分光観測の見学を実施しています。 季節ごとの星空案内や、宿泊型のアストロツーリズム企画もご用意しています。</p>
+          <div class="cta-band__actions">
+            <button class="btn btn-primary" type="button">観測会に申し込む</button>
+            <button class="btn btn-outline" type="button">開催カレンダーを見る</button>
+            <button class="btn btn-outline" type="button">団体・学校向け相談</button>
+          </div>
+          <p class="body-text" style="font-size: var(--text-xs); margin-top: var(--space-lg)">※ ボタンのリンク先、開催日程、料金等は運用時に実際の情報へ差し替えてください。</p>
+        </div>
+
+        <div class="chapter-nav">
+          <a class="btn btn-outline" href="#ch4">← 第4章</a>
+          <a class="btn btn-outline" href="#glossary">用語ミニ辞典 →</a>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- ============ 用語ミニ辞典 ============ -->
+      <section class="chapter" id="glossary" aria-labelledby="gl-title">
+        <div class="chapter__head">
+          <h2 class="section-title" id="gl-title"><span class="section-num">A</span>用語ミニ辞典</h2>
+          <p class="section-lead">本展示に登場した専門用語の簡潔な解説です。</p>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <h2>波長 / スペクトル</h2>
+            <p class="body-text" style="font-size: var(--text-sm)">波長は波の山から山までの長さ。光を波長順に並べたものがスペクトルです。 可視光線はおよそ380〜780nmの範囲。</p>
+          </div>
+          <div class="card">
+            <h2>黒体放射・ウィーンの変位則</h2>
+            <p class="body-text" style="font-size: var(--text-sm)">温度だけで決まる熱放射の分布。ピーク波長は λmax ≒ 2.898×10⁶ / T [nm] で近似され、 高温ほど短波長（青）側になります。</p>
+          </div>
+          <div class="card">
+            <h2>吸収線・輝線</h2>
+            <p class="body-text" style="font-size: var(--text-sm)">元素が特定波長の光を吸う／放つことで生じる線。位置は元素ごとに固有で、 星の成分同定に使われます。</p>
+          </div>
+          <div class="card">
+            <h2>スペクトル型（O・B・A・F・G・K・M）</h2>
+            <p class="body-text" style="font-size: var(--text-sm)">表面温度の高い順に並べた星の分類。太陽はG型。O型は青白く3万K級、M型は赤く3千K級です。</p>
+          </div>
+          <div class="card">
+            <h2>赤方偏移</h2>
+            <p class="body-text" style="font-size: var(--text-sm)">遠ざかる天体のスペクトル線が長波長側にずれる現象。宇宙膨張の観測的証拠です。</p>
+          </div>
+          <div class="card">
+            <h2>分光観測</h2>
+            <p class="body-text" style="font-size: var(--text-sm)">光を波長ごとに分けて解析する観測手法。温度・組成・視線速度・磁場などが読み取れます。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Ft5 Statement Footer ============ -->
+      <footer class="footer-statement">
+        <p class="footer-statement__text">光は、宇宙がいちばん長く語りつづけている言葉です。</p>
+        <div class="footer-statement__meta">
+          <span>公開天文台 Web展示</span>
+          <span>Spectroscopy Exhibition</span>
+          <span>© 2026</span>
+        </div>
+      </footer>
+    </main>
+
+    <script>
+      /* =========================================================
+   Ch1 : Interactive sky
+   ========================================================= */
+      const STARS = [
+        { name: "ベテルギウス", type: "M1-2 Ia-ab", color: "#ff9a5a", size: 14, x: 24, y: 30, seen: "赤色", temp: "約3,600 K", dist: "約500 光年", constellation: "オリオン座", desc: "オリオン座の肩に輝く赤色超巨星。表面温度が低いため、赤い光が優勢になります。半径は太陽の数百倍。" },
+        { name: "リゲル", type: "B8 Ia", color: "#a9c6ff", size: 12, x: 47, y: 66, seen: "青白色", temp: "約12,100 K", dist: "約860 光年", constellation: "オリオン座", desc: "オリオン座の足元の青色超巨星。高温のため短波長の光を多く放ち、青白く見えます。" },
+        { name: "シリウス", type: "A1 V", color: "#dbe6ff", size: 16, x: 66, y: 78, seen: "白色", temp: "約9,900 K", dist: "約8.6 光年", constellation: "おおいぬ座", desc: "全天でもっとも明るい恒星。近距離にあるA型主系列星で、青白〜白色に見えます。" },
+        { name: "アルデバラン", type: "K5 III", color: "#ffb473", size: 11, x: 14, y: 58, seen: "橙色", temp: "約3,900 K", dist: "約65 光年", constellation: "おうし座", desc: "おうし座の目にあたる赤色巨星。ベテルギウスよりやや高温で、橙色に見えます。" },
+        { name: "カペラ", type: "G3 III", color: "#fff3dd", size: 12, x: 33, y: 14, seen: "黄白色", temp: "約4,900 K", dist: "約43 光年", constellation: "ぎょしゃ座", desc: "太陽と同じG型に近い連星系。太陽に似た黄白色の光を放ちます。" },
+        { name: "スピカ", type: "B1 III-IV", color: "#9fbcff", size: 11, x: 80, y: 34, seen: "青白色", temp: "約22,400 K", dist: "約250 光年", constellation: "おとめ座", desc: "非常に高温なB型星。可視光より紫外線の方を多く放射しています。" },
+        { name: "アンタレス", type: "M1.5 Iab", color: "#ff8a52", size: 13, x: 88, y: 60, seen: "赤色", temp: "約3,600 K", dist: "約550 光年", constellation: "さそり座", desc: "さそり座の心臓。「火星に対抗するもの」の名を持つ赤色超巨星です。" },
+        { name: "ベガ", type: "A0 V", color: "#cfdcff", size: 13, x: 58, y: 20, seen: "白色", temp: "約9,600 K", dist: "約25 光年", constellation: "こと座", desc: "夏の大三角の一角。等級の基準にも使われてきた、明るい白色の星です。" },
+      ];
+
+      const sky = document.getElementById("sky");
+      const els = {
+        name: document.getElementById("starName"),
+        type: document.getElementById("starType"),
+        desc: document.getElementById("starDesc"),
+        swatch: document.getElementById("starSwatch"),
+        color: document.getElementById("dColor"),
+        temp: document.getElementById("dTemp"),
+        dist: document.getElementById("dDist"),
+        cst: document.getElementById("dConst"),
+      };
+
+      STARS.forEach((s, i) => {
+        const b = document.createElement("button");
+        b.className = "star-btn";
+        b.type = "button";
+        b.style.left = s.x + "%";
+        b.style.top = s.y + "%";
+        b.style.color = s.color;
+        b.setAttribute("aria-pressed", "false");
+        b.setAttribute("aria-label", s.name + "を選択");
+        b.innerHTML = '<span class="star-btn__dot" style="width:' + s.size + "px;height:" + s.size + 'px"></span>' + '<span class="star-btn__name">' + s.name + "</span>";
+        b.addEventListener("click", () => selectStar(i));
+        sky.appendChild(b);
+      });
+
+      function selectStar(i) {
+        const s = STARS[i];
+        document.querySelectorAll(".star-btn").forEach((b, j) => b.setAttribute("aria-pressed", String(j === i)));
+        els.name.textContent = s.name;
+        els.type.textContent = "SPECTRAL TYPE " + s.type;
+        els.desc.textContent = s.desc;
+        els.swatch.style.background = s.color;
+        els.color.textContent = s.seen;
+        els.temp.textContent = s.temp;
+        els.dist.textContent = s.dist;
+        els.cst.textContent = s.constellation;
+      }
+      selectStar(0);
+
+      /* =========================================================
+   Ch2 : Wavelength → RGB (approx. CIE-based mapping)
+   ========================================================= */
+      function wavelengthToRGB(wl) {
+        let r = 0,
+          g = 0,
+          b = 0;
+        if (wl >= 380 && wl < 440) {
+          r = -(wl - 440) / 60;
+          g = 0;
+          b = 1;
+        } else if (wl >= 440 && wl < 490) {
+          r = 0;
+          g = (wl - 440) / 50;
+          b = 1;
+        } else if (wl >= 490 && wl < 510) {
+          r = 0;
+          g = 1;
+          b = -(wl - 510) / 20;
+        } else if (wl >= 510 && wl < 580) {
+          r = (wl - 510) / 70;
+          g = 1;
+          b = 0;
+        } else if (wl >= 580 && wl < 645) {
+          r = 1;
+          g = -(wl - 645) / 65;
+          b = 0;
+        } else if (wl >= 645 && wl <= 780) {
+          r = 1;
+          g = 0;
+          b = 0;
+        }
+
+        let f = 1;
+        if (wl >= 380 && wl < 420) f = 0.3 + (0.7 * (wl - 380)) / 40;
+        else if (wl > 700 && wl <= 780) f = 0.3 + (0.7 * (780 - wl)) / 80;
+        else if (wl < 380 || wl > 780) f = 0;
+
+        const gamma = 0.8;
+        const c = (v) => Math.round(255 * Math.pow(Math.max(v, 0) * f, gamma));
+        return [c(r), c(g), c(b)];
+      }
+
+      function bandName(wl) {
+        if (wl < 380) return "紫外線（不可視）";
+        if (wl < 450) return "可視光線・紫";
+        if (wl < 495) return "可視光線・青";
+        if (wl < 570) return "可視光線・緑";
+        if (wl < 590) return "可視光線・黄";
+        if (wl < 620) return "可視光線・橙";
+        if (wl <= 780) return "可視光線・赤";
+        return "赤外線（不可視）";
+      }
+
+      const wlRange = document.getElementById("wlRange");
+      const wlMarker = document.getElementById("wlMarker");
+      const colorPreview = document.getElementById("colorPreview");
+
+      function updateWavelength() {
+        const wl = Number(wlRange.value);
+        const [r, g, b] = wavelengthToRGB(wl);
+        const visible = wl >= 380 && wl <= 780;
+
+        colorPreview.style.background = visible ? `rgb(${r},${g},${b})` : "#101218";
+        colorPreview.style.color = visible ? "#05060a" : "var(--color-neutral)";
+        colorPreview.textContent = visible ? `λ = ${wl} nm` : `λ = ${wl} nm（目に見えません）`;
+
+        const pos = ((wl - 340) / (820 - 340)) * 100;
+        wlMarker.style.left = pos + "%";
+
+        document.getElementById("wlReadout").textContent = wl + " nm";
+        document.getElementById("freqReadout").textContent = Math.round(299792458 / (wl * 1e-9) / 1e12) + " THz";
+        document.getElementById("bandReadout").textContent = bandName(wl);
+        document.getElementById("evReadout").textContent = (1239.84 / wl).toFixed(2) + " eV";
+      }
+      wlRange.addEventListener("input", updateWavelength);
+      updateWavelength();
+
+      /* =========================================================
+   Ch3 : Planck curve
+   ========================================================= */
+      const H = 6.62607015e-34,
+        C = 299792458,
+        KB = 1.380649e-23;
+
+      function planck(wlNm, T) {
+        const l = wlNm * 1e-9;
+        return (2 * H * C * C) / Math.pow(l, 5) / (Math.exp((H * C) / (l * KB * T)) - 1);
+      }
+
+      function spectralClass(T) {
+        if (T >= 30000) return ["O型", "青色", 0];
+        if (T >= 10000) return ["B型", "青白色", 1];
+        if (T >= 7500) return ["A型", "白色", 2];
+        if (T >= 6000) return ["F型", "淡黄白色", 3];
+        if (T >= 5200) return ["G型", "黄白色", 4];
+        if (T >= 3700) return ["K型", "橙色", 5];
+        return ["M型", "赤色", 6];
+      }
+
+      function tempToRGB(T) {
+        // 近似：色温度→RGB（Tanner Helland 近似を簡略化）
+        const t = Math.min(Math.max(T, 1000), 40000) / 100;
+        let r, g, b;
+        if (t <= 66) {
+          r = 255;
+        } else {
+          r = 329.698727446 * Math.pow(t - 60, -0.1332047592);
+        }
+        if (t <= 66) {
+          g = 99.4708025861 * Math.log(t) - 161.1195681661;
+        } else {
+          g = 288.1221695283 * Math.pow(t - 60, -0.0755148492);
+        }
+        if (t >= 66) {
+          b = 255;
+        } else if (t <= 19) {
+          b = 0;
+        } else {
+          b = 138.5177312231 * Math.log(t - 10) - 305.0447927307;
+        }
+        const cl = (v) => Math.round(Math.min(Math.max(v, 0), 255));
+        return [cl(r), cl(g), cl(b)];
+      }
+
+      const CH = { w: 520, h: 320, l: 48, r: 14, t: 16, b: 40 };
+      const WL_MIN = 100,
+        WL_MAX = 2000;
+
+      function curvePath(T) {
+        const peak = planck(2.897771955e6 / T, T);
+        const pts = [];
+        for (let wl = WL_MIN; wl <= WL_MAX; wl += 10) {
+          const v = planck(wl, T) / peak;
+          const x = CH.l + ((wl - WL_MIN) / (WL_MAX - WL_MIN)) * (CH.w - CH.l - CH.r);
+          const y = CH.t + (1 - Math.min(v, 1)) * (CH.h - CH.t - CH.b);
+          pts.push((pts.length ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1));
+        }
+        return pts.join(" ");
+      }
+
+      function drawChart(T) {
+        const svg = document.getElementById("bbChart");
+        const x0 = CH.l,
+          x1 = CH.w - CH.r,
+          y0 = CH.t,
+          y1 = CH.h - CH.b;
+        let s = "";
+
+        // visible band shading
+        const vx0 = x0 + ((380 - WL_MIN) / (WL_MAX - WL_MIN)) * (x1 - x0);
+        const vx1 = x0 + ((780 - WL_MIN) / (WL_MAX - WL_MIN)) * (x1 - x0);
+        s += `<defs><linearGradient id="visg" x1="0" x2="1">
+    <stop offset="0" stop-color="#6a00cc"/><stop offset="0.25" stop-color="#0099ff"/>
+    <stop offset="0.5" stop-color="#4dff00"/><stop offset="0.72" stop-color="#ffd000"/>
+    <stop offset="1" stop-color="#ff2b00"/></linearGradient></defs>`;
+        s += `<rect x="${vx0}" y="${y0}" width="${vx1 - vx0}" height="${y1 - y0}"
+        fill="url(#visg)" opacity="0.13"/>`;
+        s += `<text class="axis-text" x="${(vx0 + vx1) / 2}" y="${y0 + 12}" text-anchor="middle">可視光域</text>`;
+
+        // grid + axes
+        for (let i = 0; i <= 4; i++) {
+          const y = y0 + ((y1 - y0) * i) / 4;
+          s += `<line class="grid-line" x1="${x0}" y1="${y}" x2="${x1}" y2="${y}"/>`;
+          s += `<text class="axis-text" x="${x0 - 6}" y="${y + 3}" text-anchor="end">${(1 - i / 4).toFixed(2)}</text>`;
+        }
+        [200, 500, 1000, 1500, 2000].forEach((wl) => {
+          const x = x0 + ((wl - WL_MIN) / (WL_MAX - WL_MIN)) * (x1 - x0);
+          s += `<line class="grid-line" x1="${x}" y1="${y0}" x2="${x}" y2="${y1}"/>`;
+          s += `<text class="axis-text" x="${x}" y="${y1 + 14}" text-anchor="middle">${wl}</text>`;
+        });
+        s += `<line class="axis-line" x1="${x0}" y1="${y1}" x2="${x1}" y2="${y1}"/>`;
+        s += `<line class="axis-line" x1="${x0}" y1="${y0}" x2="${x0}" y2="${y1}"/>`;
+        s += `<text class="axis-text" x="${(x0 + x1) / 2}" y="${CH.h - 6}" text-anchor="middle">波長 λ [nm]</text>`;
+        s += `<text class="axis-text" x="12" y="${(y0 + y1) / 2}" text-anchor="middle"
+        transform="rotate(-90 12 ${(y0 + y1) / 2})">相対強度</text>`;
+
+        // sun reference (ghost)
+        s += `<path class="curve-ghost" d="${curvePath(5772)}"/>`;
+        // main curve
+        s += `<path class="curve" d="${curvePath(T)}"/>`;
+
+        // peak marker
+        const pk = 2.897771955e6 / T;
+        if (pk >= WL_MIN && pk <= WL_MAX) {
+          const px = x0 + ((pk - WL_MIN) / (WL_MAX - WL_MIN)) * (x1 - x0);
+          s += `<line class="peak-line" x1="${px}" y1="${y0}" x2="${px}" y2="${y1}"/>`;
+          s += `<circle cx="${px}" cy="${y0}" r="3.5" fill="var(--color-accent)"/>`;
+          s += `<text class="axis-text" x="${Math.min(px + 6, x1 - 30)}" y="${y0 + 26}"
+          fill="var(--color-accent)">λmax ${Math.round(pk)}nm</text>`;
+        }
+        svg.innerHTML = s;
+      }
+
+      const tempRange = document.getElementById("tempRange");
+      const starPreview = document.getElementById("starPreview");
+
+      function updateTemp() {
+        const T = Number(tempRange.value);
+        drawChart(T);
+        const pk = 2.897771955e6 / T;
+        const [cls, colName, idx] = spectralClass(T);
+        const [r, g, b] = tempToRGB(T);
+
+        document.getElementById("tOut").textContent = T.toLocaleString("ja-JP") + " K";
+        document.getElementById("pOut").textContent = Math.round(pk) + " nm";
+        document.getElementById("cOut").textContent = cls;
+        document.getElementById("colOut").textContent = colName;
+
+        starPreview.style.background = `radial-gradient(circle at 35% 35%, #fff 0%, rgb(${r},${g},${b}) 55%, rgba(${r},${g},${b},0.35) 100%)`;
+        starPreview.style.boxShadow = `0 0 48px 10px rgba(${r},${g},${b},0.35)`;
+
+        document.querySelectorAll("#tempClasses span").forEach((el, i) => el.classList.toggle("is-active", i === idx));
+      }
+      tempRange.addEventListener("input", updateTemp);
+      document.querySelectorAll("[data-temp]").forEach((btn) =>
+        btn.addEventListener("click", () => {
+          tempRange.value = btn.dataset.temp;
+          updateTemp();
+        }),
+      );
+      updateTemp();
+
+      /* =========================================================
+   Ch4 : Spectral lines
+   ========================================================= */
+      const ELEMENTS = {
+        H: { label: "水素（H）", note: "バルマー系列。Hα 656nm の赤い線は、天体写真の赤い星雲の色そのものです。", lines: [410.2, 434.0, 486.1, 656.3] },
+        He: { label: "ヘリウム（He）", note: "太陽スペクトルの未知の線から発見された元素。地球より先に太陽で見つかりました。", lines: [447.1, 471.3, 501.6, 587.6, 668.0] },
+        Na: { label: "ナトリウム（Na）", note: "D線（589nm付近）が有名。トンネル照明のオレンジ色もこの輝線によるものです。", lines: [589.0, 589.6, 498.3] },
+        Ca: { label: "カルシウム（Ca）", note: "H線・K線（397/393nm）は、太陽や恒星の彩層診断に使われる強い線です。", lines: [393.4, 396.8, 422.7, 616.2] },
+        Fe: { label: "鉄（Fe）", note: "非常に多数の線をもち、太陽スペクトルの暗線の大半は鉄をはじめとする金属由来です。", lines: [404.6, 427.2, 438.4, 495.8, 527.0, 532.8, 561.6] },
+      };
+
+      const SPEC_MIN = 380,
+        SPEC_MAX = 720;
+      const absStrip = document.getElementById("absStrip");
+      const emitStrip = document.getElementById("emitStrip");
+
+      function renderLines(el) {
+        const data = ELEMENTS[el];
+        document.getElementById("specTitle").textContent = data.label + "の指紋";
+        document.getElementById("specNote").textContent = data.note;
+
+        absStrip.querySelectorAll(".spec-line").forEach((n) => n.remove());
+        emitStrip.querySelectorAll(".spec-line").forEach((n) => n.remove());
+
+        data.lines.forEach((wl) => {
+          const pos = ((wl - SPEC_MIN) / (SPEC_MAX - SPEC_MIN)) * 100;
+          if (pos < 0 || pos > 100) return;
+
+          const a = document.createElement("div");
+          a.className = "spec-line spec-line--abs";
+          a.style.left = pos + "%";
+          a.title = wl.toFixed(1) + " nm";
+          absStrip.appendChild(a);
+
+          const [r, g, b] = wavelengthToRGB(wl);
+          const e = document.createElement("div");
+          e.className = "spec-line spec-line--emit";
+          e.style.left = pos + "%";
+          e.style.color = `rgb(${r},${g},${b})`;
+          e.title = wl.toFixed(1) + " nm";
+          emitStrip.appendChild(e);
+        });
+      }
+
+      document.querySelectorAll("#elementTabs [data-el]").forEach((btn) =>
+        btn.addEventListener("click", () => {
+          document.querySelectorAll("#elementTabs [data-el]").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+          renderLines(btn.dataset.el);
+        }),
+      );
+      renderLines("H");
+
+      /* Fraunhofer lines (schematic) */
+      const FH = [
+        [393.4, "K"],
+        [396.8, "H"],
+        [430.8, "G"],
+        [486.1, "F"],
+        [517.3, "b"],
+        [527.0, "E"],
+        [589.0, "D"],
+        [656.3, "C"],
+        [686.7, "B"],
+      ];
+      const fh = document.getElementById("fhStrip");
+      FH.forEach(([wl, tag]) => {
+        const pos = ((wl - 380) / (720 - 380)) * 100;
+        const d = document.createElement("div");
+        d.className = "spec-line spec-line--abs";
+        d.style.left = pos + "%";
+        d.style.width = "3px";
+        d.title = tag + "線 / " + wl.toFixed(1) + " nm";
+        fh.appendChild(d);
+      });
+
+      /* =========================================================
+   Ch5 : Slideshow
+   ========================================================= */
+      const slides = Array.from(document.querySelectorAll("#slideshow .slide"));
+      const dotsWrap = document.getElementById("slideDots");
+      let cur = 0;
+
+      slides.forEach((_, i) => {
+        const d = document.createElement("button");
+        d.className = "dot";
+        d.type = "button";
+        d.setAttribute("aria-label", i + 1 + "枚目を表示");
+        d.setAttribute("aria-current", String(i === 0));
+        d.addEventListener("click", () => go(i));
+        dotsWrap.appendChild(d);
+      });
+
+      function go(i) {
+        cur = (i + slides.length) % slides.length;
+        slides.forEach((s, j) => s.classList.toggle("is-active", j === cur));
+        dotsWrap.querySelectorAll(".dot").forEach((d, j) => d.setAttribute("aria-current", String(j === cur)));
+      }
+      document.getElementById("prevSlide").addEventListener("click", () => go(cur - 1));
+      document.getElementById("nextSlide").addEventListener("click", () => go(cur + 1));
+    </script>
+  </body>
+</html>
