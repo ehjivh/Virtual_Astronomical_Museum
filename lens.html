@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>続・光の軌跡から探る望遠鏡の仕組み 〜補正レンズとフィルターが描く宇宙〜</title>
     <meta name="description" content="コマコレクター・フラットナー、レデューサー、干渉フィルターの仕組みをCanvasによる光線追跡シミュレーションで体験するWeb展示。" />
+    <link rel="stylesheet" href="style.css">
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono&display=swap");
 
       :root {
         --color-paper: oklch(14% 0.01 260);
@@ -756,7 +757,7 @@
           transition: none !important;
         }
       }
-    </style>
+</style>
   </head>
   <body>
     <nav class="nav-pill" aria-label="メインナビゲーション">
@@ -1281,7 +1282,7 @@
     </main>
 
     <script>
-      /* =========================================================
+/* =========================================================
    共通ユーティリティ：HiDPI 対応 Canvas
    ========================================================= */
       function setupCanvas(cv) {
@@ -2703,6 +2704,6 @@
           drawThumbs();
         }, 180);
       });
-    </script>
+</script>
   </body>
 </html>

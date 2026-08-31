@@ -7,8 +7,9 @@
     <meta name="description" content="星の光をスペクトル解析で読み解くインタラクティブWeb展示。星の色、波長、黒体放射、吸収線・輝線、分光観測までを体験できます。" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="style.css">
     <style>
-      /* Hallmark · genre: atmospheric · macrostructure: 18-portfolio-grid · theme: bloom · enrichment: none · nav: N5 · footer: Ft5 */
+/* Hallmark · genre: atmospheric · macrostructure: 18-portfolio-grid · theme: bloom · enrichment: none · nav: N5 · footer: Ft5 */
 
       @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono&display=swap");
 
@@ -1090,7 +1091,7 @@
           transition: none !important;
         }
       }
-    </style>
+</style>
   </head>
   <body>
     <!-- ============ N5 Floating Pill Nav ============ -->
@@ -1609,7 +1610,7 @@
     </main>
 
     <script>
-      /* =========================================================
+/* =========================================================
    Ch1 : Interactive sky
    ========================================================= */
       const STARS = [
@@ -1985,6 +1986,6 @@
       }
       document.getElementById("prevSlide").addEventListener("click", () => go(cur - 1));
       document.getElementById("nextSlide").addEventListener("click", () => go(cur + 1));
-    </script>
+</script>
   </body>
 </html>
