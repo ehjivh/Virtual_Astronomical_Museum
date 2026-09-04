@@ -1,0 +1,1978 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>地球サイズの瞳で宇宙を見る — 電波干渉計とVLBIの挑戦</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* ===== 本展示ページ固有の追記スタイル（style.cssの変数を継承） ===== */
+      .formula {
+        font-family: var(--font-outlier);
+        font-size: var(--text-md);
+        text-align: center;
+        background: var(--color-paper-3);
+        border: 1px solid var(--color-rule);
+        border-left: 3px solid var(--color-accent);
+        border-radius: 8px;
+        padding: var(--space-lg);
+        margin: var(--space-lg) 0;
+        color: var(--color-ink);
+        overflow-x: auto;
+      }
+      .formula .var {
+        color: var(--color-accent);
+        font-style: italic;
+      }
+      .formula .note {
+        display: block;
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        color: var(--color-neutral);
+        margin-top: var(--space-sm);
+        letter-spacing: 0;
+      }
+      .frac {
+        display: inline-flex;
+        flex-direction: column;
+        vertical-align: middle;
+        text-align: center;
+        margin: 0 0.35em;
+      }
+      .frac .num {
+        border-bottom: 1px solid var(--color-muted);
+        padding: 0 0.3em;
+      }
+      .frac .den {
+        padding: 0 0.3em;
+      }
+
+      .chapter {
+        margin-bottom: var(--space-4xl);
+        scroll-margin-top: 100px;
+      }
+      .subhead {
+        font-family: var(--font-display);
+        font-size: var(--text-lg);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: var(--space-3xl) 0 var(--space-md);
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-sm);
+      }
+      .subhead__tag {
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-accent);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        flex-shrink: 0;
+      }
+      .prose {
+        max-width: 68ch;
+        color: var(--color-muted);
+      }
+      .prose p {
+        margin: 0 0 var(--space-md);
+      }
+      .prose strong {
+        color: var(--color-ink);
+      }
+      .prose em {
+        color: var(--color-accent);
+        font-style: normal;
+        font-weight: 600;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--space-xl);
+        margin-top: var(--space-xl);
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: var(--space-lg);
+        margin-top: var(--space-lg);
+      }
+
+      .widget {
+        background: var(--color-paper-2);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        padding: var(--space-xl);
+        margin-top: var(--space-xl);
+      }
+      .widget__head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-lg);
+      }
+      .widget__title {
+        font-size: var(--text-md);
+        font-weight: 600;
+      }
+      .widget__q {
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+        margin: 0 0 var(--space-lg);
+        max-width: 70ch;
+      }
+      .widget__q b {
+        color: var(--color-accent);
+      }
+
+      .ctrl {
+        margin-bottom: var(--space-lg);
+      }
+      .ctrl label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+        margin-bottom: var(--space-xs);
+      }
+      .ctrl output {
+        font-family: var(--font-outlier);
+        color: var(--color-accent);
+        font-size: var(--text-base);
+      }
+      input[type="range"] {
+        width: 100%;
+        height: 22px;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .readout {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: var(--space-md);
+        margin-top: var(--space-md);
+      }
+      .readout__item {
+        background: var(--color-paper-3);
+        border: 1px solid var(--color-rule);
+        border-radius: 8px;
+        padding: var(--space-md);
+      }
+      .readout__k {
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--color-neutral);
+      }
+      .readout__v {
+        font-family: var(--font-outlier);
+        font-size: var(--text-md);
+        color: var(--color-accent);
+        font-weight: 600;
+      }
+
+      canvas {
+        width: 100%;
+        display: block;
+        background: var(--color-paper);
+        border: 1px solid var(--color-rule);
+        border-radius: 8px;
+      }
+
+      .seg {
+        display: inline-flex;
+        gap: 4px;
+        background: var(--color-paper-3);
+        border: 1px solid var(--color-rule);
+        border-radius: 9999px;
+        padding: 4px;
+        flex-wrap: wrap;
+      }
+      .seg button {
+        background: transparent;
+        border: none;
+        color: var(--color-muted);
+        cursor: pointer;
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        font-weight: 600;
+        padding: 6px 16px;
+        border-radius: 9999px;
+        transition: all 0.2s ease;
+      }
+      .seg button[aria-pressed="true"] {
+        background: var(--color-accent);
+        color: var(--color-paper);
+      }
+
+      .meter {
+        height: 10px;
+        background: var(--color-paper-3);
+        border: 1px solid var(--color-rule);
+        border-radius: 9999px;
+        overflow: hidden;
+        margin-top: var(--space-sm);
+      }
+      .meter__fill {
+        height: 100%;
+        width: 0%;
+        background: var(--color-accent);
+        transition: width 0.15s ease;
+      }
+
+      .globe-wrap {
+        position: relative;
+      }
+      .globe-wrap svg {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-md);
+        margin-top: var(--space-md);
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-muted);
+      }
+      .legend i {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--color-accent);
+        margin-right: 6px;
+      }
+
+      table.tbl {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: var(--text-sm);
+        margin-top: var(--space-md);
+      }
+      table.tbl th,
+      table.tbl td {
+        text-align: left;
+        padding: 10px var(--space-sm);
+        border-bottom: 1px solid var(--color-rule);
+        vertical-align: top;
+      }
+      table.tbl th {
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--color-neutral);
+      }
+      table.tbl td {
+        color: var(--color-muted);
+      }
+      table.tbl td b {
+        color: var(--color-ink);
+      }
+
+      .refs {
+        list-style: none;
+        padding: 0;
+        margin: var(--space-md) 0 0;
+        font-size: var(--text-sm);
+        color: var(--color-neutral);
+      }
+      .refs li {
+        padding: var(--space-sm) 0;
+        border-bottom: 1px dashed var(--color-rule);
+      }
+
+      .stack {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+        margin-top: var(--space-md);
+      }
+
+      /* 対応関係を示す「翻訳表」 */
+      .decoder {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: var(--space-md);
+        align-items: center;
+        margin-top: var(--space-lg);
+      }
+      .decoder__cell {
+        background: var(--color-paper-3);
+        border: 1px solid var(--color-rule);
+        border-radius: 8px;
+        padding: var(--space-md);
+      }
+      .decoder__cell .k {
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-neutral);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        display: block;
+        margin-bottom: 4px;
+      }
+      .decoder__cell .v {
+        font-size: var(--text-sm);
+        color: var(--color-ink);
+        font-weight: 600;
+      }
+      .decoder__arrow {
+        color: var(--color-accent);
+        font-size: var(--text-md);
+        text-align: center;
+      }
+      @media (max-width: 640px) {
+        .decoder {
+          grid-template-columns: 1fr;
+        }
+        .decoder__arrow {
+          transform: rotate(90deg);
+        }
+      }
+
+      .callout {
+        border: 1px solid var(--color-rule);
+        border-left: 3px solid var(--color-accent);
+        background: var(--color-paper-2);
+        border-radius: 8px;
+        padding: var(--space-lg);
+        margin-top: var(--space-lg);
+      }
+      .callout h3 {
+        font-family: var(--font-display);
+        font-size: var(--text-md);
+        margin: 0 0 var(--space-sm);
+        color: var(--color-ink);
+      }
+      .callout p {
+        margin: 0;
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ============ N5 Floating Pill Nav ============ -->
+    <nav class="nav-pill" aria-label="主要ナビゲーション">
+      <span class="nav-pill__wordmark">Radio&nbsp;Eye</span>
+      <div class="nav-pill__actions">
+        <a class="nav-pill__btn" href="#ch1">視力</a>
+        <a class="nav-pill__btn" href="#ch2">干渉</a>
+        <a class="nav-pill__btn" href="#ch3">VLBI</a>
+        <a class="nav-pill__btn" href="#ch4">EHT</a>
+      </div>
+    </nav>
+
+    <main class="page-container">
+      <!-- ============ Header ============ -->
+      <header class="portfolio-header">
+        <p class="portfolio-header__tagline">Interferometry &middot; VLBI &middot; Exhibition</p>
+        <h1 class="portfolio-header__title">地球サイズの瞳で<br />宇宙を見る</h1>
+        <p class="section-lead" style="margin-left: auto; margin-right: auto">光の回折という「物理の壁」を、ヤングの干渉実験の原理で突破する。 縞模様から天体の姿を読み解く技術、電波干渉計とVLBIの挑戦をたどる4章構成の展示です。</p>
+        <div class="stack" style="justify-content: center">
+          <span class="chip">対象：理系高校生</span>
+          <span class="chip">波の干渉</span>
+          <span class="chip">分解能</span>
+          <span class="chip">Black Hole</span>
+        </div>
+      </header>
+
+      <!-- ============ 章インデックス（18-portfolio-grid） ============ -->
+      <section class="portfolio-grid" aria-label="章の一覧">
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual" aria-hidden="true"><canvas id="thumb1" height="200"></canvas></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Chapter 01 / Resolution</p>
+            <h2 class="exhibit-card__title">見えない宇宙を見るための「視力」問題</h2>
+            <p class="exhibit-card__desc">回折によって点の星がにじむ。レイリーの基準 θ = 1.22 λ/D が示す、単一アンテナの越えられない限界。</p>
+            <a class="exhibit-card__link" href="#ch1">第1章を読む</a>
+          </div>
+        </article>
+
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual" aria-hidden="true"><canvas id="thumb2" height="200"></canvas></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Chapter 02 / Interference</p>
+            <h2 class="exhibit-card__title">縞模様から「天体の姿」を読む</h2>
+            <p class="exhibit-card__desc">縞の濃さが天体の大きさを、縞のタイミングが位置を教える。縞を足し合わせれば像になる。</p>
+            <a class="exhibit-card__link" href="#ch2">第2章を読む</a>
+          </div>
+        </article>
+
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual" aria-hidden="true"><canvas id="thumb3" height="200"></canvas></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Chapter 03 / Engineering</p>
+            <h2 class="exhibit-card__title">ケーブルのない干渉計</h2>
+            <p class="exhibit-card__desc">数ピコ秒のズレが像を消す。水素メーザー原子時計とミリ単位の基線ベクトルが支えるVLBI。</p>
+            <a class="exhibit-card__link" href="#ch3">第3章を読む</a>
+          </div>
+        </article>
+
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual" aria-hidden="true"><canvas id="thumb4" height="200"></canvas></div>
+          <div class="exhibit-card__content">
+            <p class="exhibit-card__meta">Chapter 04 / Event Horizon</p>
+            <h2 class="exhibit-card__title">ブラックホールの影を捉える</h2>
+            <p class="exhibit-card__desc">口径 10,000 km、波長 1.3 mm。地球サイズの瞳が2019年、M87の影を写した。</p>
+            <a class="exhibit-card__link" href="#ch4">第4章を読む</a>
+          </div>
+        </article>
+      </section>
+
+      <!-- ============ 第1章 ============ -->
+      <section class="chapter" id="ch1">
+        <h2 class="section-title"><span class="section-num">1</span>見えない宇宙を見るための「視力」問題</h2>
+        <p class="section-lead">どんなに高性能な望遠鏡でも、点であるはずの星はにじんで広がる。その正体は「回折」である。</p>
+
+        <div class="prose">
+          <p>光や電波などの電磁波には<strong>回折</strong>という性質があります。そのため、いくら精密なレンズやアンテナを使っても、点光源の像は必ずある広がりをもってしまいます。この広がりの角度 <em>θ</em>（最小分解能）は、観測する波長 <em>λ</em> と望遠鏡の口径 <em>D</em> によって、次の<strong>レイリーの基準</strong>で決まります。</p>
+        </div>
+
+        <div class="formula" role="math" aria-label="シータ イコール 1.22 かける ラムダ 割る D">
+          <span class="var">θ</span> = 1.22
+          <span class="frac"
+            ><span class="num"><span class="var">λ</span></span
+            ><span class="den"><span class="var">D</span></span></span
+          >
+          &nbsp;［rad］
+          <span class="note">θ より近い2点は、にじみが重なって「1つ」に見えてしまう</span>
+        </div>
+
+        <div class="prose">
+          <p>ここが電波天文学の悩みどころです。電波の波長 <em>λ</em> は可視光（約 0.5 µm）に比べて桁違いに長い。たとえば波長 7 mm の電波は可視光の <strong>約 14,000 倍</strong>の波長です。同じ口径なら θ も約 14,000 倍に膨らみ、宇宙の姿はぼやけてしまいます。</p>
+          <p>視力を上げる方法は式を見れば明らかで、口径 <em>D</em> を大きくするしかありません。しかし巨大なパラボラアンテナは自らの重さでたわみ、風にあおられます。<strong>力学的な構造の限界から、数百メートルを超える可動アンテナの建設は事実上不可能</strong>です。この物理的な壁をどう突破するか——それが本展示の出発点です。</p>
+        </div>
+
+        <!-- Widget: 単一鏡の分解能 -->
+        <div class="widget">
+          <div class="widget__head">
+            <span class="widget__title">Widget 01 — 単一アンテナの「にじみ」体験</span>
+            <span class="stat-chip">Rayleigh criterion</span>
+          </div>
+          <p class="widget__q">口径と波長を変えると、2つの電波源が<b>「分離できる／融合する」</b>境目がどこにあるか確かめてみましょう。</p>
+
+          <div class="grid-2">
+            <div>
+              <div class="ctrl">
+                <label for="d1">口径 <span class="var">D</span><output id="d1out">30 m</output></label>
+                <input type="range" id="d1" min="0" max="100" value="35" />
+              </div>
+              <div class="ctrl">
+                <label for="w1">波長 <span class="var">λ</span><output id="w1out">7 mm</output></label>
+                <input type="range" id="w1" min="0" max="100" value="60" />
+              </div>
+              <div class="readout">
+                <div class="readout__item">
+                  <div class="readout__k">分解能 θ</div>
+                  <div class="readout__v" id="th1">—</div>
+                </div>
+                <div class="readout__item">
+                  <div class="readout__k">満月との比</div>
+                  <div class="readout__v" id="moon1">—</div>
+                </div>
+              </div>
+              <p class="hint">満月の視直径は約 <b>1,800 秒角</b>。電波の波長で単一アンテナを使うと、満月より粗い「視力」しか得られない場合すらあります。</p>
+            </div>
+            <div>
+              <canvas id="blurCanvas" height="300"></canvas>
+              <p class="hint" style="margin-top: var(--space-sm)">2つの点電波源を観測したイメージ。θ が大きいと2つが融合して見分けられません。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 第2章（全面改訂） ============ -->
+      <section class="chapter" id="ch2">
+        <h2 class="section-title"><span class="section-num">2</span>縞模様から「天体の姿」を読む — 干渉計の原理</h2>
+        <p class="section-lead">干渉計が出力するのは、像ではなく縞模様である。ではその縞は、いったい天体の何を語っているのか。</p>
+
+        <div class="prose">
+          <p>離れた2つのアンテナで受信した電波を、ケーブルで一箇所に集めて<strong>人工的に干渉させます</strong>。ここまでは前章の予告どおりですが、大切なのは次の事実です。</p>
+          <p><strong>干渉計が直接得るのは「天体の画像」ではありません。得られるのは、たった1つの数値の組（縞の濃さと、縞のズレ）です。</strong>この章では、その数値がなぜ天体の姿を教えてくれるのかを、3ステップで解きほどきます。</p>
+        </div>
+
+        <div class="decoder">
+          <div class="decoder__cell">
+            <span class="k">Step 1</span>
+            <span class="v">縞はどうやって現れるか<br />（光路差と地球の自転）</span>
+          </div>
+          <div class="decoder__arrow">→</div>
+          <div class="decoder__cell">
+            <span class="k">Step 2</span>
+            <span class="v">縞の「濃さ」と「ズレ」が<br />天体の大きさと位置を示す</span>
+          </div>
+          <div class="decoder__arrow">→</div>
+          <div class="decoder__cell">
+            <span class="k">Step 3</span>
+            <span class="v">たくさんの縞を足し合わせると<br />画像が浮かび上がる</span>
+          </div>
+        </div>
+
+        <!-- ---------- Step 1 ---------- -->
+        <h3 class="subhead"><span class="subhead__tag">Step 1</span>縞の正体は「光路差」である</h3>
+
+        <div class="prose">
+          <p>2台のアンテナ A・B が距離 <em>B</em>（基線長）だけ離れているとします。天体が真上ではなく斜め（天頂角 <em>α</em>）にあるとき、電波は<strong>B に先に届き、A には遅れて届く</strong>。この差が<strong>光路差</strong>です。</p>
+        </div>
+
+        <div class="formula" role="math">
+          光路差 <span class="var">Δ</span> = <span class="var">B</span> sin <span class="var">α</span>
+          <span class="note">Δ が λ の整数倍 → 強め合う（明るい縞）／半整数倍 → 打ち消し合う（暗い縞）</span>
+        </div>
+
+        <div class="prose">
+          <p>ヤングの二重スリット実験では、スクリーン上を横に動くと光路差が変わり、明暗の縞が並びました。干渉計では<strong>スクリーンの代わりに、地球の自転が天体を動かします</strong>。天体が空を横切るにつれて <em>α</em> が連続的に変わり、光路差 Δ も変わるので、<strong>2台の出力を掛け合わせた信号が、時間とともに強弱に振動する</strong>のです。</p>
+          <p>つまり干渉計の「縞」は、空間に並ぶ縞というより <em>時間軸上に現れる波</em> として観測されます。これを<strong>フリンジ（fringe）</strong>と呼びます。</p>
+        </div>
+
+        <div class="widget">
+          <div class="widget__head">
+            <span class="widget__title">Widget 02 — 光路差がフリンジを生む</span>
+            <span class="stat-chip">Δ = B sin α</span>
+          </div>
+          <p class="widget__q">天体の方向 α を動かすと光路差 Δ が変わり、出力が<b>強め合い ⇄ 打ち消し合い</b>を繰り返すことを確認できます。「自転を再現」を押すと、実際の観測で得られる時間変化の波（フリンジ）が描かれます。</p>
+
+          <canvas id="pathCanvas" height="330"></canvas>
+
+          <div class="grid-2" style="margin-top: var(--space-lg)">
+            <div>
+              <div class="ctrl">
+                <label for="ang">天体の天頂角 <span class="var">α</span><output id="angout">20°</output></label>
+                <input type="range" id="ang" min="-60" max="60" value="20" />
+              </div>
+              <div class="stack">
+                <button class="btn btn-primary" id="btnSpinSky" type="button">自転を再現（再生）</button>
+              </div>
+            </div>
+            <div class="readout">
+              <div class="readout__item">
+                <div class="readout__k">光路差 Δ</div>
+                <div class="readout__v" id="pd">—</div>
+              </div>
+              <div class="readout__item">
+                <div class="readout__k">Δ / λ</div>
+                <div class="readout__v" id="pdw">—</div>
+              </div>
+              <div class="readout__item">
+                <div class="readout__k">干渉の状態</div>
+                <div class="readout__v" id="pstate">—</div>
+              </div>
+            </div>
+          </div>
+          <p class="hint">この波の<b>振動の速さ</b>は基線長 B が長いほど速くなります。B が長い＝わずかな角度の変化で光路差が大きく変わる＝<b>細かい角度を見分けられる</b>、ということです。</p>
+        </div>
+
+        <div class="callout">
+          <h3>なぜ基線長 B が「口径 D」の役割をするのか</h3>
+          <p>単一鏡では、鏡の端から端までの距離 D が生む光路差の幅が分解能を決めていました。干渉計では、アンテナ間の距離 B が同じ役割を果たします。鏡の「中身」がなくても、<strong style="color: var(--color-ink)">端と端さえあれば細かい角度の情報は取り出せる</strong>のです。ゆえに θ ≈ λ / B。これが「アンテナをつなぐ魔法」の正体です。</p>
+        </div>
+
+        <!-- ---------- Step 2 ---------- -->
+        <h3 class="subhead"><span class="subhead__tag">Step 2</span>縞の「濃さ」＝大きさ、縞の「ズレ」＝位置</h3>
+
+        <div class="prose">
+          <p>ここが本章の核心です。観測されたフリンジからは、2つの量を読み取ります。</p>
+        </div>
+
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>フリンジから読む量</th>
+              <th>意味</th>
+              <th>天体について何がわかるか</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>振幅（可視度 Visibility）</b><br /><span style="font-size: var(--text-xs)">縞の濃さ・コントラスト</span></td>
+              <td>強め合いと打ち消し合いの差の大きさ</td>
+              <td><b>天体の「広がり（大きさ）」</b><br />点に近いほど縞は濃い。広がっていると縞は薄れ、やがて消える</td>
+            </tr>
+            <tr>
+              <td><b>位相（Phase）</b><br /><span style="font-size: var(--text-xs)">縞のタイミングのズレ</span></td>
+              <td>波の山が来る時刻のずれ</td>
+              <td><b>天体の「位置」</b><br />天体がわずかに横にずれると、縞全体がずれる</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="prose" style="margin-top: var(--space-lg)">
+          <p><strong>なぜ「広がると縞が薄れる」のか。</strong>天体が点ではなく面積をもつ場合、その表面の各部分から来る電波は、それぞれ少しずつ違う光路差をもちます。すると<em>ある部分は強め合い、別の部分は打ち消し合う</em>状態が同時に起こり、全部を足すと縞のコントラストが下がってしまうのです。</p>
+          <p>この性質は逆向きに使えます。<strong>「縞が薄れ始めた基線長」を測れば、天体の大きさが計算できる</strong>のです。像を作る前に、数値ひとつで「この天体の直径は何ミリ秒角か」が言えてしまう。これが干渉計の第一の威力です。</p>
+        </div>
+
+        <div class="widget">
+          <div class="widget__head">
+            <span class="widget__title">Widget 03 — 縞の濃さから天体の大きさを測る</span>
+            <div class="seg" role="group" aria-label="波長プリセット">
+              <button type="button" data-wl="1.3" aria-pressed="false">λ 1.3 mm</button>
+              <button type="button" data-wl="7" aria-pressed="true">λ 7 mm</button>
+              <button type="button" data-wl="210" aria-pressed="false">λ 21 cm</button>
+            </div>
+          </div>
+          <p class="widget__q">天体のサイズを固定したまま基線長 B を伸ばしていくと、<b>あるところで縞（フリンジ）が消えます</b>。消えた基線長から逆に天体のサイズが求まる、という測定を体験してください。</p>
+
+          <div class="ctrl">
+            <label for="base">基線長 <span class="var">B</span>（10 m 〜 10,000 km・対数スケール）<output id="baseout">1 km</output></label>
+            <input type="range" id="base" min="0" max="1000" value="400" />
+          </div>
+          <div class="ctrl">
+            <label for="src">天体の見かけの直径<output id="srcout">1 ミリ秒角</output></label>
+            <input type="range" id="src" min="0" max="1000" value="500" />
+          </div>
+
+          <canvas id="fringeCanvas" height="300"></canvas>
+
+          <div class="readout">
+            <div class="readout__item">
+              <div class="readout__k">分解能 θ = λ/B</div>
+              <div class="readout__v" id="th2">—</div>
+            </div>
+            <div class="readout__item">
+              <div class="readout__k">縞の濃さ（可視度）</div>
+              <div class="readout__v" id="vis2">—</div>
+            </div>
+            <div class="readout__item">
+              <div class="readout__k">判定</div>
+              <div class="readout__v" id="ver2">—</div>
+            </div>
+            <div class="readout__item">
+              <div class="readout__k">相当クラス</div>
+              <div class="readout__v" id="cls2">—</div>
+            </div>
+          </div>
+          <div class="meter" aria-hidden="true"><div class="meter__fill" id="visFill"></div></div>
+          <p class="hint">縞が消える条件はおおよそ <b>θ = λ/B ≈ 天体の直径</b>。つまり<b>「縞が消えた瞬間の λ/B」がそのまま天体のサイズ</b>になります。可視度が高いまま（濃い縞）なら「天体は θ より小さい」ことがわかります。</p>
+        </div>
+
+        <!-- ---------- Step 3 ---------- -->
+        <h3 class="subhead"><span class="subhead__tag">Step 3</span>縞を足し合わせると「画像」になる</h3>
+
+        <div class="prose">
+          <p>1本の基線から得られるのは「ある細かさ・ある向きの縞に、天体がどれだけ反応したか」という1個の情報です。これは音楽で言えば<em>特定の1つの音の高さの成分</em>に相当します。1音だけでは曲になりませんが、たくさんの音を重ねれば曲になる——同じことが像でも起こります。</p>
+          <p>アンテナを N 台並べると、ペアの数だけ基線が生まれます。<strong>N 台なら N(N−1)/2 本</strong>。さらに地球の自転によって、天体から見た基線の「見かけの向きと長さ」が時間とともに変化するので、1日観測するだけで膨大な種類の縞情報が集まります。</p>
+          <p>これらを<strong>粗い縞（天体の全体像）から細かい縞（細部）まで順に足し合わせていく</strong>と、天体の画像が浮かび上がります。数学的にはこれを<strong>フーリエ合成</strong>と呼び、干渉計は「像を撮る装置」ではなく<em>像の材料（空間周波数成分）を集める装置</em>なのです。</p>
+        </div>
+
+        <div class="widget">
+          <div class="widget__head">
+            <span class="widget__title">Widget 04 — 縞を足して像をつくる（フーリエ合成）</span>
+            <div class="seg" role="group" aria-label="天体の形">
+              <button type="button" data-shape="ring" aria-pressed="true">リング</button>
+              <button type="button" data-shape="two" aria-pressed="false">二重星</button>
+              <button type="button" data-shape="jet" aria-pressed="false">ジェット</button>
+            </div>
+          </div>
+          <p class="widget__q">左が「使った縞のパターン」、右が「足し合わせた結果の像」。<b>基線の本数（＝集めた縞の種類）</b>を増やすと、ぼんやりした塊が本来の姿へ収束していきます。</p>
+
+          <div class="grid-2">
+            <div>
+              <canvas id="uvCanvas" height="280"></canvas>
+              <p class="hint" style="margin-top: var(--space-sm)">集めた縞の一覧（基線ごとの細かさと向き）。中心付近＝粗い縞＝全体の形、外側＝細かい縞＝細部。</p>
+            </div>
+            <div>
+              <canvas id="imgCanvas" height="280"></canvas>
+              <p class="hint" style="margin-top: var(--space-sm)">合成された像。縞の種類が少ないと「にじみ」や偽の模様が残ります。</p>
+            </div>
+          </div>
+
+          <div class="ctrl" style="margin-top: var(--space-lg)">
+            <label for="nb">使う基線の本数<output id="nbout">3 本</output></label>
+            <input type="range" id="nb" min="1" max="120" value="3" />
+          </div>
+          <div class="stack">
+            <button class="btn btn-primary" id="btnGrow" type="button">アンテナを増やしていく（再生）</button>
+            <button class="btn btn-outline" id="btnTruth" type="button">本当の姿を表示</button>
+          </div>
+          <p class="hint">実際の観測でも、基線が少ないと像は不完全です。だからALMAは<b>66台</b>、EHTは<b>世界8か所</b>という「数」にこだわります。</p>
+        </div>
+
+        <div class="prose" style="margin-top: var(--space-2xl)">
+          <p>まとめると、干渉計が縞から取り出しているのは次の3つです。</p>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <h2>① 大きさ</h2>
+            <p style="color: var(--color-muted); font-size: var(--text-sm)">縞の濃さ（可視度）が基線長とともにどう減るかを追えば、天体の見かけの直径がわかる。</p>
+          </div>
+          <div class="card">
+            <h2>② 位置</h2>
+            <p style="color: var(--color-muted); font-size: var(--text-sm)">縞のタイミング（位相）のズレは天体の方向のズレそのもの。これが第3章の「位置天文観測」の土台になる。</p>
+          </div>
+          <div class="card">
+            <h2>③ 形（画像）</h2>
+            <p style="color: var(--color-muted); font-size: var(--text-sm)">多数の基線の縞を足し合わせれば、リングやジェットといった構造まで再現できる。</p>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h2>ALMA — 66台をつなぐ大アンテナ群</h2>
+            <p style="color: var(--color-muted); font-size: var(--text-sm)">この原理で数十台のアンテナをネットワーク化し、高解像度画像を合成する代表例が、チリ・アタカマ砂漠の<strong style="color: var(--color-ink)">標高約5,000 m</strong>に建設された<strong style="color: var(--color-ink)">アルマ望遠鏡（ALMA）</strong>です。66台なら基線は最大 2,145 本。乾燥した高地は、水蒸気に吸収されやすいミリ波・サブミリ波の観測に最適な場所です。</p>
+            <div class="stack">
+              <span class="chip">Atacama, Chile</span>
+              <span class="chip">alt. 5,000 m</span>
+              <span class="chip">最大基線 約16 km</span>
+            </div>
+          </div>
+          <div class="card">
+            <h2>なぜアンテナを「動かす」のか</h2>
+            <p style="color: var(--color-muted); font-size: var(--text-sm)">アンテナ配置を狭めれば粗い縞ばかりが集まり、広い範囲をふんわり写せます。逆に広げれば細かい縞が集まり、狭い範囲を鋭く写せます。ALMAはアンテナを輸送車で移動させ、<strong style="color: var(--color-ink)">集めたい縞の種類そのものを組み替える</strong>のです。ズームレンズのような使い方です。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 第3章 ============ -->
+      <section class="chapter" id="ch3">
+        <h2 class="section-title"><span class="section-num">3</span>ケーブルのない干渉計 — VLBIの誕生と工学の壁</h2>
+        <p class="section-lead">干渉計の限界は「ケーブルで繋げる距離」。ならばケーブルを捨てる。ただし、その代償は極限の精度である。</p>
+
+        <div class="prose">
+          <p>地球上のあちこちにある望遠鏡を仮想的につなぐ技術が<strong>超長基線電波干渉計（VLBI: Very Long Baseline Interferometry）</strong>です。ケーブルをなくす代わりに、次の2つの難題をクリアしなければなりません。いずれも第2章で見た<em>「光路差を正しく知る」</em>ための条件です。</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h2>① なぜ「究極の時計」が必要なのか？</h2>
+            <p style="color: var(--color-muted); font-size: var(--text-sm)">
+              ケーブルで繋がっていないアンテナ群で干渉を起こすには、各観測所で受信した電波をハードディスクに記録し、後からスーパーコンピュータ（相関器）で波の<strong style="color: var(--color-ink)">山と谷＝位相</strong>を精密に重ね合わせます。 高周波の電波は振動が極めて速く、記録のタイミングが<strong style="color: var(--color-ink)">わずか数ピコ秒（1兆分の1秒）</strong>ずれるだけで、波は打ち消し合い縞のコントラストが消滅します。<em>縞が消えれば、大きさも位置も読み取れません。</em> そのため<strong
+                style="color: var(--color-ink)"
+                >何千万年に1秒しか狂わない水素メーザー原子時計</strong
+              >を各局に置き、絶対的なタイムスタンプを刻み続けます。
+            </p>
+            <div class="stack"><span class="chip">H-maser</span><span class="chip">picosecond</span><span class="chip">phase</span></div>
+          </div>
+          <div class="card">
+            <h2>② なぜ「ミリ単位のアンテナ位置」が必要なのか？</h2>
+            <p style="color: var(--color-muted); font-size: var(--text-sm)">
+              宇宙からの電波は、地球上の異なる場所のアンテナへ<strong style="color: var(--color-ink)">わずかな時間差（幾何学的遅延）</strong>をもって到達します。第2章の Δ = B sin α を計算して差し引くのが補正ですが、その計算には数千km離れたアンテナ同士の距離（<strong style="color: var(--color-ink)">基線ベクトル</strong>）が必要です。 精度は観測波長よりも高い<strong style="color: var(--color-ink)">ミリメートル単位</strong>。少しでも位置の仮定がずれれば、位相が狂い、像はまったく結ばれません。
+            </p>
+            <div class="stack"><span class="chip">baseline vector</span><span class="chip">mm accuracy</span><span class="chip">geodesy</span></div>
+          </div>
+        </div>
+
+        <!-- Widget: 遅延補正ミニゲーム -->
+        <div class="widget">
+          <div class="widget__head">
+            <span class="widget__title">Widget 05 — 遅延補正ミニゲーム</span>
+            <span class="stat-chip" id="gameStat">FRINGE 0%</span>
+          </div>
+          <p class="widget__q">2局に届いた波には時間差があります。スライダーで遅延をピコ秒単位で補正し、<b>縞のコントラストを最大化</b>してください。数ピコ秒のズレで縞が消え、天体の情報がまったく読めなくなることを体感できます。</p>
+
+          <canvas id="gameCanvas" height="300"></canvas>
+
+          <div class="ctrl" style="margin-top: var(--space-lg)">
+            <label for="delay">補正遅延 τ<output id="delayout">0.0 ps</output></label>
+            <input type="range" id="delay" min="-3000" max="3000" value="0" />
+          </div>
+
+          <div class="meter" aria-hidden="true"><div class="meter__fill" id="meterFill"></div></div>
+
+          <div class="readout">
+            <div class="readout__item">
+              <div class="readout__k">残差 Δτ</div>
+              <div class="readout__v" id="resid">—</div>
+            </div>
+            <div class="readout__item">
+              <div class="readout__k">位相ズレ</div>
+              <div class="readout__v" id="phase">—</div>
+            </div>
+            <div class="readout__item">
+              <div class="readout__k">判定</div>
+              <div class="readout__v" id="verdict">—</div>
+            </div>
+          </div>
+
+          <div class="stack">
+            <button class="btn btn-primary" id="btnRetry" type="button">新しい遅延で再挑戦</button>
+            <button class="btn btn-outline" id="btnAuto" type="button">自動フリンジ探索</button>
+          </div>
+          <p class="hint">実際のVLBIでは、この探索を計算機が総当たりで行います。これを <b>フリンジサーチ</b> と呼びます。</p>
+        </div>
+
+        <!-- VERA -->
+        <div class="card" style="margin-top: var(--space-xl)">
+          <h2>VERA — 日本列島がひとつの望遠鏡になる</h2>
+          <p style="color: var(--color-muted); font-size: var(--text-sm)">
+            これらの技術的困難を克服した国内の代表例が、国立天文台の<strong style="color: var(--color-ink)">VERAプロジェクト</strong>です。日本列島の4ヶ所を結び、<strong style="color: var(--color-ink)">直径2,300 kmの仮想望遠鏡</strong>を構築しました。VERAが使うのは、第2章 Step 2 の<strong style="color: var(--color-ink)">「位相＝位置」</strong>という関係です。像の美しさより<strong style="color: var(--color-ink)">位置を精密に測ること（位置天文観測）</strong>に特化しています。
+          </p>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>観測局</th>
+                <th>所在</th>
+                <th>役割</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>水沢</b></td>
+                <td>岩手県</td>
+                <td>北の基準局</td>
+              </tr>
+              <tr>
+                <td><b>入来</b></td>
+                <td>鹿児島県</td>
+                <td>南北基線を伸ばす</td>
+              </tr>
+              <tr>
+                <td><b>小笠原</b></td>
+                <td>東京都</td>
+                <td>東西・南北を稼ぐ離島局</td>
+              </tr>
+              <tr>
+                <td><b>石垣島</b></td>
+                <td>沖縄県</td>
+                <td>最南西・最大基線を形成</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="color: var(--color-muted); font-size: var(--text-sm); margin-top: var(--space-lg)">
+            位置がミリ秒角の精度で測れると何が嬉しいのか。<strong style="color: var(--color-ink)">地球が公転するにつれて天体の見える方向がわずかに往復する（年周視差）</strong>ため、その振れ幅から距離が三角測量で決まるのです。 <strong style="color: var(--color-ink)">Honma et al. (2012)</strong> の研究では、この手法で天の川銀河内のメーザー源の精密な<strong style="color: var(--color-ink)">三角視差</strong>を測定し、太陽系から銀河中心までの距離が<strong style="color: var(--color-ink)"
+              >約26,100光年</strong
+            >であることや、銀河系の回転速度を高精度に決定することに成功しました。
+          </p>
+          <div class="readout">
+            <div class="readout__item">
+              <div class="readout__k">仮想口径</div>
+              <div class="readout__v">2,300 km</div>
+            </div>
+            <div class="readout__item">
+              <div class="readout__k">銀河中心距離</div>
+              <div class="readout__v">約 26,100 光年</div>
+            </div>
+            <div class="readout__item">
+              <div class="readout__k">手法</div>
+              <div class="readout__v">三角視差</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 第4章 ============ -->
+      <section class="chapter" id="ch4">
+        <h2 class="section-title"><span class="section-num">4</span>ブラックホールの影を捉える — Event Horizon Telescope</h2>
+        <p class="section-lead">VLBIを地球規模まで拡張する。口径は約10,000 km、波長は1.3 mm。これが人類の到達点だった。</p>
+
+        <div class="prose">
+          <p>地球上の電波望遠鏡を連携させることで、<strong>地球サイズ（約10,000 km）の口径 D をもつ干渉計</strong>が構築されました。さらに <em>λ = 1.3 mm</em> という短波長の電波を用いることで、θ = λ/B の分子を小さく、分母を極大にし、極めて高い分解能を達成しました。</p>
+          <p>EHT がやったことは、第2章の3ステップそのままです。<strong>世界8か所のペアから最も細かい縞の情報を集め（Step 1・2）、地球の自転を利用して縞の種類を稼ぎ、それらを慎重に足し合わせて像を復元した（Step 3）</strong>のです。基線が8局しかないぶん縞の種類は不足しており、複数の解析チームが独立に画像化して<em>同じリングが出ることを確認する</em>という慎重な手順が踏まれました。</p>
+          <p>この地球サイズの瞳が、<strong>2019年に人類史上初めて直接撮影に成功</strong>したのが、M87銀河の中心にある巨大ブラックホールの<strong>シャドウ（影）</strong>です（EHT Collaboration 2019）。</p>
+          <p>波の回折という物理的限界に対し、ヤングの干渉実験の原理を地球規模に拡張することで、光さえ逃げ出せない天体の輪郭を捉えるに至りました。第1章で立ちはだかった「視力の壁」は、レンズの巨大化ではなく、<em>アイデアと工学</em>によって越えられたのです。</p>
+        </div>
+
+        <!-- Widget: 3D地球儀ビュー -->
+        <div class="widget">
+          <div class="widget__head">
+            <span class="widget__title">Widget 06 — 3D地球儀ビュー：基線ネットワーク</span>
+            <div class="seg" role="group" aria-label="ネットワーク切替">
+              <button type="button" data-net="vera" aria-pressed="true">VERA</button>
+              <button type="button" data-net="eht" aria-pressed="false">EHT</button>
+            </div>
+          </div>
+          <p class="widget__q">線の1本1本が<b>「1種類の縞」を集めるチャンネル</b>です。局数が増えるほど線が増え、Step 3 で足し合わせられる縞の種類が増えます。</p>
+
+          <div class="globe-wrap">
+            <svg id="globe" viewBox="0 0 640 460" role="img" aria-label="観測局と基線を示す回転する地球儀">
+              <defs>
+                <radialGradient id="gGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="70%" stop-color="oklch(75% 0.15 45 / 0)" />
+                  <stop offset="100%" stop-color="oklch(75% 0.15 45 / 0.28)" />
+                </radialGradient>
+                <radialGradient id="gOcean" cx="35%" cy="30%" r="80%">
+                  <stop offset="0%" stop-color="oklch(30% 0.03 260)" />
+                  <stop offset="100%" stop-color="oklch(16% 0.015 260)" />
+                </radialGradient>
+              </defs>
+              <circle cx="320" cy="230" r="206" fill="url(#gGlow)" />
+              <circle cx="320" cy="230" r="190" fill="url(#gOcean)" stroke="oklch(28% 0.01 260)" />
+              <g id="gGrid" stroke="oklch(30% 0.01 260)" fill="none" stroke-width="1"></g>
+              <g id="gLines" stroke="oklch(75% 0.15 45 / 0.55)" fill="none" stroke-width="1.2"></g>
+              <g id="gDots"></g>
+              <g id="gLabels" font-family="Geist Mono, monospace" font-size="11" fill="oklch(95% 0.005 260)"></g>
+            </svg>
+          </div>
+
+          <div class="legend">
+            <span><i></i>観測局（アンテナ）</span>
+            <span>─── 基線（ベースライン）</span>
+            <span id="netInfo">VERA：4局 / 最大基線 約2,300 km</span>
+          </div>
+
+          <div class="ctrl" style="margin-top: var(--space-lg)">
+            <label for="spin">自転（視点経度）<output id="spinout">自動回転中</output></label>
+            <input type="range" id="spin" min="0" max="360" value="140" />
+          </div>
+
+          <div class="stack">
+            <button class="btn btn-outline" id="btnSpin" type="button">回転を停止</button>
+            <button class="btn btn-outline" id="btnDrift" type="button">大陸移動を可視化（測地VLBI）</button>
+          </div>
+
+          <div class="readout">
+            <div class="readout__item">
+              <div class="readout__k">基線の本数</div>
+              <div class="readout__v" id="netPairs">—</div>
+            </div>
+            <div class="readout__item">
+              <div class="readout__k">経過年</div>
+              <div class="readout__v" id="driftYear">+0 年</div>
+            </div>
+            <div class="readout__item">
+              <div class="readout__k">基線長変化</div>
+              <div class="readout__v" id="driftLen">±0 mm</div>
+            </div>
+            <div class="readout__item">
+              <div class="readout__k">推定分解能</div>
+              <div class="readout__v" id="netRes">—</div>
+            </div>
+          </div>
+          <p class="hint">プレートは年間数cm動きます。VLBIは基線長をmm精度で測れるため、<b>大陸そのものの移動</b>を検出できます。これが<b>測地VLBI</b>で、地図やGPSの基準づくりにも使われています。</p>
+        </div>
+
+        <!-- 比較表 -->
+        <div class="card" style="margin-top: var(--space-xl)">
+          <h2>分解能の到達点をくらべる</h2>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>観測装置</th>
+                <th>口径／基線長</th>
+                <th>波長</th>
+                <th>おおよその分解能</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>単一パラボラ</b></td>
+                <td>45 m</td>
+                <td>7 mm</td>
+                <td>約 40 秒角</td>
+              </tr>
+              <tr>
+                <td><b>ALMA</b></td>
+                <td>約 16 km</td>
+                <td>1.3 mm</td>
+                <td>約 0.02 秒角</td>
+              </tr>
+              <tr>
+                <td><b>VERA</b></td>
+                <td>2,300 km</td>
+                <td>7 mm</td>
+                <td>約 0.001 秒角（1 ミリ秒角）</td>
+              </tr>
+              <tr>
+                <td><b>EHT</b></td>
+                <td>約 10,000 km</td>
+                <td>1.3 mm</td>
+                <td>約 20 マイクロ秒角</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="hint">20 マイクロ秒角は、<b>東京から大阪にある1円玉</b>を見分けるほどの視力に相当します。</p>
+        </div>
+
+        <div class="card" style="margin-top: var(--space-xl)">
+          <h2>参考文献</h2>
+          <ul class="refs">
+            <li>Honma, M. et al. (2012), <em>Fundamental Parameters of the Milky Way Galaxy Based on VLBI Astrometry</em>, PASJ 64, 136.</li>
+            <li>The Event Horizon Telescope Collaboration (2019), <em>First M87 Event Horizon Telescope Results. I. The Shadow of the Supermassive Black Hole</em>, ApJL 875, L1.</li>
+            <li>国立天文台 VERA プロジェクト／ALMA 望遠鏡 公開資料</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============ Ft5 Statement Footer ============ -->
+    <footer class="footer-statement page-container">
+      <p class="footer-statement__text">縞模様は、宇宙が書いた暗号である。</p>
+      <div class="footer-statement__meta">
+        <span>Web Exhibition &mdash; Radio Interferometry &amp; VLBI</span>
+        <span>θ = 1.22 λ / D</span>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        "use strict";
+        const RAD2MAS = 206264806.247; // rad → ミリ秒角
+        const $ = (id) => document.getElementById(id);
+
+        function fitCanvas(cv) {
+          const dpr = window.devicePixelRatio || 1;
+          const w = cv.clientWidth || 320;
+          const h = parseInt(cv.getAttribute("height"), 10) || 200;
+          cv.width = Math.round(w * dpr);
+          cv.height = Math.round(h * dpr);
+          const ctx = cv.getContext("2d");
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          return { ctx, w, h };
+        }
+        function fmtAngle(rad) {
+          const mas = rad * RAD2MAS;
+          if (mas >= 3.6e6) return (mas / 3.6e6).toFixed(2) + " 度";
+          if (mas >= 1000) return (mas / 1000).toFixed(1) + " 秒角";
+          if (mas >= 1) return mas.toFixed(2) + " ミリ秒角";
+          if (mas >= 0.001) return (mas * 1000).toFixed(1) + " µ秒角";
+          return (mas * 1e6).toFixed(1) + " n秒角";
+        }
+        function fmtLen(m) {
+          if (m >= 1000) return (m / 1000).toLocaleString("ja-JP", { maximumFractionDigits: m / 1000 < 10 ? 1 : 0 }) + " km";
+          return m.toFixed(m < 100 ? 1 : 0) + " m";
+        }
+        const logMap = (t, min, max) => min * Math.pow(max / min, t);
+        const ACC = "255,164,102";
+
+        /* =====================================================
+     サムネイル
+     ===================================================== */
+        function drawThumbs() {
+          (function () {
+            // 1: にじむ点像
+            const cv = $("thumb1");
+            if (!cv) return;
+            const { ctx, w, h } = fitCanvas(cv);
+            ctx.clearRect(0, 0, w, h);
+            for (let i = 0; i < 2; i++) {
+              const cx = w / 2 + (i ? 26 : -26),
+                cy = h / 2;
+              const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 55);
+              g.addColorStop(0, "rgba(255,196,150,0.95)");
+              g.addColorStop(0.45, "rgba(255,150,90,0.28)");
+              g.addColorStop(1, "rgba(255,150,90,0)");
+              ctx.fillStyle = g;
+              ctx.beginPath();
+              ctx.arc(cx, cy, 55, 0, 7);
+              ctx.fill();
+            }
+          })();
+
+          (function () {
+            // 2: 縞 → 像 の含意
+            const cv = $("thumb2");
+            if (!cv) return;
+            const { ctx, w, h } = fitCanvas(cv);
+            ctx.clearRect(0, 0, w, h);
+            for (let x = 0; x < w / 2; x++) {
+              const v = Math.pow(Math.cos((x - w / 4) * 0.18), 2);
+              ctx.fillStyle = "rgba(" + ACC + "," + (v * 0.7).toFixed(3) + ")";
+              ctx.fillRect(x, 0, 1, h);
+            }
+            const cx = w * 0.76,
+              cy = h / 2,
+              R = Math.min(w, h) * 0.24;
+            for (let i = 0; i < 200; i++) {
+              const a = (i / 200) * Math.PI * 2;
+              const br = 0.4 + 0.6 * Math.pow((Math.sin(a + 1.2) + 1) / 2, 1.6);
+              ctx.strokeStyle = "rgba(255,168,90," + (br * 0.9).toFixed(3) + ")";
+              ctx.lineWidth = 11 * (0.6 + br * 0.6);
+              ctx.beginPath();
+              ctx.arc(cx, cy, R, a, a + 0.05);
+              ctx.stroke();
+            }
+            ctx.fillStyle = "rgba(200,210,230,0.9)";
+            ctx.font = "600 18px Geist Mono, monospace";
+            ctx.fillText("→", w * 0.5 - 8, cy + 6);
+          })();
+
+          (function () {
+            // 3: 位相ズレ
+            const cv = $("thumb3");
+            if (!cv) return;
+            const { ctx, w, h } = fitCanvas(cv);
+            ctx.clearRect(0, 0, w, h);
+            const wave = (ph, col, off) => {
+              ctx.strokeStyle = col;
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              for (let x = 0; x <= w; x++) {
+                const y = h / 2 + off + Math.sin(x * 0.09 + ph) * 26;
+                x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+              }
+              ctx.stroke();
+            };
+            wave(0, "rgba(255,170,110,0.95)", -34);
+            wave(2.1, "rgba(150,180,255,0.85)", 34);
+          })();
+
+          (function () {
+            // 4: シャドウ
+            const cv = $("thumb4");
+            if (!cv) return;
+            const { ctx, w, h } = fitCanvas(cv);
+            ctx.clearRect(0, 0, w, h);
+            const cx = w / 2,
+              cy = h / 2,
+              R = Math.min(w, h) * 0.33;
+            for (let i = 0; i < 240; i++) {
+              const a = (i / 240) * Math.PI * 2;
+              const br = 0.35 + 0.65 * Math.pow((Math.sin(a + 1.2) + 1) / 2, 1.6);
+              ctx.strokeStyle = "rgba(255,168,90," + (br * 0.9).toFixed(3) + ")";
+              ctx.lineWidth = 15 * (0.6 + br * 0.6);
+              ctx.beginPath();
+              ctx.arc(cx, cy, R, a, a + 0.04);
+              ctx.stroke();
+            }
+            ctx.fillStyle = "#0b0c10";
+            ctx.beginPath();
+            ctx.arc(cx, cy, R * 0.72, 0, 7);
+            ctx.fill();
+          })();
+        }
+
+        /* =====================================================
+     Widget 01: 単一鏡の分解能
+     ===================================================== */
+        function initBlur() {
+          const dS = $("d1"),
+            wS = $("w1"),
+            cv = $("blurCanvas");
+          if (!dS || !cv) return;
+          function render() {
+            const D = logMap(dS.value / 100, 1, 500);
+            const wl = logMap(wS.value / 100, 5e-7, 0.21);
+            const th = (1.22 * wl) / D;
+            $("d1out").textContent = fmtLen(D);
+            $("w1out").textContent = wl < 1e-5 ? (wl * 1e9).toFixed(0) + " nm" : wl < 0.01 ? (wl * 1000).toFixed(1) + " mm" : (wl * 100).toFixed(1) + " cm";
+            $("th1").textContent = fmtAngle(th);
+            const mas = th * RAD2MAS,
+              moonMas = 1800 * 1000;
+            $("moon1").textContent = mas >= moonMas ? "満月の " + (mas / moonMas).toFixed(1) + " 倍" : "満月の 1/" + Math.max(1, Math.round(moonMas / mas)).toLocaleString("ja-JP");
+
+            const { ctx, w, h } = fitCanvas(cv);
+            ctx.clearRect(0, 0, w, h);
+            for (let i = 0; i < 90; i++) {
+              ctx.fillStyle = "rgba(200,210,230,0.18)";
+              ctx.fillRect((i * 137.5) % w, (i * 71.3) % h, 1, 1);
+            }
+            const sep = w * 0.13;
+            const rad = Math.min(w * 0.46, Math.max(3, 10 * Math.log10(mas / 20 + 1) * 14));
+            [-1, 1].forEach((s) => {
+              const cx = w / 2 + s * sep,
+                cy = h / 2;
+              const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+              g.addColorStop(0, "rgba(255,205,160,0.95)");
+              g.addColorStop(0.4, "rgba(255,150,90,0.30)");
+              g.addColorStop(1, "rgba(255,150,90,0)");
+              ctx.fillStyle = g;
+              ctx.beginPath();
+              ctx.arc(cx, cy, rad, 0, 7);
+              ctx.fill();
+            });
+            const ok = rad < sep;
+            ctx.font = "600 13px Geist Mono, monospace";
+            ctx.fillStyle = ok ? "rgba(255,168,90,0.95)" : "rgba(180,190,210,0.9)";
+            ctx.fillText(ok ? "2つの電波源を分離できた" : "2つが融合して見分けられない", 14, 24);
+          }
+          dS.addEventListener("input", render);
+          wS.addEventListener("input", render);
+          window.addEventListener("resize", render);
+          render();
+        }
+
+        /* =====================================================
+     Widget 02: 光路差 Δ = B sinα → フリンジ
+     ===================================================== */
+        function initPath() {
+          const aS = $("ang"),
+            cv = $("pathCanvas");
+          if (!aS || !cv) return;
+          const WL = 40; // 描画上の波長[px]
+          const BASE = 240; // 描画上の基線長[px]
+          let playing = false,
+            t = 0,
+            raf = null;
+          const hist = [];
+
+          function render() {
+            const deg = parseFloat(aS.value);
+            const a = (deg * Math.PI) / 180;
+            // 光路差（描画スケール）
+            const delta = BASE * Math.sin(a);
+            const ratio = delta / WL; // Δ/λ
+            const frac = ratio - Math.round(ratio);
+            const amp = Math.abs(Math.cos(Math.PI * ratio)); // 合成振幅
+
+            $("angout").textContent = deg.toFixed(0) + "°";
+            $("pd").textContent = Math.abs(delta / WL).toFixed(2) + " λ 相当";
+            $("pdw").textContent = ratio.toFixed(2);
+            $("pstate").textContent = amp > 0.9 ? "強め合い（明）" : amp > 0.5 ? "中間" : amp > 0.15 ? "弱め合い" : "打ち消し合い（暗）";
+
+            const { ctx, w, h } = fitCanvas(cv);
+            ctx.clearRect(0, 0, w, h);
+            const skyH = h * 0.6;
+            const ax = w * 0.3,
+              bx = w * 0.7,
+              gy = skyH - 26;
+
+            // 星空
+            for (let i = 0; i < 70; i++) {
+              ctx.fillStyle = "rgba(200,210,230,0.16)";
+              ctx.fillRect((i * 149.3) % w, (i * 53.7) % skyH, 1, 1);
+            }
+            // 入射する平面波（斜めの縞）
+            const dirx = Math.sin(a),
+              diry = Math.cos(a);
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(0, 0, w, skyH - 18);
+            ctx.clip();
+            for (let k = -60; k < 60; k++) {
+              const off = k * WL;
+              ctx.strokeStyle = "rgba(150,180,255,0.30)";
+              ctx.lineWidth = 1;
+              // 波面：dir に垂直な直線
+              const px = w / 2 + dirx * off,
+                py = 0 + diry * off;
+              const tx = diry,
+                ty = -dirx;
+              ctx.beginPath();
+              ctx.moveTo(px - tx * 900, py - ty * 900);
+              ctx.lineTo(px + tx * 900, py + ty * 900);
+              ctx.stroke();
+            }
+            ctx.restore();
+
+            // 天体方向の矢印
+            ctx.strokeStyle = "rgba(" + ACC + ",0.9)";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(w / 2 - dirx * 150, 18);
+            ctx.lineTo(w / 2 - dirx * 150 + dirx * 60, 18 + diry * 60);
+            ctx.stroke();
+            ctx.font = "11px Geist Mono, monospace";
+            ctx.fillStyle = "rgba(" + ACC + ",0.95)";
+            ctx.fillText("天体からの平面波", 12, 16);
+
+            // 地面
+            ctx.strokeStyle = "rgba(120,130,150,0.6)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, gy + 20);
+            ctx.lineTo(w, gy + 20);
+            ctx.stroke();
+
+            // アンテナ2台
+            const dish = (x, label) => {
+              ctx.strokeStyle = "rgba(230,235,245,0.9)";
+              ctx.lineWidth = 2.4;
+              ctx.beginPath();
+              ctx.arc(x, gy + 4, 16, Math.PI * 1.15, Math.PI * 1.85);
+              ctx.stroke();
+              ctx.beginPath();
+              ctx.moveTo(x, gy - 4);
+              ctx.lineTo(x, gy + 20);
+              ctx.stroke();
+              ctx.font = "11px Geist Mono, monospace";
+              ctx.fillStyle = "rgba(200,210,230,0.9)";
+              ctx.fillText(label, x - 8, gy + 36);
+            };
+            dish(ax, "A");
+            dish(bx, "B");
+
+            // 基線
+            ctx.strokeStyle = "rgba(" + ACC + ",0.5)";
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(ax, gy + 4);
+            ctx.lineTo(bx, gy + 4);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = "rgba(" + ACC + ",0.95)";
+            ctx.fillText("基線長 B", (ax + bx) / 2 - 24, gy - 6);
+
+            // 光路差の可視化（余分な距離）
+            const lead = delta >= 0 ? bx : ax;
+            const lag = delta >= 0 ? ax : bx;
+            ctx.strokeStyle = "rgba(255,120,90,0.95)";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(lag, gy + 4);
+            ctx.lineTo(lag - (lag - lead) * 0.001 + (lead - lag) * 0.0, gy + 4);
+            ctx.stroke();
+            // Δ を数値バーで表現
+            const barY = skyH + 8,
+              barW = Math.min(w * 0.5, Math.abs(delta));
+            ctx.fillStyle = "rgba(255,120,90,0.85)";
+            ctx.fillRect(w / 2 - barW / 2, barY, barW, 6);
+            ctx.fillStyle = "rgba(255,150,120,0.95)";
+            ctx.fillText("光路差 Δ = B sin α = " + Math.abs(ratio).toFixed(2) + " λ", w / 2 - 80, barY - 4);
+
+            // 合成出力（強め合い/打ち消し合い）
+            const oy = h - 46;
+            ctx.font = "11px Geist Mono, monospace";
+            ctx.fillStyle = "rgba(190,200,220,0.85)";
+            ctx.fillText("2局の信号を掛け合わせた出力", 12, oy - 26);
+            // 履歴（自転再現時の波形）
+            if (hist.length > 1) {
+              ctx.strokeStyle = "rgba(" + ACC + ",0.95)";
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              hist.forEach((v, i) => {
+                const x = 12 + (i / (hist.length - 1)) * (w - 24);
+                const y = oy - v * 18;
+                i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+              });
+              ctx.stroke();
+            }
+            // 現在値のバー
+            ctx.fillStyle = "rgba(" + ACC + ",0.9)";
+            ctx.fillRect(w - 22, oy - amp * 18, 8, Math.max(2, amp * 18));
+            ctx.strokeStyle = "rgba(120,130,150,0.5)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(12, oy);
+            ctx.lineTo(w - 12, oy);
+            ctx.stroke();
+          }
+
+          function loop() {
+            t += 0.9;
+            const deg = 55 * Math.sin(t * 0.012);
+            aS.value = deg.toFixed(0);
+            const a = (deg * Math.PI) / 180;
+            const ratio = (BASE * Math.sin(a)) / WL;
+            hist.push(Math.cos(Math.PI * ratio));
+            if (hist.length > 300) hist.shift();
+            render();
+            if (playing) raf = requestAnimationFrame(loop);
+          }
+
+          aS.addEventListener("input", () => {
+            playing = false;
+            if (raf) cancelAnimationFrame(raf);
+            $("btnSpinSky").textContent = "自転を再現（再生）";
+            hist.length = 0;
+            render();
+          });
+          $("btnSpinSky").addEventListener("click", () => {
+            playing = !playing;
+            $("btnSpinSky").textContent = playing ? "停止" : "自転を再現（再生）";
+            if (playing) loop();
+            else if (raf) cancelAnimationFrame(raf);
+          });
+          window.addEventListener("resize", render);
+          render();
+        }
+
+        /* =====================================================
+     Widget 03: 可視度から天体サイズを測る
+     ===================================================== */
+        function initFringe() {
+          const bS = $("base"),
+            sS = $("src"),
+            cv = $("fringeCanvas");
+          if (!bS || !cv) return;
+          let wlmm = 7;
+
+          document.querySelectorAll("[data-wl]").forEach((b) => {
+            b.addEventListener("click", () => {
+              document.querySelectorAll("[data-wl]").forEach((o) => o.setAttribute("aria-pressed", "false"));
+              b.setAttribute("aria-pressed", "true");
+              wlmm = parseFloat(b.dataset.wl);
+              render();
+            });
+          });
+
+          function render() {
+            const B = logMap(bS.value / 1000, 10, 1e7); // m
+            const wl = wlmm / 1000; // m
+            const th = wl / B; // rad
+            const srcMas = logMap(sS.value / 1000, 0.01, 1e6); // 0.01 mas 〜 1e6 mas
+            const srcRad = srcMas / RAD2MAS;
+
+            // 一様円盤の可視度（Airy型の近似：|2J1(x)/x|）
+            const x = (Math.PI * srcRad * B) / wl;
+            const j1 = (u) => {
+              // 1次ベッセル関数（近似）
+              if (Math.abs(u) < 1e-6) return u / 2;
+              if (Math.abs(u) < 8) {
+                let s = 0,
+                  term;
+                for (let k = 0; k < 25; k++) {
+                  term = Math.pow(-1, k) * Math.pow(u / 2, 2 * k + 1);
+                  let f1 = 1,
+                    f2 = 1;
+                  for (let i = 2; i <= k; i++) f1 *= i;
+                  for (let i = 2; i <= k + 1; i++) f2 *= i;
+                  s += term / (f1 * f2);
+                }
+                return s;
+              }
+              return Math.sqrt(2 / (Math.PI * u)) * Math.cos(u - (3 * Math.PI) / 4);
+            };
+            const vis = x < 1e-6 ? 1 : Math.abs((2 * j1(x)) / x);
+            const pct = Math.max(0, Math.min(100, vis * 100));
+
+            $("baseout").textContent = fmtLen(B);
+            $("srcout").textContent = srcMas >= 1000 ? (srcMas / 1000).toFixed(1) + " 秒角" : srcMas >= 1 ? srcMas.toFixed(2) + " ミリ秒角" : (srcMas * 1000).toFixed(0) + " µ秒角";
+            $("th2").textContent = fmtAngle(th);
+            $("vis2").textContent = pct.toFixed(0) + " %";
+            $("visFill").style.width = pct + "%";
+            $("ver2").textContent = pct > 85 ? "点に見える（θ より小）" : pct > 40 ? "縞が薄れてきた" : pct > 10 ? "サイズ検出！" : "縞が消えた（分解された）";
+            $("cls2").textContent = B < 100 ? "単一鏡クラス" : B < 5e4 ? "接続型干渉計（ALMA級）" : B < 3e6 ? "国内VLBI（VERA級）" : "地球規模VLBI（EHT級）";
+
+            const { ctx, w, h } = fitCanvas(cv);
+            ctx.clearRect(0, 0, w, h);
+
+            // 上段：天体の見かけ（サイズと θ の比較）
+            const topH = h * 0.42;
+            const scale = 46 / Math.max(srcMas, th * RAD2MAS); // 見やすく正規化
+            const rs = Math.max(2, Math.min(70, srcMas * scale));
+            const rt = Math.max(2, Math.min(70, th * RAD2MAS * scale));
+            const cx = w * 0.24,
+              cy = topH / 2 + 8;
+            const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rs);
+            g.addColorStop(0, "rgba(255,205,160,0.95)");
+            g.addColorStop(0.7, "rgba(255,150,90,0.45)");
+            g.addColorStop(1, "rgba(255,150,90,0)");
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(cx, cy, rs, 0, 7);
+            ctx.fill();
+            ctx.strokeStyle = "rgba(150,180,255,0.9)";
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 3]);
+            ctx.beginPath();
+            ctx.arc(cx, cy, rt, 0, 7);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.font = "11px Geist Mono, monospace";
+            ctx.fillStyle = "rgba(255,205,160,0.95)";
+            ctx.fillText("天体の大きさ", cx - 34, cy + rs + 18);
+            ctx.fillStyle = "rgba(150,180,255,0.95)";
+            ctx.fillText("分解能 θ（点線）", w * 0.44, cy - 6);
+            ctx.fillStyle = "rgba(190,200,220,0.85)";
+            ctx.fillText(rt < rs ? "θ が天体より小さい → 分解できる（縞は薄れる）" : "θ が天体より大きい → 点に見える（縞は濃い）", w * 0.44, cy + 14);
+
+            // 下段：フリンジ（コントラスト = 可視度）
+            const y0 = topH + 26,
+              bandH = h - y0 - 34;
+            const k = 0.04 + 0.5 * (Math.log10(B / 10) / 6);
+            for (let px = 0; px < w; px++) {
+              const env = Math.exp(-Math.pow((px - w / 2) / (w * 0.44), 2) * 1.6);
+              const base = 0.5 * env;
+              const v = base + base * vis * Math.cos((px - w / 2) * k);
+              ctx.fillStyle = "rgba(" + ACC + "," + Math.max(0, v).toFixed(3) + ")";
+              ctx.fillRect(px, y0, 1, bandH);
+            }
+            ctx.fillStyle = "rgba(190,200,220,0.85)";
+            ctx.fillText("観測されるフリンジ（縞のコントラスト = 可視度 " + pct.toFixed(0) + "%）", 12, y0 - 8);
+            ctx.fillStyle = "rgba(" + ACC + ",0.95)";
+            ctx.fillText("B = " + fmtLen(B) + "   θ = " + fmtAngle(th), 12, h - 12);
+          }
+          bS.addEventListener("input", render);
+          sS.addEventListener("input", render);
+          window.addEventListener("resize", render);
+          render();
+        }
+
+        /* =====================================================
+     Widget 04: フーリエ合成で像をつくる
+     ===================================================== */
+        function initSynth() {
+          const nS = $("nb"),
+            uvCv = $("uvCanvas"),
+            imCv = $("imgCanvas");
+          if (!nS || !uvCv || !imCv) return;
+          const N = 64; // 画像グリッド
+          let shape = "ring",
+            showTruth = false,
+            playing = false,
+            raf = null;
+
+          // 真の輝度分布
+          function truth(i, j) {
+            const x = (i - N / 2) / (N / 2),
+              y = (j - N / 2) / (N / 2);
+            const r = Math.sqrt(x * x + y * y);
+            if (shape === "ring") {
+              const v = Math.exp(-Math.pow((r - 0.45) / 0.11, 2));
+              const asym = 0.55 + (0.45 * (Math.sin(Math.atan2(y, x) + 1.2) + 1)) / 2;
+              return v * asym;
+            }
+            if (shape === "two") {
+              const a = Math.exp(-(Math.pow(x + 0.32, 2) + y * y) / 0.012);
+              const b = Math.exp(-(Math.pow(x - 0.3, 2) + Math.pow(y - 0.1, 2)) / 0.018);
+              return a + 0.75 * b;
+            }
+            // jet
+            const core = Math.exp(-(x * x + y * y) / 0.01);
+            const jet = Math.exp(-Math.pow(y - x * 0.55, 2) / 0.006) * Math.exp(-Math.pow((x - 0.35) / 0.42, 2)) * 0.8;
+            return core + jet;
+          }
+
+          // 基線リスト（内側＝粗い縞から外側＝細かい縞へ）
+          function baselines(n) {
+            const out = [];
+            for (let i = 0; i < n; i++) {
+              const t = (i + 1) / n;
+              const rad = 1.2 + 13.5 * Math.pow(i / Math.max(1, n - 1), 0.62);
+              const ang = i * 2.399963 + 0.5; // 黄金角で満遍なく
+              out.push({ u: Math.round(rad * Math.cos(ang)), v: Math.round(rad * Math.sin(ang)) });
+            }
+            return out;
+          }
+
+          // 真の分布の該当フーリエ成分（DFTを必要な成分だけ計算）
+          const cache = {};
+          function comp(u, v) {
+            const key = shape + ":" + u + "," + v;
+            if (cache[key]) return cache[key];
+            let re = 0,
+              im = 0;
+            for (let i = 0; i < N; i++)
+              for (let j = 0; j < N; j++) {
+                const f = truth(i, j);
+                if (f < 0.004) continue;
+                const ph = -2 * Math.PI * ((u * (i - N / 2)) / N + (v * (j - N / 2)) / N);
+                re += f * Math.cos(ph);
+                im += f * Math.sin(ph);
+              }
+            const r = { re: re / (N * N), im: im / (N * N) };
+            cache[key] = r;
+            return r;
+          }
+
+          function render() {
+            const n = parseInt(nS.value, 10);
+            $("nbout").textContent = n + " 本";
+            const bl = baselines(n);
+
+            /* --- 左：集めた縞（uv 平面） --- */
+            {
+              const { ctx, w, h } = fitCanvas(uvCv);
+              ctx.clearRect(0, 0, w, h);
+              const cx = w / 2,
+                cy = h / 2,
+                sc = Math.min(w, h) / 34;
+              ctx.strokeStyle = "rgba(120,130,150,0.28)";
+              ctx.lineWidth = 1;
+              [5, 10, 15].forEach((r) => {
+                ctx.beginPath();
+                ctx.arc(cx, cy, r * sc, 0, 7);
+                ctx.stroke();
+              });
+              ctx.beginPath();
+              ctx.moveTo(cx - w / 2, cy);
+              ctx.lineTo(cx + w / 2, cy);
+              ctx.moveTo(cx, 0);
+              ctx.lineTo(cx, h);
+              ctx.stroke();
+              bl.forEach((b, i) => {
+                const alpha = 0.35 + 0.65 * (i / Math.max(1, bl.length - 1));
+                ctx.fillStyle = "rgba(" + ACC + "," + alpha.toFixed(2) + ")";
+                [1, -1].forEach((s) => {
+                  ctx.beginPath();
+                  ctx.arc(cx + s * b.u * sc, cy - s * b.v * sc, 3.2, 0, 7);
+                  ctx.fill();
+                });
+              });
+              ctx.font = "10px Geist Mono, monospace";
+              ctx.fillStyle = "rgba(190,200,220,0.8)";
+              ctx.fillText("中心 = 粗い縞", 8, 14);
+              ctx.fillText("外周 = 細かい縞", 8, h - 8);
+            }
+
+            /* --- 右：合成像 --- */
+            {
+              const { ctx, w, h } = fitCanvas(imCv);
+              ctx.clearRect(0, 0, w, h);
+              const side = Math.min(w, h) - 10;
+              const ox = (w - side) / 2,
+                oy = (h - side) / 2;
+              const px = side / N;
+              const buf = new Float32Array(N * N);
+
+              if (showTruth) {
+                for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) buf[j * N + i] = truth(i, j);
+              } else {
+                bl.forEach((b) => {
+                  const C0 = comp(b.u, b.v);
+                  for (let i = 0; i < N; i++)
+                    for (let j = 0; j < N; j++) {
+                      const ph = 2 * Math.PI * ((b.u * (i - N / 2)) / N + (b.v * (j - N / 2)) / N);
+                      buf[j * N + i] += 2 * (C0.re * Math.cos(ph) - C0.im * Math.sin(ph));
+                    }
+                });
+              }
+              let mx = 1e-9;
+              for (let k = 0; k < buf.length; k++) mx = Math.max(mx, buf[k]);
+              for (let i = 0; i < N; i++)
+                for (let j = 0; j < N; j++) {
+                  const v = Math.max(0, buf[j * N + i]) / mx;
+                  const g = Math.pow(v, 0.75);
+                  ctx.fillStyle = "rgb(" + Math.round(20 + 235 * g) + "," + Math.round(14 + 150 * g) + "," + Math.round(24 + 70 * g) + ")";
+                  ctx.fillRect(ox + i * px, oy + (N - 1 - j) * px, px + 0.6, px + 0.6);
+                }
+              ctx.strokeStyle = "rgba(120,130,150,0.35)";
+              ctx.strokeRect(ox, oy, side, side);
+              ctx.font = "10px Geist Mono, monospace";
+              ctx.fillStyle = "rgba(230,235,245,0.9)";
+              ctx.fillText(showTruth ? "TRUE IMAGE" : "SYNTHESIZED  (" + n + " baselines)", ox + 6, oy + 14);
+            }
+          }
+
+          document.querySelectorAll("[data-shape]").forEach((b) => {
+            b.addEventListener("click", () => {
+              document.querySelectorAll("[data-shape]").forEach((o) => o.setAttribute("aria-pressed", "false"));
+              b.setAttribute("aria-pressed", "true");
+              shape = b.dataset.shape;
+              for (const k in cache) delete cache[k];
+              render();
+            });
+          });
+          nS.addEventListener("input", () => {
+            showTruth = false;
+            $("btnTruth").textContent = "本当の姿を表示";
+            render();
+          });
+          $("btnTruth").addEventListener("click", () => {
+            showTruth = !showTruth;
+            $("btnTruth").textContent = showTruth ? "合成像に戻す" : "本当の姿を表示";
+            render();
+          });
+          $("btnGrow").addEventListener("click", () => {
+            playing = !playing;
+            $("btnGrow").textContent = playing ? "停止" : "アンテナを増やしていく（再生）";
+            if (!playing) {
+              if (raf) clearTimeout(raf);
+              return;
+            }
+            showTruth = false;
+            $("btnTruth").textContent = "本当の姿を表示";
+            let v = 1;
+            (function step() {
+              if (!playing) return;
+              nS.value = v;
+              render();
+              v = v < 12 ? v + 1 : Math.round(v * 1.25);
+              if (v > 120) {
+                playing = false;
+                $("btnGrow").textContent = "アンテナを増やしていく（再生）";
+                return;
+              }
+              raf = setTimeout(step, 260);
+            })();
+          });
+          window.addEventListener("resize", render);
+          render();
+        }
+
+        /* =====================================================
+     Widget 05: 遅延補正ミニゲーム
+     ===================================================== */
+        function initGame() {
+          const dS = $("delay"),
+            cv = $("gameCanvas");
+          if (!dS || !cv) return;
+          const FREQ = 43e9;
+          let target = 0,
+            timer = null;
+
+          function newTarget() {
+            target = Math.round((Math.random() * 2 - 1) * 2400);
+            dS.value = 0;
+            render();
+          }
+          function render() {
+            const tau = parseFloat(dS.value);
+            const d = (tau - target) * 1e-12;
+            const phase = 2 * Math.PI * FREQ * d;
+            const coh = Math.abs(Math.cos(phase / 2)) * Math.exp(-Math.pow(d / 30e-12, 2) * 0.25);
+            const pct = Math.max(0, Math.min(100, coh * 100));
+
+            $("delayout").textContent = tau.toFixed(1) + " ps";
+            $("resid").textContent = (tau - target).toFixed(1) + " ps";
+            $("phase").textContent = (((phase * 180) / Math.PI) % 360).toFixed(0) + " °";
+            $("gameStat").textContent = "FRINGE " + pct.toFixed(0) + "%";
+            $("meterFill").style.width = pct + "%";
+            $("verdict").textContent = pct > 95 ? "完璧！結像成功" : pct > 70 ? "もう少し" : pct > 25 ? "縞が弱い" : "縞が消滅";
+
+            const { ctx, w, h } = fitCanvas(cv);
+            ctx.clearRect(0, 0, w, h);
+            const mid = h * 0.28;
+            const drawWave = (off, ph, col) => {
+              ctx.strokeStyle = col;
+              ctx.lineWidth = 1.8;
+              ctx.beginPath();
+              for (let x = 0; x <= w; x++) {
+                const y = off + Math.sin(x * 0.07 + ph) * 20;
+                x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+              }
+              ctx.stroke();
+            };
+            drawWave(mid - 26, 0, "rgba(255,170,110,0.95)");
+            drawWave(mid + 26, phase % (Math.PI * 2), "rgba(150,180,255,0.9)");
+            ctx.font = "11px Geist Mono, monospace";
+            ctx.fillStyle = "rgba(190,200,220,0.8)";
+            ctx.fillText("STATION A", 10, mid - 48);
+            ctx.fillText("STATION B（補正後）", 10, mid + 62);
+
+            const base = h * 0.76;
+            for (let x = 0; x < w; x++) {
+              const env = Math.exp(-Math.pow((x - w / 2) / (w * 0.4), 2) * 2);
+              const v = 0.5 * env + 0.5 * env * coh * Math.cos((x - w / 2) * 0.1);
+              ctx.fillStyle = "rgba(" + ACC + "," + Math.max(0, v).toFixed(3) + ")";
+              ctx.fillRect(x, base - 42, 1, 84);
+            }
+            ctx.fillStyle = "rgba(" + ACC + ",0.95)";
+            ctx.fillText("CORRELATED FRINGE  " + pct.toFixed(0) + "%", 10, base - 52);
+            ctx.fillStyle = "rgba(190,200,220,0.7)";
+            ctx.fillText("コントラストが 0 になると、大きさも位置も読めない", 10, h - 10);
+          }
+
+          dS.addEventListener("input", () => {
+            if (timer) {
+              clearInterval(timer);
+              timer = null;
+              $("btnAuto").textContent = "自動フリンジ探索";
+            }
+            render();
+          });
+          $("btnRetry").addEventListener("click", newTarget);
+          $("btnAuto").addEventListener("click", () => {
+            if (timer) {
+              clearInterval(timer);
+              timer = null;
+              $("btnAuto").textContent = "自動フリンジ探索";
+              return;
+            }
+            $("btnAuto").textContent = "探索を停止";
+            let v = -3000;
+            timer = setInterval(() => {
+              v += 60;
+              if (v > 3000) v = -3000;
+              dS.value = v;
+              render();
+              if (Math.abs(v - target) < 40) {
+                dS.value = target;
+                render();
+                clearInterval(timer);
+                timer = null;
+                $("btnAuto").textContent = "自動フリンジ探索";
+              }
+            }, 30);
+          });
+          window.addEventListener("resize", render);
+          newTarget();
+        }
+
+        /* =====================================================
+     Widget 06: 地球儀ビュー
+     ===================================================== */
+        function initGlobe() {
+          const svg = $("globe");
+          if (!svg) return;
+          const CX = 320,
+            CY = 230,
+            R = 190;
+          const NS = "http://www.w3.org/2000/svg";
+
+          const NETS = {
+            vera: {
+              label: "VERA：4局 / 最大基線 約2,300 km",
+              stations: [
+                { n: "MIZUSAWA", lat: 39.13, lon: 141.13 },
+                { n: "IRIKI", lat: 31.75, lon: 130.44 },
+                { n: "OGASAWARA", lat: 27.09, lon: 142.22 },
+                { n: "ISHIGAKI", lat: 24.41, lon: 124.17 },
+              ],
+              res: "約 1 ミリ秒角（λ=7mm）",
+            },
+            eht: {
+              label: "EHT：地球規模 / 最大基線 約10,000 km",
+              stations: [
+                { n: "ALMA", lat: -23.03, lon: -67.75 },
+                { n: "APEX", lat: -23.01, lon: -67.76 },
+                { n: "SMT", lat: 32.7, lon: -109.89 },
+                { n: "LMT", lat: 18.99, lon: -97.31 },
+                { n: "SMA/JCMT", lat: 19.82, lon: -155.48 },
+                { n: "IRAM30m", lat: 37.07, lon: -3.39 },
+                { n: "SPT", lat: -89.99, lon: 0 },
+                { n: "GLT", lat: 76.53, lon: -68.7 },
+              ],
+              res: "約 20 マイクロ秒角（λ=1.3mm）",
+            },
+          };
+
+          let net = "vera",
+            lon0 = 140,
+            spinning = true,
+            drift = false,
+            year = 0;
+
+          const proj = (lat, lon) => {
+            const p = (lat * Math.PI) / 180,
+              l = ((lon - lon0) * Math.PI) / 180;
+            return {
+              x: CX + R * Math.cos(p) * Math.sin(l),
+              y: CY - R * Math.sin(p),
+              vis: Math.cos(p) * Math.cos(l) >= 0,
+            };
+          };
+          const clear = (g) => {
+            while (g.firstChild) g.removeChild(g.firstChild);
+          };
+          const mk = (t, a) => {
+            const e = document.createElementNS(NS, t);
+            for (const k in a) e.setAttribute(k, a[k]);
+            return e;
+          };
+
+          function grid() {
+            const g = $("gGrid");
+            clear(g);
+            for (let la = -60; la <= 60; la += 30) {
+              let d = "",
+                start = true;
+              for (let lo = -180; lo <= 180; lo += 3) {
+                const p = proj(la, lo);
+                if (p.vis) {
+                  d += (start ? "M" : "L") + p.x.toFixed(1) + " " + p.y.toFixed(1);
+                  start = false;
+                } else start = true;
+              }
+              if (d) g.appendChild(mk("path", { d: d }));
+            }
+            for (let lo = -180; lo < 180; lo += 30) {
+              let d = "",
+                start = true;
+              for (let la = -90; la <= 90; la += 3) {
+                const p = proj(la, lo);
+                if (p.vis) {
+                  d += (start ? "M" : "L") + p.x.toFixed(1) + " " + p.y.toFixed(1);
+                  start = false;
+                } else start = true;
+              }
+              if (d) g.appendChild(mk("path", { d: d }));
+            }
+          }
+
+          function stations() {
+            const L = $("gLines"),
+              D = $("gDots"),
+              T = $("gLabels");
+            clear(L);
+            clear(D);
+            clear(T);
+            const list = NETS[net].stations;
+            const st = list.map((s) => {
+              const dl = drift ? year * 0.00025 : 0;
+              return { s: s, p: proj(s.lat + dl * 0.4, s.lon + dl) };
+            });
+            for (let i = 0; i < st.length; i++)
+              for (let j = i + 1; j < st.length; j++) {
+                if (!st[i].p.vis || !st[j].p.vis) continue;
+                L.appendChild(mk("line", { x1: st[i].p.x, y1: st[i].p.y, x2: st[j].p.x, y2: st[j].p.y }));
+              }
+            st.forEach((o) => {
+              if (!o.p.vis) return;
+              D.appendChild(mk("circle", { cx: o.p.x, cy: o.p.y, r: 8, fill: "oklch(75% 0.15 45 / 0.22)" }));
+              D.appendChild(mk("circle", { cx: o.p.x, cy: o.p.y, r: 3.6, fill: "oklch(80% 0.16 45)" }));
+              const t = mk("text", { x: o.p.x + 10, y: o.p.y + 4 });
+              t.textContent = o.s.n;
+              T.appendChild(t);
+            });
+            $("netInfo").textContent = NETS[net].label;
+            $("netRes").textContent = NETS[net].res;
+            const n = list.length;
+            $("netPairs").textContent = (n * (n - 1)) / 2 + " 本（" + n + "局）";
+          }
+          function draw() {
+            grid();
+            stations();
+          }
+
+          document.querySelectorAll("[data-net]").forEach((b) => {
+            b.addEventListener("click", () => {
+              document.querySelectorAll("[data-net]").forEach((o) => o.setAttribute("aria-pressed", "false"));
+              b.setAttribute("aria-pressed", "true");
+              net = b.dataset.net;
+              lon0 = net === "vera" ? 140 : -60;
+              $("spin").value = (lon0 + 360) % 360;
+              draw();
+            });
+          });
+          $("spin").addEventListener("input", (e) => {
+            spinning = false;
+            $("btnSpin").textContent = "回転を再開";
+            lon0 = parseFloat(e.target.value);
+            $("spinout").textContent = lon0.toFixed(0) + "° E";
+            draw();
+          });
+          $("btnSpin").addEventListener("click", () => {
+            spinning = !spinning;
+            $("btnSpin").textContent = spinning ? "回転を停止" : "回転を再開";
+            $("spinout").textContent = spinning ? "自動回転中" : lon0.toFixed(0) + "° E";
+          });
+          $("btnDrift").addEventListener("click", () => {
+            drift = !drift;
+            year = 0;
+            $("btnDrift").textContent = drift ? "大陸移動を停止" : "大陸移動を可視化（測地VLBI）";
+            if (!drift) {
+              $("driftYear").textContent = "+0 年";
+              $("driftLen").textContent = "±0 mm";
+            }
+          });
+
+          let last = performance.now();
+          function loop(now) {
+            const dt = (now - last) / 1000;
+            last = now;
+            if (spinning) {
+              lon0 = (lon0 + dt * 6) % 360;
+              $("spin").value = (lon0 + 360) % 360;
+            }
+            if (drift) {
+              year += dt * 40;
+              $("driftYear").textContent = "+" + year.toFixed(0) + " 年";
+              $("driftLen").textContent = "+" + (year * 27).toFixed(0) + " mm";
+            }
+            if (spinning || drift) draw();
+            requestAnimationFrame(loop);
+          }
+          draw();
+          requestAnimationFrame(loop);
+        }
+
+        /* 起動 */
+        function boot() {
+          drawThumbs();
+          initBlur();
+          initPath();
+          initFringe();
+          initSynth();
+          initGame();
+          initGlobe();
+          let t;
+          window.addEventListener("resize", () => {
+            clearTimeout(t);
+            t = setTimeout(drawThumbs, 200);
+          });
+          document.querySelectorAll('a[href^="#"]').forEach((a) => {
+            a.addEventListener("click", (e) => {
+              const el = document.querySelector(a.getAttribute("href"));
+              if (el) {
+                e.preventDefault();
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            });
+          });
+        }
+        document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", boot) : boot();
+      })();
+    </script>
+  </body>
+</html>
