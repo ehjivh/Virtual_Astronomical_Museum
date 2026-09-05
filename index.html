@@ -1,92 +1,151 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Virtual Astronomical Museum</title>
-  <link rel="stylesheet" href="style.css">
-  <meta name="description" content="バーチャル天文博物館で宇宙の不思議を探求しましょう。">
-</head>
-<body>
-  <div class="page-container">
-    
-    <!-- Nav: N5 Floating Pill -->
-    <nav class="nav-pill" aria-label="Main Navigation">
-      <div class="nav-pill__wordmark">Virtual Astronomical Museum</div>
-      <div class="nav-pill__actions">
-        <a href="#exhibits" class="nav-pill__btn">展示を見る</a>
-      </div>
-    </nav>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Virtual Astronomical Museum</title>
+    <link rel="stylesheet" href="style.css" />
+    <meta name="description" content="バーチャル天文博物館で宇宙の不思議を探求しましょう。" />
+  </head>
+  <body>
+    <div class="page-container">
+      <!-- Nav: N5 Floating Pill -->
+      <nav class="nav-pill" aria-label="Main Navigation">
+        <div class="nav-pill__wordmark">Virtual Astronomical Museum</div>
+        <div class="nav-pill__actions">
+          <a href="#exhibits" class="nav-pill__btn">展示を見る</a>
+        </div>
+      </nav>
 
-    <!-- Portfolio Grid Header -->
-    <header class="portfolio-header" id="exhibits">
-      <div class="portfolio-header__tagline">展示一覧 · 2026</div>
-      <h1 class="portfolio-header__title">宇宙を、紐解く。</h1>
-    </header>
+      <!-- Portfolio Grid Header -->
+      <header class="portfolio-header" id="exhibits">
+        <div class="portfolio-header__tagline">展示一覧 · 2026</div>
+        <h1 class="portfolio-header__title">宇宙を、紐解く。</h1>
+      </header>
 
-    <!-- Macrostructure: 18 Portfolio Grid -->
-    <main class="portfolio-grid">
-      <!-- Exhibit 1 -->
-      <article class="exhibit-card">
-        <div class="exhibit-card__visual">
-          <!-- Placeholder visual, could be an actual image -->
-        </div>
-        <div class="exhibit-card__content">
-          <div class="exhibit-card__meta">展示 01</div>
-          <h2 class="exhibit-card__title">天体写真の裏側</h2>
-          <p class="exhibit-card__desc">高度なセンサー技術と光学機器を用いて、遠くの銀河の微かな光をどのように捉えるのかを探ります。</p>
-          <a href="camera.html" class="exhibit-card__link">展示を見る</a>
-        </div>
-      </article>
+      <!-- Macrostructure: 18 Portfolio Grid -->
+      <main class="portfolio-grid">
+        <!-- Exhibit 1 -->
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual">
+            <!-- Placeholder visual, could be an actual image -->
+          </div>
+          <div class="exhibit-card__content">
+            <div class="exhibit-card__meta">展示 01</div>
+            <h2 class="exhibit-card__title">天体写真の裏側</h2>
+            <p class="exhibit-card__desc">高度なセンサー技術と光学機器を用いて、遠くの銀河の微かな光をどのように捉えるのかを探ります。</p>
+            <a href="camera.html" class="exhibit-card__link">展示を見る</a>
+          </div>
+        </article>
 
-      <!-- Exhibit 2 -->
-      <article class="exhibit-card">
-        <div class="exhibit-card__visual">
-        </div>
-        <div class="exhibit-card__content">
-          <div class="exhibit-card__meta">展示 02</div>
-          <h2 class="exhibit-card__title">宇宙のものさし</h2>
-          <p class="exhibit-card__desc">天文学者が広大な宇宙の距離を測るために用いる、段階的な手法（宇宙の距離梯子）を学びます。</p>
-          <a href="cosmological_distance_ladder.html" class="exhibit-card__link">展示を見る</a>
-        </div>
-      </article>
+        <!-- Exhibit 2 -->
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"></div>
+          <div class="exhibit-card__content">
+            <div class="exhibit-card__meta">展示 02</div>
+            <h2 class="exhibit-card__title">宇宙のものさし</h2>
+            <p class="exhibit-card__desc">天文学者が広大な宇宙の距離を測るために用いる、段階的な手法（宇宙の距離梯子）を学びます。</p>
+            <a href="cosmological_distance_ladder.html" class="exhibit-card__link">展示を見る</a>
+          </div>
+        </article>
 
-      <!-- Exhibit 3 (Placeholder) -->
-      <article class="exhibit-card">
-        <div class="exhibit-card__visual">
-        </div>
-        <div class="exhibit-card__content">
-          <div class="exhibit-card__meta">展示 03</div>
-          <h2 class="exhibit-card__title">恒星の進化</h2>
-          <p class="exhibit-card__desc">星雲の収縮から始まり、白色矮星、中性子星、あるいはブラックホールに至るまでの星の一生をたどります。</p>
-          <a href="#" class="exhibit-card__link">近日公開</a>
-        </div>
-      </article>
+        <!-- Exhibit 3 -->
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"></div>
+          <div class="exhibit-card__content">
+            <div class="exhibit-card__meta">展示 03</div>
+            <h2 class="exhibit-card__title">光の軌跡から探る望遠鏡の仕組み</h2>
+            <p class="exhibit-card__desc">光線追跡シミュレーションで、屈折・反射望遠鏡の光学的な仕組みをインタラクティブに体験します。</p>
+            <a href="telescope.html" class="exhibit-card__link">展示を見る</a>
+          </div>
+        </article>
 
-      <!-- Exhibit 4 (Placeholder) -->
-      <article class="exhibit-card">
-        <div class="exhibit-card__visual">
-        </div>
-        <div class="exhibit-card__content">
-          <div class="exhibit-card__meta">展示 04</div>
-          <h2 class="exhibit-card__title">系外惑星の発見</h2>
-          <p class="exhibit-card__desc">私たちの銀河系にある他の恒星を周回する惑星を見つけるための技術を探求します。</p>
-          <a href="#" class="exhibit-card__link">近日公開</a>
-        </div>
-      </article>
-    </main>
+        <!-- Exhibit 4 -->
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"></div>
+          <div class="exhibit-card__content">
+            <div class="exhibit-card__meta">展示 04</div>
+            <h2 class="exhibit-card__title">続・望遠鏡の仕組み ― 補正レンズとフィルター</h2>
+            <p class="exhibit-card__desc">コマコレクター・フラットナー、レデューサー、干渉フィルターの仕組みをCanvasによる光線追跡シミュレーションで体験します。</p>
+            <a href="lens.html" class="exhibit-card__link">展示を見る</a>
+          </div>
+        </article>
 
-    <!-- Footer: Ft5 Statement -->
-    <footer class="footer-statement">
-      <div class="footer-statement__text">
-        暗闇の先にある、あなただけの宇宙。
-      </div>
-      <div class="footer-statement__meta">
-        <span>バーチャル天文博物館</span>
-        <span>© 2026. All rights reserved.</span>
-      </div>
-    </footer>
+        <!-- Exhibit 5 -->
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"></div>
+          <div class="exhibit-card__content">
+            <div class="exhibit-card__meta">展示 05</div>
+            <h2 class="exhibit-card__title">見えない宇宙を「聴く」― 電波天文学への招待</h2>
+            <p class="exhibit-card__desc">電波望遠鏡の仕組みと、光学では決して見えない宇宙の姿を「電波」で捉える技術を探求します。</p>
+            <a href="radio_telescope.html" class="exhibit-card__link">展示を見る</a>
+          </div>
+        </article>
 
-  </div>
-</body>
+        <!-- Exhibit 6 -->
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"></div>
+          <div class="exhibit-card__content">
+            <div class="exhibit-card__meta">展示 06</div>
+            <h2 class="exhibit-card__title">地球サイズの瞳で宇宙を見る ― VLBIの挑戦</h2>
+            <p class="exhibit-card__desc">世界中に点在する電波望遠鏡を結んで地球規模の巨大望遠鏡を構成する、超長基線電波干渉計（VLBI）の原理に迫ります。</p>
+            <a href="vlbi.html" class="exhibit-card__link">展示を見る</a>
+          </div>
+        </article>
+
+        <!-- Exhibit 7 -->
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"></div>
+          <div class="exhibit-card__content">
+            <div class="exhibit-card__meta">展示 07</div>
+            <h2 class="exhibit-card__title">波をほどく数学 ── フーリエ変換の世界</h2>
+            <p class="exhibit-card__desc">音波から電波まで、あらゆる「波」を周波数成分に分解するフーリエ変換の仕組みをインタラクティブに学びます。</p>
+            <a href="fourier-transform.html" class="exhibit-card__link">展示を見る</a>
+          </div>
+        </article>
+
+        <!-- Exhibit 8 -->
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"></div>
+          <div class="exhibit-card__content">
+            <div class="exhibit-card__meta">展示 08</div>
+            <h2 class="exhibit-card__title">星の光を解読する旅 ― スペクトルが語る宇宙の姿</h2>
+            <p class="exhibit-card__desc">星の色・波長・黒体放射・吸収線と輝線まで、スペクトル解析で星の光を読み解くインタラクティブ展示です。</p>
+            <a href="spectrum.html" class="exhibit-card__link">展示を見る</a>
+          </div>
+        </article>
+
+        <!-- Exhibit 9 -->
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"></div>
+          <div class="exhibit-card__content">
+            <div class="exhibit-card__meta">展示 09</div>
+            <h2 class="exhibit-card__title">天体の高度・方位角計算</h2>
+            <p class="exhibit-card__desc">観測地点と日時を指定して、任意の天体の高度・方位角をリアルタイムで計算・可視化する学習用インタラクティブ展示です。</p>
+            <a href="cal.html" class="exhibit-card__link">展示を見る</a>
+          </div>
+        </article>
+
+        <!-- Exhibit 10 -->
+        <article class="exhibit-card">
+          <div class="exhibit-card__visual"></div>
+          <div class="exhibit-card__content">
+            <div class="exhibit-card__meta">展示 10</div>
+            <h2 class="exhibit-card__title">Voyager · Grand Tour Simulator</h2>
+            <p class="exhibit-card__desc">1977年に打ち上げられたボイジャー探査機の「グランドツアー」軌道を、惑星重力スイングバイとともにシミュレートします。</p>
+            <a href="Voyager.html" class="exhibit-card__link">展示を見る</a>
+          </div>
+        </article>
+      </main>
+
+      <!-- Footer: Ft5 Statement -->
+      <footer class="footer-statement">
+        <div class="footer-statement__text">暗闇の先にある、あなただけの宇宙。</div>
+        <div class="footer-statement__meta">
+          <span>バーチャル天文博物館</span>
+          <span>© 2026. All rights reserved.</span>
+        </div>
+      </footer>
+    </div>
+  </body>
 </html>

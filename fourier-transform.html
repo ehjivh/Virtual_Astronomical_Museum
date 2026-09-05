@@ -1,0 +1,1379 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>波をほどく数学 ── フーリエ変換の世界</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* ============ 単一HTML用の最小追加（既存変数のみ参照） ============ */
+
+      /* セクション切替 */
+      .view {
+        display: none;
+      }
+      .view.is-active {
+        display: block;
+        animation: fadeUp 0.45s ease both;
+      }
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      /* ナビ内のエピソード送り */
+      .nav-pill__actions .nav-mini {
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        color: var(--color-muted);
+        align-self: center;
+        padding-right: var(--space-sm);
+        white-space: nowrap;
+      }
+      @media (max-width: 560px) {
+        .nav-pill__actions .nav-mini {
+          display: none;
+        }
+      }
+
+      /* 描画ステージ */
+      .stage {
+        background: var(--color-paper-2);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        padding: var(--space-lg);
+        margin-bottom: var(--space-lg);
+      }
+      .stage canvas {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      /* 数式ボックス（LaTeX非使用・等幅フォント） */
+      .formula {
+        font-family: var(--font-outlier);
+        font-size: var(--text-md);
+        background: var(--color-paper-3);
+        border: 1px solid var(--color-rule);
+        border-radius: 8px;
+        padding: var(--space-md);
+        text-align: center;
+        margin: var(--space-lg) 0;
+        overflow-x: auto;
+        line-height: 1.9;
+      }
+      .formula .hl {
+        color: var(--color-accent);
+      }
+      .formula.big {
+        font-size: var(--text-lg);
+      }
+      .formula .arrow {
+        color: var(--color-muted);
+        font-size: var(--text-sm);
+      }
+
+      /* 操作行 */
+      .ctrl-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+        align-items: center;
+        margin-bottom: var(--space-lg);
+      }
+      .ctrl-row input[type="range"] {
+        flex: 1;
+        min-width: 180px;
+      }
+      select {
+        background: var(--color-paper-3);
+        color: var(--color-ink);
+        border: 1px solid var(--color-rule);
+        border-radius: 9999px;
+        padding: 9px 16px;
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+      }
+
+      /* 2カラム比較 */
+      .two {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-lg);
+        margin-bottom: var(--space-xl);
+      }
+      .two-wide {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: var(--space-xl);
+      }
+      @media (max-width: 768px) {
+        .two,
+        .two-wide {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* 読み取り値 */
+      .readout {
+        font-family: var(--font-outlier);
+        font-size: var(--text-lg);
+        text-align: center;
+        padding: var(--space-md);
+        border-radius: 12px;
+        border: 1px solid var(--color-rule);
+        background: var(--color-paper-2);
+        margin-bottom: var(--space-xl);
+      }
+      .readout b {
+        color: var(--color-accent);
+      }
+
+      /* 前後ナビ */
+      .prevnext {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-md);
+        margin: var(--space-2xl) 0;
+        flex-wrap: wrap;
+      }
+
+      /* 手順リスト */
+      .steps {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 var(--space-2xl);
+      }
+      .steps li {
+        display: flex;
+        gap: var(--space-md);
+        padding: var(--space-md) 0;
+        border-bottom: 1px solid var(--color-rule);
+        align-items: flex-start;
+      }
+      .steps .no {
+        font-family: var(--font-outlier);
+        color: var(--color-accent);
+        flex-shrink: 0;
+        width: 3.2rem;
+      }
+
+      /* 完成式 */
+      .final {
+        text-align: center;
+        padding: var(--space-2xl) var(--space-lg);
+        border: 1px solid var(--color-accent);
+        border-radius: 16px;
+        background: var(--color-paper-2);
+        margin: var(--space-2xl) 0;
+        box-shadow: 0 12px 48px oklch(75% 0.15 45 / 0.12);
+      }
+      .final .eq {
+        font-family: var(--font-outlier);
+        font-size: var(--text-2xl);
+        color: var(--color-ink);
+        overflow-x: auto;
+        padding-bottom: var(--space-xs);
+      }
+      .final .eq .hl {
+        color: var(--color-accent);
+      }
+      @media (max-width: 768px) {
+        .final .eq {
+          font-size: var(--text-md);
+        }
+      }
+
+      /* トップ用 */
+      .hero-wave {
+        width: 100%;
+        height: 200px;
+        display: block;
+        margin: 0 auto var(--space-2xl);
+      }
+      .intro-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--space-lg);
+        margin-bottom: var(--space-4xl);
+      }
+      .exhibit-card__visual svg {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        z-index: 1;
+      }
+      .exhibit-card__link {
+        cursor: pointer;
+      }
+      .lead-center {
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ========== N5 Floating Pill Nav ========== -->
+    <nav class="nav-pill">
+      <span class="nav-pill__wordmark" id="wordmark">Fourier / 波をほどく数学</span>
+      <div class="nav-pill__actions">
+        <span class="nav-mini" id="navMini">全5話</span>
+        <a class="nav-pill__btn" data-go="home">展示一覧</a>
+      </div>
+    </nav>
+
+    <div class="page-container">
+      <!-- ============================================================
+     HOME : 18-portfolio-grid
+     ============================================================ -->
+      <section class="view is-active" id="view-home">
+        <header class="portfolio-header">
+          <p class="portfolio-header__tagline">Signal · Spectrum · Inner Product</p>
+          <h1 class="portfolio-header__title">波をほどく数学</h1>
+          <p class="section-lead lead-center">
+            宇宙の彼方から届いた、ぐしゃぐしゃに混ざったシグナル。<br />
+            これをほどく鍵が「フーリエ変換」です。数式の暗記ではなく、
+            <b style="color: var(--color-accent)">波・矢印（ベクトル）・内積</b> という 3つのイメージだけで、その正体に迫ります。
+          </p>
+        </header>
+
+        <svg class="hero-wave" viewBox="0 0 800 200" preserveAspectRatio="none" aria-label="複雑な合成波">
+          <defs>
+            <linearGradient id="gWave" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="oklch(75% 0.15 45 / 0.12)" />
+              <stop offset="50%" stop-color="oklch(75% 0.15 45 / 1)" />
+              <stop offset="100%" stop-color="oklch(75% 0.15 45 / 0.12)" />
+            </linearGradient>
+          </defs>
+          <path id="heroPath" fill="none" stroke="url(#gWave)" stroke-width="2.5" />
+        </svg>
+
+        <div class="intro-grid">
+          <div class="card">
+            <span class="chip">Goal 01</span>
+            <h2>時間 → 角周波数</h2>
+            <p class="exhibit-card__desc">フーリエ変換は「時間の関数」を「角周波数の関数」に書き換えているだけ。難しい魔法ではありません。</p>
+          </div>
+          <div class="card">
+            <span class="chip">Goal 02</span>
+            <h2>波の重ね合わせ</h2>
+            <p class="exhibit-card__desc">どんなに複雑な波形も、単純なサイン波の足し算に分解できることを目で確かめます。</p>
+          </div>
+          <div class="card">
+            <span class="chip">Goal 03</span>
+            <h2>関数とベクトル</h2>
+            <p class="exhibit-card__desc">「関数の内積」という考え方。ベクトルの直交分解と同じ発想が、波の世界にも通用します。</p>
+          </div>
+        </div>
+
+        <h2 class="section-title"><span class="section-num">EX</span>展示エピソード</h2>
+        <p class="section-lead">全5話。順番に進むと、最後にフーリエ変換の公式が自然に完成します。</p>
+
+        <div class="portfolio-grid">
+          <article class="exhibit-card" data-go="ep1">
+            <div class="exhibit-card__visual">
+              <svg viewBox="0 0 320 200">
+                <path d="M0 100 Q 20 30 40 100 T 80 100 T 120 100 T 160 100 T 200 100 T 240 100 T 280 100 T 320 100" fill="none" stroke="oklch(75% 0.15 45)" stroke-width="2" />
+              </svg>
+            </div>
+            <div class="exhibit-card__content">
+              <p class="exhibit-card__meta">Episode 01 · Decoding</p>
+              <h3 class="exhibit-card__title">複雑なメッセージを読み解く</h3>
+              <p class="exhibit-card__desc">合成波が 5sin2t + 4sin5t + 3sin7t にほどけ、スペクトル（棒グラフ）に生まれ変わる瞬間。</p>
+              <a class="exhibit-card__link" data-go="ep1">展示を見る</a>
+            </div>
+          </article>
+
+          <article class="exhibit-card" data-go="ep2">
+            <div class="exhibit-card__visual">
+              <svg viewBox="0 0 320 200">
+                <line x1="70" y1="150" x2="190" y2="150" stroke="oklch(72% 0.008 260)" stroke-width="2" stroke-dasharray="5 4" />
+                <line x1="190" y1="150" x2="190" y2="60" stroke="oklch(72% 0.008 260)" stroke-width="2" stroke-dasharray="5 4" />
+                <line x1="70" y1="150" x2="190" y2="60" stroke="oklch(75% 0.15 45)" stroke-width="2.5" />
+              </svg>
+            </div>
+            <div class="exhibit-card__content">
+              <p class="exhibit-card__meta">Episode 02 · Analogy</p>
+              <h3 class="exhibit-card__title">波と矢印の意外な関係</h3>
+              <p class="exhibit-card__desc">ベクトルの成分分解と、関数の三角関数分解。並べて見ると驚くほど似ています。</p>
+              <a class="exhibit-card__link" data-go="ep2">展示を見る</a>
+            </div>
+          </article>
+
+          <article class="exhibit-card" data-go="ep3">
+            <div class="exhibit-card__visual">
+              <svg viewBox="0 0 320 200">
+                <path d="M0 140 Q 40 45 80 140 T 160 140 T 240 140 T 320 140" fill="none" stroke="oklch(75% 0.15 45)" stroke-width="2" />
+                <path d="M0 80 Q 20 130 40 80 T 80 80 T 120 80 T 160 80 T 200 80 T 240 80 T 280 80 T 320 80" fill="none" stroke="oklch(72% 0.008 260)" stroke-width="1.6" />
+              </svg>
+            </div>
+            <div class="exhibit-card__content">
+              <p class="exhibit-card__meta">Episode 03 · Orthogonality</p>
+              <h3 class="exhibit-card__title">直交する波を見つける</h3>
+              <p class="exhibit-card__desc">2つの関数を掛けて積分すると 0。それは「直交」のしるし。含有量を測るものさしです。</p>
+              <a class="exhibit-card__link" data-go="ep3">展示を見る</a>
+            </div>
+          </article>
+
+          <article class="exhibit-card" data-go="ep4">
+            <div class="exhibit-card__visual">
+              <svg viewBox="0 0 320 200">
+                <circle cx="160" cy="100" r="58" fill="none" stroke="oklch(28% 0.01 260)" stroke-width="1.5" />
+                <line x1="160" y1="100" x2="210" y2="70" stroke="oklch(75% 0.15 45)" stroke-width="2.5" />
+                <line x1="160" y1="100" x2="210" y2="130" stroke="oklch(72% 0.008 260)" stroke-width="2" stroke-dasharray="4 3" />
+              </svg>
+            </div>
+            <div class="exhibit-card__content">
+              <p class="exhibit-card__meta">Episode 04 · Euler</p>
+              <h3 class="exhibit-card__title">魔法の公式でシンプルに</h3>
+              <p class="exhibit-card__desc">e^(iωt) = cosωt + i sinωt。複素平面での回転として波をとらえ直します。</p>
+              <a class="exhibit-card__link" data-go="ep4">展示を見る</a>
+            </div>
+          </article>
+
+          <article class="exhibit-card" data-go="ep5">
+            <div class="exhibit-card__visual">
+              <svg viewBox="0 0 320 200">
+                <line x1="20" y1="110" x2="300" y2="110" stroke="oklch(28% 0.01 260)" stroke-width="1.5" />
+                <text x="22" y="100" fill="oklch(75% 0.15 45)" font-size="17" font-family="monospace">-∞</text>
+                <text x="264" y="100" fill="oklch(75% 0.15 45)" font-size="17" font-family="monospace">+∞</text>
+                <path d="M70 110 Q 100 62 130 110 T 190 110 T 250 110" fill="none" stroke="oklch(75% 0.15 45)" stroke-width="2" />
+              </svg>
+            </div>
+            <div class="exhibit-card__content">
+              <p class="exhibit-card__meta">Episode 05 · Completion</p>
+              <h3 class="exhibit-card__title">宇宙の果てから果てまで</h3>
+              <p class="exhibit-card__desc">周期のない波を扱うため、積分範囲を −∞ から ∞ へ。ついに公式が完成します。</p>
+              <a class="exhibit-card__link" data-go="ep5">展示を見る</a>
+            </div>
+          </article>
+
+          <article class="exhibit-card" data-go="ref">
+            <div class="exhibit-card__visual">
+              <svg viewBox="0 0 320 200">
+                <g stroke="oklch(75% 0.15 45)" stroke-width="10" stroke-linecap="round">
+                  <line x1="95" y1="150" x2="95" y2="66" />
+                  <line x1="160" y1="150" x2="160" y2="94" />
+                  <line x1="225" y1="150" x2="225" y2="116" />
+                </g>
+              </svg>
+            </div>
+            <div class="exhibit-card__content">
+              <p class="exhibit-card__meta">Appendix · Summary</p>
+              <h3 class="exhibit-card__title">まとめと参考資料</h3>
+              <p class="exhibit-card__desc">全5話の要点を1枚に。出典・参考文献へのリンクもこちら。</p>
+              <a class="exhibit-card__link" data-go="ref">まとめを見る</a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ============================================================
+     EPISODE 1
+     ============================================================ -->
+      <section class="view" id="view-ep1">
+        <header class="portfolio-header">
+          <p class="portfolio-header__tagline">Episode 01 · Decoding the Signal</p>
+          <h1 class="portfolio-header__title">複雑なメッセージを<br />読み解く</h1>
+        </header>
+
+        <h2 class="section-title"><span class="section-num">1</span>届いたのは、ぐしゃぐしゃの波</h2>
+        <p class="section-lead">望遠鏡がとらえた光や電波は、たいていこんな形をしています。一見でたらめ。 けれどこの波は、たった3つのサイン波を足しただけのものです。</p>
+
+        <div class="stage"><canvas id="cvSum" width="900" height="210"></canvas></div>
+
+        <div class="ctrl-row">
+          <button class="btn btn-primary" id="btnSplit">波を分解する</button>
+          <button class="btn btn-outline" id="btnSpec">スペクトルに変換</button>
+          <button class="btn btn-outline" id="btnReset">最初にもどす</button>
+        </div>
+
+        <div class="stage"><canvas id="cvParts" width="900" height="300"></canvas></div>
+
+        <div class="formula">f(t) = <span class="hl">5 sin 2t</span> + <span class="hl">4 sin 5t</span> + <span class="hl">3 sin 7t</span></div>
+
+        <h2 class="section-title"><span class="section-num">2</span>横軸を「角周波数」に取りかえる</h2>
+        <p class="section-lead">分解できたなら、あとは「どの角周波数の波が、どれだけ入っているか」を書き並べればよい。 それがスペクトル（棒グラフ）です。</p>
+
+        <div class="stage"><canvas id="cvSpec" width="900" height="260"></canvas></div>
+
+        <div class="hint"><b>ここが要点：</b>フーリエ変換とは、ごちゃごちゃに集まった波形を単純なサイン波の和で表し、 扱いやすくする技術です。やっていることは <b>「時間の関数 → 角周波数の関数」への書き換え</b> に過ぎません。</div>
+
+        <div class="prevnext">
+          <button class="btn btn-outline" data-go="home">← 展示一覧</button>
+          <button class="btn btn-primary" data-go="ep2">Episode 02 波と矢印の意外な関係 →</button>
+        </div>
+      </section>
+
+      <!-- ============================================================
+     EPISODE 2
+     ============================================================ -->
+      <section class="view" id="view-ep2">
+        <header class="portfolio-header">
+          <p class="portfolio-header__tagline">Episode 02 · Vector &amp; Function</p>
+          <h1 class="portfolio-header__title">波と矢印の<br />意外な関係</h1>
+        </header>
+
+        <h2 class="section-title"><span class="section-num">1</span>並べてみると、同じことをしている</h2>
+        <p class="section-lead">左は数学Bで習う「ベクトルの成分分解」。右は「関数を三角関数に分解」。 やっていることの形はそっくりです。スライダーを動かして見比べてください。</p>
+
+        <div class="ctrl-row">
+          <span class="chip">分解のようす</span>
+          <input type="range" id="sl2" min="0" max="100" value="0" />
+          <span class="stat-chip" id="sl2v">合成した状態</span>
+        </div>
+
+        <div class="two">
+          <div class="card">
+            <h2>矢印の世界：ベクトル</h2>
+            <p class="exhibit-card__desc">1つの矢印は、x方向とy方向という<b style="color: var(--color-accent)">直交する2つの矢印</b>の和で書ける。</p>
+            <canvas id="cvVec" width="420" height="330" style="width: 100%; height: auto; display: block"></canvas>
+          </div>
+          <div class="card">
+            <h2>波の世界：関数</h2>
+            <p class="exhibit-card__desc">1つの関数は、周波数の違う<b style="color: var(--color-accent)">直交する三角関数</b>の和で書ける。</p>
+            <canvas id="cvFun" width="420" height="330" style="width: 100%; height: auto; display: block"></canvas>
+          </div>
+        </div>
+
+        <div class="formula">
+          <span class="hl">v</span> = a · <span class="hl">e₁</span> + b · <span class="hl">e₂</span>
+          &nbsp;&nbsp;⟷&nbsp;&nbsp;
+          <span class="hl">f(t)</span> = c₁ · <span class="hl">sin t</span> + c₂ · <span class="hl">sin 2t</span> + c₃ · <span class="hl">sin 3t</span> + …
+        </div>
+
+        <h2 class="section-title"><span class="section-num">2</span>足し算のしかたまで同じ</h2>
+        <p class="section-lead">ベクトルの足し算は「成分ごとの和」。関数の足し算も「成分ごとの和」。 つまりベクトルと関数は、本質的に似た性質を持つ仲間なのです。</p>
+
+        <div class="formula">
+          (a₁, a₂) + (b₁, b₂) = (a₁+b₁, a₂+b₂)<br />
+          <span class="arrow">↓ 同じ発想 ↓</span><br />
+          (c₁ sin t + c₂ sin 2t) + (d₁ sin t + d₂ sin 2t) = <span class="hl">(c₁+d₁) sin t + (c₂+d₂) sin 2t</span>
+        </div>
+
+        <div class="hint"><b>ここが要点：</b>「直交するものを基準にして分解する」という一点で、ベクトルと関数はつながっています。 次のエピソードでは、<b>関数どうしが直交しているかを判定する道具＝内積</b> を手に入れます。</div>
+
+        <div class="prevnext">
+          <button class="btn btn-outline" data-go="ep1">← Episode 01</button>
+          <button class="btn btn-primary" data-go="ep3">Episode 03 直交する波を見つける →</button>
+        </div>
+      </section>
+
+      <!-- ============================================================
+     EPISODE 3
+     ============================================================ -->
+      <section class="view" id="view-ep3">
+        <header class="portfolio-header">
+          <p class="portfolio-header__tagline">Episode 03 · Inner Product</p>
+          <h1 class="portfolio-header__title">直交する波を<br />見つける</h1>
+        </header>
+
+        <h2 class="section-title"><span class="section-num">1</span>内積を、積分に育てる</h2>
+        <p class="section-lead">ベクトルの内積は「成分ごとの積を、全部足す」。 関数は成分が無限にあるので、足し算のかわりに積分を使います。違いはそれだけです。</p>
+
+        <div class="formula">
+          a · b = a₁b₁ + a₂b₂ + … + aₙbₙ<br />
+          <span class="arrow">↓ 成分を無限に細かく（Σ → ∫）↓</span><br />
+          ⟨f, g⟩ = <span class="hl">∫<sub>-∞</sub><sup>∞</sup> f(x) g(x) dx</span>
+        </div>
+
+        <h2 class="section-title"><span class="section-num">2</span>掛けて、積分すると…</h2>
+        <p class="section-lead">
+          2つの波を選んでください。下段は「積 f(x)g(x)」で、
+          <b style="color: var(--color-accent)">オレンジ＝プラスの面積</b> ／ <b style="color: var(--color-muted)">グレー＝マイナスの面積</b> です。
+        </p>
+
+        <div class="ctrl-row">
+          <select id="fSel">
+            <option value="s1">f(x) = sin x</option>
+            <option value="s2">f(x) = sin 2x</option>
+            <option value="c1">f(x) = cos x</option>
+          </select>
+          <select id="gSel">
+            <option value="s2">g(x) = sin 2x</option>
+            <option value="s1">g(x) = sin x</option>
+            <option value="s3">g(x) = sin 3x</option>
+            <option value="c1">g(x) = cos x</option>
+          </select>
+        </div>
+
+        <div class="stage"><canvas id="cvTop" width="900" height="200"></canvas></div>
+        <div class="stage"><canvas id="cvBot" width="900" height="220"></canvas></div>
+
+        <div class="readout" id="out3"></div>
+
+        <div class="hint"><b>ここが要点：</b>角周波数の違う三角関数どうし（例：sin x と sin 2x）の内積は <b>0</b> になります。 内積が0とは、ベクトルと同じく「<b>直交している</b>」という意味。 だからこそ、それぞれの波の"含有量"を、他の波に邪魔されずに取り出せるのです。</div>
+
+        <div class="prevnext">
+          <button class="btn btn-outline" data-go="ep2">← Episode 02</button>
+          <button class="btn btn-primary" data-go="ep4">Episode 04 魔法の公式でシンプルに →</button>
+        </div>
+      </section>
+
+      <!-- ============================================================
+     EPISODE 4
+     ============================================================ -->
+      <section class="view" id="view-ep4">
+        <header class="portfolio-header">
+          <p class="portfolio-header__tagline">Episode 04 · Euler's Formula</p>
+          <h1 class="portfolio-header__title">魔法の公式で<br />シンプルに</h1>
+        </header>
+
+        <h2 class="section-title"><span class="section-num">1</span>波は、回る点の影だった</h2>
+        <p class="section-lead">左の円をぐるぐる回る点。その「縦の影」がサイン波、「横の影」がコサイン波です。 この回転そのものを1文字で書くのが、オイラーの公式です。</p>
+
+        <div class="formula big">
+          <span class="hl">e<sup>iωt</sup></span> = cos ωt + <span class="hl">i</span> sin ωt
+        </div>
+
+        <div class="ctrl-row">
+          <span class="chip">角周波数 ω</span>
+          <input type="range" id="omega" min="1" max="5" step="1" value="1" />
+          <span class="stat-chip" id="omegaVal">ω = 1</span>
+          <button class="btn btn-outline" id="btnToggle">一時停止</button>
+        </div>
+
+        <div class="stage two-wide">
+          <canvas id="cvCircle" width="340" height="330"></canvas>
+          <canvas id="cvTrace" width="560" height="330"></canvas>
+        </div>
+
+        <h2 class="section-title"><span class="section-num">2</span>なぜ「共役」を掛けるのか</h2>
+        <p class="section-lead">複素数のまま内積を取ると、自分自身との内積がマイナスになってしまうことがあります。 そこで片方を <b style="color: var(--color-accent)">共役複素数</b>（回転の向きを逆にしたもの）に取りかえます。</p>
+
+        <div class="two">
+          <div class="card">
+            <span class="chip">そのまま掛ける</span>
+            <h2>e<sup>iωt</sup> × e<sup>iωt</sup></h2>
+            <p class="exhibit-card__desc">= e<sup>2iωt</sup>。回転が2倍速になるだけで、いつまでも回り続ける。大きさの情報が取り出せません。</p>
+          </div>
+          <div class="card">
+            <span class="chip">共役を掛ける</span>
+            <h2>
+              e<sup>iωt</sup> × <span style="color: var(--color-accent)">e<sup>-iωt</sup></span>
+            </h2>
+            <p class="exhibit-card__desc">= e<sup>0</sup> = 1。回転がぴたりと止まり、必ず正の値になる。だから「大きさ」を測れます。</p>
+          </div>
+        </div>
+
+        <div class="formula">
+          フーリエ係数（振幅）= 関数 と <span class="hl">共役な複素波 e<sup>-iωt</sup></span> との内積
+        </div>
+
+        <div class="hint"><b>ここが要点：</b>指数関数を使うと、サイン・コサインの長い羅列が1つの式にまとまります。 そして振幅を取り出すときは、必ず <b>e<sup>-iωt</sup>（共役）</b> を掛ける。 次のエピソードで、この形がそのまま公式になります。</div>
+
+        <div class="prevnext">
+          <button class="btn btn-outline" data-go="ep3">← Episode 03</button>
+          <button class="btn btn-primary" data-go="ep5">Episode 05 宇宙の果てから果てまで →</button>
+        </div>
+      </section>
+
+      <!-- ============================================================
+     EPISODE 5
+     ============================================================ -->
+      <section class="view" id="view-ep5">
+        <header class="portfolio-header">
+          <p class="portfolio-header__tagline">Episode 05 · The Formula</p>
+          <h1 class="portfolio-header__title">宇宙の果てから<br />果てまで</h1>
+        </header>
+
+        <h2 class="section-title"><span class="section-num">1</span>くり返さない波、どうする？</h2>
+        <p class="section-lead">ここまでの波は、同じ形をくり返す「周期関数」でした。だから -π 〜 π を調べれば十分だった。 でも宇宙から届く信号は、二度と同じ形をくり返さないかもしれません。</p>
+
+        <div class="ctrl-row">
+          <span class="chip">波のタイプ</span>
+          <button class="btn btn-outline" id="btnP">周期的な波</button>
+          <button class="btn btn-primary" id="btnN">周期のない波</button>
+        </div>
+
+        <div class="stage"><canvas id="cv5" width="900" height="240"></canvas></div>
+
+        <div class="two">
+          <div class="card">
+            <span class="chip">周期関数</span>
+            <h2>∫<sub>-π</sub><sup>π</sup> … dx</h2>
+            <p class="exhibit-card__desc">1周期ぶんだけ見れば、その先も同じ。積分範囲は -π 〜 π で十分です。</p>
+          </div>
+          <div class="card">
+            <span class="chip">非周期関数</span>
+            <h2>
+              <span style="color: var(--color-accent)">∫<sub>-∞</sub><sup>∞</sup></span> … dt
+            </h2>
+            <p class="exhibit-card__desc">くり返さないので、切り取ると情報が失われる。だから果てから果てまで、全部足します。</p>
+          </div>
+        </div>
+
+        <h2 class="section-title"><span class="section-num">2</span>公式の完成</h2>
+        <p class="section-lead">これまで手に入れた道具を、順番に並べるだけです。</p>
+
+        <ul class="steps">
+          <li>
+            <span class="no">EP1</span>
+            <div>複雑な波は、単純なサイン波の和で書ける。<b style="color: var(--color-accent)">→ 分解できる</b></div>
+          </li>
+          <li>
+            <span class="no">EP2</span>
+            <div>関数はベクトルと同じ性質を持つ。<b style="color: var(--color-accent)">→ 直交する基準で分解する</b></div>
+          </li>
+          <li>
+            <span class="no">EP3</span>
+            <div>含有量を測る道具は内積 ＝ 掛けて積分。<b style="color: var(--color-accent)">→ ∫ f g dx</b></div>
+          </li>
+          <li>
+            <span class="no">EP4</span>
+            <div>波は e<sup>iωt</sup> で書き、共役 e<sup>-iωt</sup> を掛ける。<b style="color: var(--color-accent)">→ 掛ける相手が決まった</b></div>
+          </li>
+          <li>
+            <span class="no">EP5</span>
+            <div>周期がないので、範囲は -∞ 〜 ∞。<b style="color: var(--color-accent)">→ 完成</b></div>
+          </li>
+        </ul>
+
+        <div class="final">
+          <p class="portfolio-header__tagline">Fourier Transform</p>
+          <div class="eq">
+            F(ω) = <span class="hl">∫<sub>-∞</sub><sup>∞</sup></span> f(t) · <span class="hl">e<sup>-iωt</sup></span> dt
+          </div>
+          <p class="section-lead lead-center" style="margin-top: var(--space-lg)">
+            左辺は <b style="color: var(--color-accent)">角周波数 ω の関数</b>、右辺の中身は <b style="color: var(--color-accent)">時間 t の関数</b>。<br />
+            フーリエ変換は、やはり「時間の関数を角周波数の関数に変換している」だけなのです。
+          </p>
+        </div>
+
+        <div class="hint"><b>おつかれさまでした：</b>この式を見たとき、記号の羅列ではなく 「<b>波を直交する基準に分解して、内積で含有量を測っている</b>」という風景が浮かぶようになっていれば、 この展示の目的は達成です。</div>
+
+        <div class="prevnext">
+          <button class="btn btn-outline" data-go="ep4">← Episode 04</button>
+          <button class="btn btn-primary" data-go="ref">まとめと参考資料 →</button>
+        </div>
+      </section>
+
+      <!-- ============================================================
+     APPENDIX
+     ============================================================ -->
+      <section class="view" id="view-ref">
+        <header class="portfolio-header">
+          <p class="portfolio-header__tagline">Appendix · Summary &amp; Reference</p>
+          <h1 class="portfolio-header__title">まとめと<br />参考資料</h1>
+        </header>
+
+        <h2 class="section-title"><span class="section-num">S</span>全5話の要点</h2>
+        <div class="portfolio-grid">
+          <div class="card">
+            <span class="chip">Episode 01</span>
+            <h2>分解できる</h2>
+            <p class="exhibit-card__desc">複雑な波形は単純なサイン波の和。横軸を角周波数にすればスペクトルになる。</p>
+          </div>
+          <div class="card">
+            <span class="chip">Episode 02</span>
+            <h2>関数 ≒ ベクトル</h2>
+            <p class="exhibit-card__desc">直交する基準で分解し、成分ごとに足す。矢印と波は同じ構造を持つ。</p>
+          </div>
+          <div class="card">
+            <span class="chip">Episode 03</span>
+            <h2>内積は積分</h2>
+            <p class="exhibit-card__desc">∫ f(x)g(x)dx が0なら直交。だから成分を独立に取り出せる。</p>
+          </div>
+          <div class="card">
+            <span class="chip">Episode 04</span>
+            <h2>e の力</h2>
+            <p class="exhibit-card__desc">波は複素平面の回転。振幅を測るには共役 e^(-iωt) を掛ける。</p>
+          </div>
+          <div class="card">
+            <span class="chip">Episode 05</span>
+            <h2>範囲は無限</h2>
+            <p class="exhibit-card__desc">非周期関数では -∞ 〜 ∞ で積分。ここで公式が完成する。</p>
+          </div>
+          <div class="card">
+            <span class="chip">Reference</span>
+            <h2>参考文献</h2>
+            <p class="exhibit-card__desc">迫佑樹 (2017)「フーリエ変換を宇宙一わかりやすく解説してみる」</p>
+            <a class="btn btn-outline" href="https://skill-hacks.co.jp/media/fourier-transform/" target="_blank" rel="noopener">出典ページを開く</a>
+          </div>
+        </div>
+
+        <div class="final">
+          <p class="portfolio-header__tagline">Fourier Transform</p>
+          <div class="eq">
+            F(ω) = <span class="hl">∫<sub>-∞</sub><sup>∞</sup></span> f(t) · <span class="hl">e<sup>-iωt</sup></span> dt
+          </div>
+        </div>
+
+        <div class="prevnext">
+          <button class="btn btn-outline" data-go="ep5">← Episode 05</button>
+          <button class="btn btn-primary" data-go="home">展示一覧にもどる →</button>
+        </div>
+      </section>
+
+      <!-- ========== Ft5 Statement Footer ========== -->
+      <footer class="footer-statement">
+        <p class="footer-statement__text" id="footText">複雑な波は、単純な波の合唱でできている。</p>
+        <div class="footer-statement__meta">
+          <span>Web展示「波をほどく数学 ── フーリエ変換の世界」</span>
+          <span id="footMeta">For High School Students</span>
+        </div>
+      </footer>
+    </div>
+    <!-- /.page-container -->
+
+    <script>
+      /* =====================================================================
+   共通カラー（style.css の変数と同値）
+   ===================================================================== */
+      const ACC = "oklch(75% 0.15 45)";
+      const ACC_A = "oklch(75% 0.15 45 / 0.45)";
+      const MUT = "oklch(72% 0.008 260)";
+      const MUT_A = "oklch(72% 0.008 260 / 0.32)";
+      const NEU = "oklch(58% 0.01 260)";
+      const RUL = "oklch(28% 0.01 260)";
+
+      /* =====================================================================
+   ビュー切替
+   ===================================================================== */
+      const META = {
+        home: { mark: "Fourier / 波をほどく数学", mini: "全5話", foot: "複雑な波は、単純な波の合唱でできている。", fmeta: "For High School Students" },
+        ep1: { mark: "Episode 01", mini: "01 / 05", foot: "分解できれば、読み解ける。", fmeta: "Episode 01 / 05" },
+        ep2: { mark: "Episode 02", mini: "02 / 05", foot: "矢印と波は、同じ言葉を話している。", fmeta: "Episode 02 / 05" },
+        ep3: { mark: "Episode 03", mini: "03 / 05", foot: "内積がゼロ。それは、混ざらないという約束。", fmeta: "Episode 03 / 05" },
+        ep4: { mark: "Episode 04", mini: "04 / 05", foot: "回転が止まる場所に、答えがある。", fmeta: "Episode 04 / 05" },
+        ep5: { mark: "Episode 05", mini: "05 / 05", foot: "果てから果てまで足し合わせて、はじめて波はほどける。", fmeta: "Episode 05 / 05" },
+        ref: { mark: "Appendix", mini: "まとめ", foot: "数式は、風景として覚える。", fmeta: "Summary & Reference" },
+      };
+
+      function go(key) {
+        if (!META[key]) key = "home";
+        document.querySelectorAll(".view").forEach((v) => v.classList.remove("is-active"));
+        document.getElementById("view-" + key).classList.add("is-active");
+        document.getElementById("wordmark").textContent = META[key].mark;
+        document.getElementById("navMini").textContent = META[key].mini;
+        document.getElementById("footText").textContent = META[key].foot;
+        document.getElementById("footMeta").textContent = META[key].fmeta;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        if (key === "ep1") ep1.reset();
+        if (key === "ep2") ep2.render();
+        if (key === "ep3") ep3.render();
+        if (key === "ep5") ep5.setBtn();
+      }
+      document.addEventListener("click", (e) => {
+        const el = e.target.closest("[data-go]");
+        if (el) {
+          e.preventDefault();
+          go(el.dataset.go);
+        }
+      });
+
+      /* =====================================================================
+   描画ユーティリティ
+   ===================================================================== */
+      function hline(ctx, w, y) {
+        ctx.strokeStyle = RUL;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+      function curve(ctx, w, y0, amp, fn, color, lw) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lw || 2;
+        ctx.beginPath();
+        for (let x = 0; x <= w; x++) {
+          const t = (x / w) * Math.PI * 4,
+            y = y0 - fn(t) * amp;
+          x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      function arrow(c, x1, y1, x2, y2, col, lw) {
+        c.strokeStyle = col;
+        c.fillStyle = col;
+        c.lineWidth = lw;
+        c.beginPath();
+        c.moveTo(x1, y1);
+        c.lineTo(x2, y2);
+        c.stroke();
+        const a = Math.atan2(y2 - y1, x2 - x1);
+        c.beginPath();
+        c.moveTo(x2, y2);
+        c.lineTo(x2 - 11 * Math.cos(a - 0.4), y2 - 11 * Math.sin(a - 0.4));
+        c.lineTo(x2 - 11 * Math.cos(a + 0.4), y2 - 11 * Math.sin(a + 0.4));
+        c.closePath();
+        c.fill();
+      }
+
+      /* =====================================================================
+   HERO（トップの合成波）
+   ===================================================================== */
+      (function () {
+        const p = document.getElementById("heroPath");
+        let ph = 0;
+        (function loop() {
+          let d = "";
+          for (let x = 0; x <= 800; x += 4) {
+            const t = (x / 800) * Math.PI * 4 + ph;
+            const y = 100 - (25 * Math.sin(2 * t) + 20 * Math.sin(5 * t) + 15 * Math.sin(7 * t)) * 0.85;
+            d += (x === 0 ? "M" : "L") + x + " " + y.toFixed(1);
+          }
+          p.setAttribute("d", d);
+          ph += 0.012;
+          requestAnimationFrame(loop);
+        })();
+      })();
+
+      /* =====================================================================
+   EPISODE 1
+   ===================================================================== */
+      const ep1 = (function () {
+        const comps = [
+          { a: 5, w: 2 },
+          { a: 4, w: 5 },
+          { a: 3, w: 7 },
+        ];
+        const c1 = document.getElementById("cvSum").getContext("2d");
+        const c2 = document.getElementById("cvParts").getContext("2d");
+        const c3 = document.getElementById("cvSpec").getContext("2d");
+        let split = 0,
+          grow = 0,
+          busy = false;
+
+        function drawSum() {
+          const w = 900,
+            h = 210,
+            y0 = h / 2;
+          c1.clearRect(0, 0, w, h);
+          hline(c1, w, y0);
+          curve(c1, w, y0, 12, (t) => comps.reduce((s, c) => s + c.a * Math.sin(c.w * t), 0), ACC, 2.5);
+          c1.fillStyle = MUT;
+          c1.font = "13px monospace";
+          c1.fillText("受信したシグナル f(t)", 12, 24);
+        }
+        function drawParts() {
+          const w = 900,
+            h = 300;
+          c2.clearRect(0, 0, w, h);
+          comps.forEach((c, i) => {
+            const base = h / 2,
+              target = 58 + i * 95;
+            const y0 = base + (target - base) * split;
+            c2.globalAlpha = 0.28 + 0.72 * split;
+            hline(c2, w, y0);
+            curve(c2, w, y0, 12, (t) => c.a * Math.sin(c.w * t), i === 0 ? ACC : MUT, 2);
+            c2.globalAlpha = split;
+            c2.fillStyle = MUT;
+            c2.font = "13px monospace";
+            c2.fillText(c.a + " sin " + c.w + "t", 8, y0 - 34);
+            c2.globalAlpha = 1;
+          });
+          if (split < 0.05) {
+            c2.fillStyle = MUT;
+            c2.font = "13px monospace";
+            c2.fillText("「波を分解する」を押してください", 12, 24);
+          }
+        }
+        function drawSpec() {
+          const w = 900,
+            h = 260,
+            base = h - 42;
+          c3.clearRect(0, 0, w, h);
+          c3.strokeStyle = RUL;
+          c3.lineWidth = 1;
+          c3.beginPath();
+          c3.moveTo(44, base);
+          c3.lineTo(w - 20, base);
+          c3.stroke();
+          c3.beginPath();
+          c3.moveTo(44, 20);
+          c3.lineTo(44, base);
+          c3.stroke();
+          c3.fillStyle = MUT;
+          c3.font = "12px monospace";
+          c3.fillText("振幅", 8, 18);
+          c3.fillText("角周波数 ω", w - 116, base + 28);
+          comps.forEach((c) => {
+            const x = 44 + c.w * 95;
+            const bh = c.a * 27 * grow;
+            c3.fillStyle = ACC;
+            c3.fillRect(x - 13, base - bh, 26, bh);
+            c3.fillStyle = MUT;
+            c3.fillText("ω=" + c.w, x - 19, base + 20);
+            if (grow > 0.9) {
+              c3.fillStyle = ACC;
+              c3.fillText(String(c.a), x - 5, base - bh - 8);
+            }
+          });
+          if (grow < 0.05) {
+            c3.fillStyle = MUT;
+            c3.font = "13px monospace";
+            c3.fillText("「スペクトルに変換」を押してください", 60, 34);
+          }
+        }
+        function all() {
+          drawSum();
+          drawParts();
+          drawSpec();
+        }
+
+        function anim(kind) {
+          if (busy) return;
+          busy = true;
+          (function step() {
+            if (kind === "split") {
+              split = Math.min(1, split + 0.02);
+            } else {
+              if (split < 1) split = Math.min(1, split + 0.045);
+              grow = Math.min(1, grow + 0.02);
+            }
+            all();
+            const done = kind === "split" ? split >= 1 : grow >= 1;
+            done ? (busy = false) : requestAnimationFrame(step);
+          })();
+        }
+        document.getElementById("btnSplit").onclick = () => anim("split");
+        document.getElementById("btnSpec").onclick = () => anim("spec");
+        document.getElementById("btnReset").onclick = () => {
+          split = 0;
+          grow = 0;
+          busy = false;
+          all();
+        };
+
+        all();
+        return {
+          reset() {
+            split = 0;
+            grow = 0;
+            busy = false;
+            all();
+          },
+        };
+      })();
+
+      /* =====================================================================
+   EPISODE 2
+   ===================================================================== */
+      const ep2 = (function () {
+        const v = document.getElementById("cvVec").getContext("2d");
+        const f = document.getElementById("cvFun").getContext("2d");
+        const sl = document.getElementById("sl2");
+        const lab = document.getElementById("sl2v");
+        const comps = [
+          { a: 26, k: 1 },
+          { a: 16, k: 2 },
+          { a: 10, k: 3 },
+        ];
+
+        function drawVec(p) {
+          const w = 420,
+            h = 330,
+            ox = 68,
+            oy = 262,
+            ax = 252,
+            ay = -172;
+          v.clearRect(0, 0, w, h);
+          v.strokeStyle = RUL;
+          v.lineWidth = 1;
+          for (let i = 0; i <= 6; i++) {
+            v.beginPath();
+            v.moveTo(ox + i * 42, 44);
+            v.lineTo(ox + i * 42, oy);
+            v.stroke();
+          }
+          for (let i = 0; i <= 4; i++) {
+            v.beginPath();
+            v.moveTo(ox, oy - i * 54);
+            v.lineTo(w - 16, oy - i * 54);
+            v.stroke();
+          }
+          v.strokeStyle = NEU;
+          v.lineWidth = 1.5;
+          v.beginPath();
+          v.moveTo(ox, oy);
+          v.lineTo(w - 16, oy);
+          v.stroke();
+          v.beginPath();
+          v.moveTo(ox, oy);
+          v.lineTo(ox, 34);
+          v.stroke();
+          // 成分（点線＋矢印）
+          v.globalAlpha = p;
+          v.setLineDash([5, 4]);
+          arrow(v, ox, oy, ox + ax * p, oy, MUT, 2);
+          arrow(v, ox + ax * p, oy, ox + ax * p, oy + ay * p, MUT, 2);
+          v.setLineDash([]);
+          v.globalAlpha = 1;
+          // 合成ベクトル
+          arrow(v, ox, oy, ox + ax, oy + ay, ACC, 2.6);
+          v.fillStyle = MUT;
+          v.font = "13px monospace";
+          v.globalAlpha = p;
+          v.fillText("x 成分", ox + ax / 2 - 22, oy + 22);
+          v.fillText("y 成分", ox + ax + 8, oy + ay / 2);
+          v.globalAlpha = 1;
+          v.fillStyle = ACC;
+          v.fillText("v", ox + ax - 26, oy + ay - 8);
+        }
+        function drawFun(p) {
+          const w = 420,
+            h = 330,
+            merged = h / 2 - 24;
+          f.clearRect(0, 0, w, h);
+          comps.forEach((c, i) => {
+            const target = 56 + i * 94;
+            const y0 = merged + (target - merged) * p;
+            f.strokeStyle = RUL;
+            f.lineWidth = 1;
+            f.beginPath();
+            f.moveTo(0, y0);
+            f.lineTo(w, y0);
+            f.stroke();
+            f.strokeStyle = i === 0 ? ACC : MUT;
+            f.lineWidth = 2;
+            f.globalAlpha = 0.3 + 0.7 * p;
+            f.beginPath();
+            for (let x = 0; x <= w; x++) {
+              const t = (x / w) * Math.PI * 2,
+                y = y0 - c.a * Math.sin(c.k * t);
+              x === 0 ? f.moveTo(x, y) : f.lineTo(x, y);
+            }
+            f.stroke();
+            f.globalAlpha = 1;
+            if (p > 0.3) {
+              f.globalAlpha = (p - 0.3) / 0.7;
+              f.fillStyle = MUT;
+              f.font = "12px monospace";
+              f.fillText("sin " + c.k + "t", 6, y0 - 32);
+              f.globalAlpha = 1;
+            }
+          });
+          if (p < 0.5) {
+            f.strokeStyle = ACC;
+            f.lineWidth = 2.6;
+            f.globalAlpha = 1 - p * 2;
+            f.beginPath();
+            for (let x = 0; x <= w; x++) {
+              const t = (x / w) * Math.PI * 2;
+              const y = merged - comps.reduce((s, c) => s + c.a * Math.sin(c.k * t), 0) * 0.7;
+              x === 0 ? f.moveTo(x, y) : f.lineTo(x, y);
+            }
+            f.stroke();
+            f.globalAlpha = 1;
+            f.fillStyle = ACC;
+            f.font = "12px monospace";
+            f.globalAlpha = 1 - p * 2;
+            f.fillText("f(t)", 6, merged - 56);
+            f.globalAlpha = 1;
+          }
+        }
+        function render() {
+          const p = sl.value / 100;
+          lab.textContent = p < 0.05 ? "合成した状態" : p > 0.95 ? "完全に分解" : "分解中 " + Math.round(p * 100) + "%";
+          drawVec(p);
+          drawFun(p);
+        }
+        sl.addEventListener("input", render);
+        render();
+        return { render };
+      })();
+
+      /* =====================================================================
+   EPISODE 3
+   ===================================================================== */
+      const ep3 = (function () {
+        const FN = { s1: (t) => Math.sin(t), s2: (t) => Math.sin(2 * t), s3: (t) => Math.sin(3 * t), c1: (t) => Math.cos(t) };
+        const LB = { s1: "sin x", s2: "sin 2x", s3: "sin 3x", c1: "cos x" };
+        const top = document.getElementById("cvTop").getContext("2d");
+        const bot = document.getElementById("cvBot").getContext("2d");
+        const fSel = document.getElementById("fSel");
+        const gSel = document.getElementById("gSel");
+        const out = document.getElementById("out3");
+        const L = -Math.PI,
+          R = Math.PI;
+
+        function render() {
+          const f = FN[fSel.value],
+            g = FN[gSel.value];
+
+          // 上段：2つの波
+          const w = 900,
+            h = 200,
+            y0 = h / 2;
+          top.clearRect(0, 0, w, h);
+          top.strokeStyle = RUL;
+          top.lineWidth = 1;
+          top.beginPath();
+          top.moveTo(0, y0);
+          top.lineTo(w, y0);
+          top.stroke();
+          top.beginPath();
+          top.moveTo(w / 2, 12);
+          top.lineTo(w / 2, h - 12);
+          top.stroke();
+          [
+            [f, ACC, 2.6],
+            [g, MUT, 2],
+          ].forEach(([fn, col, lw]) => {
+            top.strokeStyle = col;
+            top.lineWidth = lw;
+            top.beginPath();
+            for (let px = 0; px <= w; px++) {
+              const x = L + ((R - L) * px) / w,
+                y = y0 - fn(x) * 68;
+              px === 0 ? top.moveTo(px, y) : top.lineTo(px, y);
+            }
+            top.stroke();
+          });
+          top.font = "13px monospace";
+          top.fillStyle = MUT;
+          top.fillText("-π", 6, y0 - 8);
+          top.fillText("π", w - 20, y0 - 8);
+          top.fillStyle = ACC;
+          top.fillText("f(x) = " + LB[fSel.value], 12, 24);
+          top.fillStyle = MUT;
+          top.fillText("g(x) = " + LB[gSel.value], 12, 44);
+
+          // 下段：積と符号付き面積
+          const H = 220,
+            Y = H / 2,
+            N = 900;
+          bot.clearRect(0, 0, w, H);
+          let sum = 0;
+          for (let i = 0; i < N; i++) {
+            const x1 = L + ((R - L) * i) / N,
+              x2 = L + ((R - L) * (i + 1)) / N,
+              xm = (x1 + x2) / 2;
+            const vm = f(xm) * g(xm);
+            sum += vm * (x2 - x1);
+            const px = ((x1 - L) / (R - L)) * w,
+              pw = w / N + 1;
+            bot.fillStyle = vm >= 0 ? ACC_A : MUT_A;
+            bot.fillRect(px, vm >= 0 ? Y - vm * 78 : Y, pw, Math.abs(vm) * 78);
+          }
+          bot.strokeStyle = RUL;
+          bot.lineWidth = 1;
+          bot.beginPath();
+          bot.moveTo(0, Y);
+          bot.lineTo(w, Y);
+          bot.stroke();
+          bot.strokeStyle = ACC;
+          bot.lineWidth = 2;
+          bot.beginPath();
+          for (let px = 0; px <= w; px++) {
+            const x = L + ((R - L) * px) / w,
+              y = Y - f(x) * g(x) * 78;
+            px === 0 ? bot.moveTo(px, y) : bot.lineTo(px, y);
+          }
+          bot.stroke();
+          bot.fillStyle = MUT;
+          bot.font = "13px monospace";
+          bot.fillText("f(x) · g(x)  ／ プラスの面積とマイナスの面積", 12, 24);
+
+          const val = Math.abs(sum) < 1e-6 ? 0 : sum;
+          out.innerHTML = "∫<sub>-π</sub><sup>π</sup> " + LB[fSel.value] + " · " + LB[gSel.value] + " dx = <b>" + val.toFixed(3) + "</b>" + (Math.abs(val) < 0.01 ? " &nbsp;→&nbsp; <b>直交！（混ざらない）</b>" : " &nbsp;→&nbsp; 同じ波が含まれている");
+        }
+        fSel.onchange = render;
+        gSel.onchange = render;
+        render();
+        return { render };
+      })();
+
+      /* =====================================================================
+   EPISODE 4
+   ===================================================================== */
+      (function () {
+        const cc = document.getElementById("cvCircle").getContext("2d");
+        const ct = document.getElementById("cvTrace").getContext("2d");
+        const om = document.getElementById("omega");
+        const omv = document.getElementById("omegaVal");
+        const tg = document.getElementById("btnToggle");
+        let t = 0,
+          running = true;
+
+        om.oninput = () => (omv.textContent = "ω = " + om.value);
+        tg.onclick = () => {
+          running = !running;
+          tg.textContent = running ? "一時停止" : "再生";
+        };
+
+        (function frame() {
+          const w = 340,
+            h = 330,
+            cx = w / 2,
+            cy = h / 2,
+            R = 112;
+          const th = +om.value * t;
+          cc.clearRect(0, 0, w, h);
+          cc.strokeStyle = RUL;
+          cc.lineWidth = 1;
+          cc.beginPath();
+          cc.moveTo(10, cy);
+          cc.lineTo(w - 10, cy);
+          cc.stroke();
+          cc.beginPath();
+          cc.moveTo(cx, 10);
+          cc.lineTo(cx, h - 10);
+          cc.stroke();
+          cc.beginPath();
+          cc.arc(cx, cy, R, 0, Math.PI * 2);
+          cc.stroke();
+          cc.fillStyle = MUT;
+          cc.font = "12px monospace";
+          cc.fillText("実軸 (cos)", w - 88, cy - 8);
+          cc.fillText("虚軸 (sin)", cx + 8, 20);
+
+          const px = cx + R * Math.cos(th),
+            py = cy - R * Math.sin(th);
+          cc.setLineDash([4, 4]);
+          cc.strokeStyle = NEU;
+          cc.lineWidth = 1;
+          cc.beginPath();
+          cc.moveTo(px, py);
+          cc.lineTo(px, cy);
+          cc.stroke();
+          cc.beginPath();
+          cc.moveTo(px, py);
+          cc.lineTo(cx, py);
+          cc.stroke();
+          cc.setLineDash([]);
+
+          const qy = cy + R * Math.sin(th);
+          cc.strokeStyle = MUT;
+          cc.lineWidth = 1.8;
+          cc.setLineDash([5, 4]);
+          cc.beginPath();
+          cc.moveTo(cx, cy);
+          cc.lineTo(px, qy);
+          cc.stroke();
+          cc.setLineDash([]);
+          cc.fillStyle = MUT;
+          cc.fillText("e^(-iωt)", px + 6, qy + 16);
+
+          cc.strokeStyle = ACC;
+          cc.lineWidth = 2.4;
+          cc.beginPath();
+          cc.moveTo(cx, cy);
+          cc.lineTo(px, py);
+          cc.stroke();
+          cc.fillStyle = ACC;
+          cc.beginPath();
+          cc.arc(px, py, 5, 0, Math.PI * 2);
+          cc.fill();
+          cc.fillText("e^(iωt)", px + 6, py - 8);
+
+          const W = 560,
+            H = 330;
+          ct.clearRect(0, 0, W, H);
+          [
+            [H * 0.27, "sin ωt（縦の影）", Math.sin, ACC],
+            [H * 0.73, "cos ωt（横の影）", Math.cos, MUT],
+          ].forEach(([y0, labl, fn, col]) => {
+            ct.strokeStyle = RUL;
+            ct.lineWidth = 1;
+            ct.beginPath();
+            ct.moveTo(0, y0);
+            ct.lineTo(W, y0);
+            ct.stroke();
+            ct.strokeStyle = col;
+            ct.lineWidth = 2.2;
+            ct.beginPath();
+            for (let x = 0; x <= W; x++) {
+              const tt = th - (x / W) * Math.PI * 4;
+              const y = y0 - fn(tt) * 66;
+              x === 0 ? ct.moveTo(x, y) : ct.lineTo(x, y);
+            }
+            ct.stroke();
+            ct.fillStyle = col;
+            ct.font = "13px monospace";
+            ct.fillText(labl, 10, y0 - 76);
+            ct.beginPath();
+            ct.arc(0, y0 - fn(th) * 66, 5, 0, Math.PI * 2);
+            ct.fill();
+          });
+
+          if (running) t += 0.02;
+          requestAnimationFrame(frame);
+        })();
+      })();
+
+      /* =====================================================================
+   EPISODE 5
+   ===================================================================== */
+      const ep5 = (function () {
+        const c = document.getElementById("cv5").getContext("2d");
+        const bP = document.getElementById("btnP");
+        const bN = document.getElementById("btnN");
+        let mode = "n",
+          ph = 0;
+
+        function setBtn() {
+          bP.className = mode === "p" ? "btn btn-primary" : "btn btn-outline";
+          bN.className = mode === "n" ? "btn btn-primary" : "btn btn-outline";
+        }
+        bP.onclick = () => {
+          mode = "p";
+          setBtn();
+        };
+        bN.onclick = () => {
+          mode = "n";
+          setBtn();
+        };
+
+        (function draw() {
+          const w = 900,
+            h = 240,
+            y0 = h / 2;
+          c.clearRect(0, 0, w, h);
+          c.strokeStyle = RUL;
+          c.lineWidth = 1;
+          c.beginPath();
+          c.moveTo(0, y0);
+          c.lineTo(w, y0);
+          c.stroke();
+
+          if (mode === "p") {
+            c.fillStyle = "oklch(75% 0.15 45 / 0.10)";
+            c.fillRect(w * 0.38, 16, w * 0.24, h - 32);
+            c.fillStyle = ACC;
+            c.font = "13px monospace";
+            c.fillText("-π", w * 0.38 + 4, h - 20);
+            c.fillText("π", w * 0.62 - 14, h - 20);
+            c.fillText("この範囲だけで十分", w * 0.38 + 34, 34);
+          } else {
+            c.fillStyle = "oklch(75% 0.15 45 / 0.07)";
+            c.fillRect(0, 16, w, h - 32);
+            c.fillStyle = ACC;
+            c.font = "14px monospace";
+            c.fillText("-∞", 8, h - 20);
+            c.fillText("+∞", w - 36, h - 20);
+            c.fillText("果てから果てまで積分する", w / 2 - 90, 34);
+          }
+
+          c.strokeStyle = ACC;
+          c.lineWidth = 2.4;
+          c.beginPath();
+          for (let x = 0; x <= w; x++) {
+            const t = (x / w) * 24 - 12;
+            const y = mode === "p" ? y0 - (30 * Math.sin(t * 1.6) + 16 * Math.sin(t * 3.9 + ph)) * 0.9 : y0 - 70 * Math.exp((-t * t) / 9) * Math.cos(t * 3 + ph);
+            x === 0 ? c.moveTo(x, y) : c.lineTo(x, y);
+          }
+          c.stroke();
+          c.fillStyle = MUT;
+          c.font = "13px monospace";
+          c.fillText(mode === "p" ? "周期的にくり返す波" : "一度きりの、くり返さない波", 12, h - 20 + 0);
+          ph += 0.01;
+          requestAnimationFrame(draw);
+        })();
+
+        setBtn();
+        return { setBtn };
+      })();
+    </script>
+  </body>
+</html>
