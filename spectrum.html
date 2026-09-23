@@ -7,9 +7,9 @@
     <meta name="description" content="星の光をスペクトル解析で読み解くインタラクティブWeb展示。星の色、波長、黒体放射、吸収線・輝線、分光観測までを体験できます。" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
     <style>
-/* Hallmark · genre: atmospheric · macrostructure: 18-portfolio-grid · theme: bloom · enrichment: none · nav: N5 · footer: Ft5 */
+      /* Hallmark · genre: atmospheric · macrostructure: 18-portfolio-grid · theme: bloom · enrichment: none · nav: N5 · footer: Ft5 */
 
       @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono&display=swap");
 
@@ -1091,7 +1091,7 @@
           transition: none !important;
         }
       }
-</style>
+    </style>
   </head>
   <body>
     <!-- ============ N5 Floating Pill Nav ============ -->
@@ -1115,69 +1115,6 @@
           を、5つの章で体験してください。
         </p>
       </header>
-
-      <!-- ============ 18: Portfolio Grid（章一覧） ============ -->
-      <section class="portfolio-grid" aria-label="展示チャプター一覧">
-        <article class="exhibit-card">
-          <div class="exhibit-card__visual" aria-hidden="true"></div>
-          <div class="exhibit-card__content">
-            <p class="exhibit-card__meta">Chapter 01 / Introduction</p>
-            <h2 class="exhibit-card__title">夜空のキャンバス</h2>
-            <p class="exhibit-card__desc">星はなぜ違う色をしているのか。ベテルギウスの赤、リゲルの青白。全天図の星をタップして、色の違いに気づく体験から始めます。</p>
-            <a class="exhibit-card__link" href="#ch1">星を選んでみる</a>
-          </div>
-        </article>
-
-        <article class="exhibit-card">
-          <div class="exhibit-card__visual" aria-hidden="true"></div>
-          <div class="exhibit-card__content">
-            <p class="exhibit-card__meta">Chapter 02 / Wavelength</p>
-            <h2 class="exhibit-card__title">光を分解する</h2>
-            <p class="exhibit-card__desc">光は電磁波という「波」。プリズムで虹色に分かれるアニメーションと、波長スライダーで色と波長の対応を体感します。</p>
-            <a class="exhibit-card__link" href="#ch2">スライダーを動かす</a>
-          </div>
-        </article>
-
-        <article class="exhibit-card">
-          <div class="exhibit-card__visual" aria-hidden="true"></div>
-          <div class="exhibit-card__content">
-            <p class="exhibit-card__meta">Chapter 03 / Blackbody</p>
-            <h2 class="exhibit-card__title">星の温度計</h2>
-            <p class="exhibit-card__desc">プランクの法則に基づく黒体放射曲線を動的に描画。温度ダイヤルを回すと、ピーク波長が青へ、赤へと移動します。</p>
-            <a class="exhibit-card__link" href="#ch3">温度を変えてみる</a>
-          </div>
-        </article>
-
-        <article class="exhibit-card">
-          <div class="exhibit-card__visual" aria-hidden="true"></div>
-          <div class="exhibit-card__content">
-            <p class="exhibit-card__meta">Chapter 04 / Spectral Lines</p>
-            <h2 class="exhibit-card__title">星の指紋を照合する</h2>
-            <p class="exhibit-card__desc">吸収線と輝線は元素の指紋。キルヒホッフの法則のモデル図と、太陽のフラウンホーファー線から元素を特定します。</p>
-            <a class="exhibit-card__link" href="#ch4">指紋を照合する</a>
-          </div>
-        </article>
-
-        <article class="exhibit-card">
-          <div class="exhibit-card__visual" aria-hidden="true"></div>
-          <div class="exhibit-card__content">
-            <p class="exhibit-card__meta">Chapter 05 / Outreach</p>
-            <h2 class="exhibit-card__title">分光観測がひらく宇宙への旅</h2>
-            <p class="exhibit-card__desc">分光器の仕組みと実観測データのスライドショー。そして、この地域の星空を実際に見に行くためのご案内。</p>
-            <a class="exhibit-card__link" href="#ch5">観測会を見る</a>
-          </div>
-        </article>
-
-        <article class="exhibit-card">
-          <div class="exhibit-card__visual" aria-hidden="true"></div>
-          <div class="exhibit-card__content">
-            <p class="exhibit-card__meta">Appendix / Guide</p>
-            <h2 class="exhibit-card__title">用語ミニ辞典</h2>
-            <p class="exhibit-card__desc">波長、スペクトル型、ウィーンの変位則など、本展示に登場する専門用語をまとめて確認できます。</p>
-            <a class="exhibit-card__link" href="#glossary">用語を確認する</a>
-          </div>
-        </article>
-      </section>
 
       <!-- ============ 第1章 ============ -->
       <section class="chapter" id="ch1" aria-labelledby="ch1-title">
@@ -1461,6 +1398,12 @@
               <span class="k">C線 656nm</span>
               <div class="v" style="font-size: var(--text-sm)">水素 Hα</div>
             </div>
+            <div>
+              <span class="k">B線 687nm</span>
+              <div class="v" style="font-size: var(--text-sm)">
+                <span class="term" tabindex="0" data-tip="太陽ではなく、地球の大気中の酸素（O₂）が光を吸収した跡（テルリック線）です。地上からの観測ならではの特徴です。">地球の酸素</span>
+              </div>
+            </div>
           </div>
           <div class="hint"><b>歴史のひとこま：</b> 太陽スペクトルの未知の吸収線から発見された元素が <b>ヘリウム</b>です。地球で見つかる前に、太陽の光の中から見つかりました。</div>
         </div>
@@ -1595,6 +1538,10 @@
             <h2>分光観測</h2>
             <p class="body-text" style="font-size: var(--text-sm)">光を波長ごとに分けて解析する観測手法。温度・組成・視線速度・磁場などが読み取れます。</p>
           </div>
+          <div class="card">
+            <h2>eV（電子ボルト）</h2>
+            <p class="body-text" style="font-size: var(--text-sm)">光や電子など、ミクロな世界のエネルギーを表す単位です。波長が短い（青い）光ほど、光子1個が持つエネルギー（eV）は大きくなります。</p>
+          </div>
         </div>
       </section>
 
@@ -1610,7 +1557,7 @@
     </main>
 
     <script>
-/* =========================================================
+      /* =========================================================
    Ch1 : Interactive sky
    ========================================================= */
       const STARS = [
@@ -1986,6 +1933,6 @@
       }
       document.getElementById("prevSlide").addEventListener("click", () => go(cur - 1));
       document.getElementById("nextSlide").addEventListener("click", () => go(cur + 1));
-</script>
+    </script>
   </body>
 </html>

@@ -386,49 +386,6 @@
         </div>
       </header>
 
-      <!-- ============ 章インデックス（18-portfolio-grid） ============ -->
-      <section class="portfolio-grid" aria-label="章の一覧">
-        <article class="exhibit-card">
-          <div class="exhibit-card__visual" aria-hidden="true"><canvas id="thumb1" height="200"></canvas></div>
-          <div class="exhibit-card__content">
-            <p class="exhibit-card__meta">Chapter 01 / Resolution</p>
-            <h2 class="exhibit-card__title">見えない宇宙を見るための「視力」問題</h2>
-            <p class="exhibit-card__desc">回折によって点の星がにじむ。レイリーの基準 θ = 1.22 λ/D が示す、単一アンテナの越えられない限界。</p>
-            <a class="exhibit-card__link" href="#ch1">第1章を読む</a>
-          </div>
-        </article>
-
-        <article class="exhibit-card">
-          <div class="exhibit-card__visual" aria-hidden="true"><canvas id="thumb2" height="200"></canvas></div>
-          <div class="exhibit-card__content">
-            <p class="exhibit-card__meta">Chapter 02 / Interference</p>
-            <h2 class="exhibit-card__title">縞模様から「天体の姿」を読む</h2>
-            <p class="exhibit-card__desc">縞の濃さが天体の大きさを、縞のタイミングが位置を教える。縞を足し合わせれば像になる。</p>
-            <a class="exhibit-card__link" href="#ch2">第2章を読む</a>
-          </div>
-        </article>
-
-        <article class="exhibit-card">
-          <div class="exhibit-card__visual" aria-hidden="true"><canvas id="thumb3" height="200"></canvas></div>
-          <div class="exhibit-card__content">
-            <p class="exhibit-card__meta">Chapter 03 / Engineering</p>
-            <h2 class="exhibit-card__title">ケーブルのない干渉計</h2>
-            <p class="exhibit-card__desc">数ピコ秒のズレが像を消す。水素メーザー原子時計とミリ単位の基線ベクトルが支えるVLBI。</p>
-            <a class="exhibit-card__link" href="#ch3">第3章を読む</a>
-          </div>
-        </article>
-
-        <article class="exhibit-card">
-          <div class="exhibit-card__visual" aria-hidden="true"><canvas id="thumb4" height="200"></canvas></div>
-          <div class="exhibit-card__content">
-            <p class="exhibit-card__meta">Chapter 04 / Event Horizon</p>
-            <h2 class="exhibit-card__title">ブラックホールの影を捉える</h2>
-            <p class="exhibit-card__desc">口径 10,000 km、波長 1.3 mm。地球サイズの瞳が2019年、M87の影を写した。</p>
-            <a class="exhibit-card__link" href="#ch4">第4章を読む</a>
-          </div>
-        </article>
-      </section>
-
       <!-- ============ 第1章 ============ -->
       <section class="chapter" id="ch1">
         <h2 class="section-title"><span class="section-num">1</span>見えない宇宙を見るための「視力」問題</h2>
@@ -692,6 +649,7 @@
           </div>
           <div class="stack">
             <button class="btn btn-primary" id="btnGrow" type="button">アンテナを増やしていく（再生）</button>
+            <button class="btn btn-outline" id="btnEarth" type="button">地球の自転を再現（12時間）</button>
             <button class="btn btn-outline" id="btnTruth" type="button">本当の姿を表示</button>
           </div>
           <p class="hint">実際の観測でも、基線が少ないと像は不完全です。だからALMAは<b>66台</b>、EHTは<b>世界8か所</b>という「数」にこだわります。</p>
@@ -909,6 +867,7 @@
             <span>─── 基線（ベースライン）</span>
             <span id="netInfo">VERA：4局 / 最大基線 約2,300 km</span>
           </div>
+          <p class="hint" style="margin-top: var(--space-sm)">※表示されているEHTのネットワークは、2017年のM87観測時の主要なアレイ（ALMA, APEX, SMT, LMT, SMA/JCMT, IRAM30m, SPT）に基づいています。現在はGLT（グリーンランド望遠鏡）やNOEMAなどが新たに参加し、さらに強力なネットワークへと進化しています。</p>
 
           <div class="ctrl" style="margin-top: var(--space-lg)">
             <label for="spin">自転（視点経度）<output id="spinout">自動回転中</output></label>
@@ -1490,6 +1449,8 @@
           let shape = "ring",
             showTruth = false,
             playing = false,
+            earthPlaying = false,
+            earthHours = 0,
             raf = null;
 
           // 真の輝度分布
@@ -1516,11 +1477,18 @@
           // 基線リスト（内側＝粗い縞から外側＝細かい縞へ）
           function baselines(n) {
             const out = [];
+            const steps = Math.max(1, Math.floor(earthHours * 2.5));
             for (let i = 0; i < n; i++) {
-              const t = (i + 1) / n;
               const rad = 1.2 + 13.5 * Math.pow(i / Math.max(1, n - 1), 0.62);
-              const ang = i * 2.399963 + 0.5; // 黄金角で満遍なく
-              out.push({ u: Math.round(rad * Math.cos(ang)), v: Math.round(rad * Math.sin(ang)) });
+              const ang0 = i * 2.399963 + 0.5; // 黄金角で満遍なく
+              const ellipticity = 0.4 + 0.6 * Math.abs(Math.sin(ang0)); // 楕円の扁平率のモック
+
+              for (let s = 0; s <= steps; s++) {
+                const hr = earthHours > 0 ? (s / steps) * earthHours : 0;
+                // 12時間で半回転（1時間で π/12）
+                const rot = ang0 + hr * (Math.PI / 12);
+                out.push({ u: Math.round(rad * Math.cos(rot)), v: Math.round(rad * ellipticity * Math.sin(rot)) });
+              }
             }
             return out;
           }
@@ -1547,7 +1515,7 @@
 
           function render() {
             const n = parseInt(nS.value, 10);
-            $("nbout").textContent = n + " 本";
+            $("nbout").textContent = n + " 本" + (earthHours > 0 ? "（+" + earthHours.toFixed(1) + "時間）" : "");
             const bl = baselines(n);
 
             /* --- 左：集めた縞（uv 平面） --- */
@@ -1571,11 +1539,13 @@
               ctx.lineTo(cx, h);
               ctx.stroke();
               bl.forEach((b, i) => {
-                const alpha = 0.35 + 0.65 * (i / Math.max(1, bl.length - 1));
+                // 同じ基線からの派生点は同じ色にする
+                const baseIdx = Math.floor(i / (Math.max(1, Math.floor(earthHours * 2.5)) + 1));
+                const alpha = 0.35 + 0.65 * (baseIdx / Math.max(1, n - 1));
                 ctx.fillStyle = "rgba(" + ACC + "," + alpha.toFixed(2) + ")";
                 [1, -1].forEach((s) => {
                   ctx.beginPath();
-                  ctx.arc(cx + s * b.u * sc, cy - s * b.v * sc, 3.2, 0, 7);
+                  ctx.arc(cx + s * b.u * sc, cy - s * b.v * sc, 2.5, 0, 7);
                   ctx.fill();
                 });
               });
@@ -1635,7 +1605,11 @@
           });
           nS.addEventListener("input", () => {
             showTruth = false;
+            earthHours = 0;
+            earthPlaying = false;
             $("btnTruth").textContent = "本当の姿を表示";
+            $("btnEarth").textContent = "地球の自転を再現（12時間）";
+            if (raf) clearTimeout(raf);
             render();
           });
           $("btnTruth").addEventListener("click", () => {
@@ -1651,8 +1625,11 @@
               return;
             }
             showTruth = false;
+            earthPlaying = false;
+            earthHours = 0;
             $("btnTruth").textContent = "本当の姿を表示";
-            let v = 1;
+            $("btnEarth").textContent = "地球の自転を再現（12時間）";
+            let v = parseInt(nS.value, 10);
             (function step() {
               if (!playing) return;
               nS.value = v;
@@ -1664,6 +1641,36 @@
                 return;
               }
               raf = setTimeout(step, 260);
+            })();
+          });
+          $("btnEarth").addEventListener("click", () => {
+            earthPlaying = !earthPlaying;
+            $("btnEarth").textContent = earthPlaying ? "停止" : "地球の自転を再現（12時間）";
+            if (!earthPlaying) {
+              if (raf) clearTimeout(raf);
+              earthHours = 0;
+              render();
+              return;
+            }
+            showTruth = false;
+            playing = false;
+            $("btnGrow").textContent = "アンテナを増やしていく（再生）";
+            $("btnTruth").textContent = "本当の姿を表示";
+
+            // アンテナが多すぎると重いので適度な数に制限
+            if (parseInt(nS.value, 10) > 30) nS.value = 30;
+
+            earthHours = 0;
+            (function stepEarth() {
+              if (!earthPlaying) return;
+              render();
+              earthHours += 0.4; // 12時間まで進む
+              if (earthHours > 12) {
+                earthPlaying = false;
+                $("btnEarth").textContent = "地球の自転を再現（12時間）";
+                return;
+              }
+              raf = setTimeout(stepEarth, 200);
             })();
           });
           window.addEventListener("resize", render);

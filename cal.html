@@ -50,6 +50,7 @@
               <button class="btn btn-outline" data-lat="35.681" data-lon="139.767">東京</button>
               <button class="btn btn-outline" data-lat="0" data-lon="0">赤道・本初子午線</button>
               <button class="btn btn-outline" data-lat="89.9" data-lon="0">北極付近</button>
+              <button class="btn btn-primary" id="geoBtn">現在地を取得</button>
             </div>
           </div>
 
@@ -80,7 +81,7 @@
 
           <div class="card options">
             <div class="section-title"><span class="section-num">3</span>オプション設定</div>
-            <label><input type="checkbox" id="refract" /> 大気差補正を適用（Saemundsson, 1986）</label>
+            <label><input type="checkbox" id="refract" /> 大気差補正を適用（Saemundsson, 1986） <span style="font-size: 0.85em; color: var(--color-muted); font-weight: normal">※星の光が地球の空気を通る際に屈折し、実際よりも少しだけ高く見える現象</span></label>
             <div class="hint">本展示は<b>基礎の理解</b>が主目的のため、大気差はオプション扱いです。 方位角の計算では <b>atan2</b> 関数を <b>cosδ を掛けた等価形</b> で用いており、 δ = ±90°（天の極）でも tanδ が発散せず、極付近の特異点でも破綻しません。</div>
           </div>
 
@@ -161,7 +162,7 @@
               <canvas id="skyCanvas" width="440" height="440"></canvas>
             </div>
             <div class="hint" style="text-align: center">
-              円の中心＝<b>天頂</b>、円周＝<b>地平線</b>。上=北 / 右=東 / 下=南 / 左=西。
+              円の中心＝<b>天頂</b>、円周＝<b>地平線</b>。上=北 / 左=東 / 下=南 / 右=西。
               <b>★</b> が計算された天体の位置です。
             </div>
           </div>
@@ -374,15 +375,15 @@
           ctx.fillText("N 北", C, 18);
           ctx.fillText("S 南", C, W - 6);
           ctx.textAlign = "left";
-          ctx.fillText("E 東", W - 30, C + 4);
+          ctx.fillText("W 西", W - 30, C + 4);
           ctx.textAlign = "right";
-          ctx.fillText("W 西", 30, C + 4);
+          ctx.fillText("E 東", 30, C + 4);
 
           // Star point
           if (alt >= -1) {
             const r = R * (1 - Math.max(0, alt) / 90);
             const ang = az * MathUtils.D2R;
-            const x = C + r * Math.sin(ang);
+            const x = C - r * Math.sin(ang);
             const y = C - r * Math.cos(ang);
 
             ctx.beginPath();
@@ -504,6 +505,33 @@
             App.setNow();
             App.computeAndRender();
           });
+
+          // Geolocation button
+          const geoBtn = UI.getEl("geoBtn");
+          if (geoBtn) {
+            geoBtn.addEventListener("click", () => {
+              if (navigator.geolocation) {
+                const originalText = geoBtn.textContent;
+                geoBtn.textContent = "取得中...";
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                    UI.getEl("lat").value = position.coords.latitude.toFixed(3);
+                    UI.getEl("lon").value = position.coords.longitude.toFixed(3);
+                    App.syncMapFromInputs();
+                    App.computeAndRender();
+                    geoBtn.textContent = originalText;
+                  },
+                  (error) => {
+                    console.error("Geolocation error:", error);
+                    alert("現在地の取得に失敗しました。");
+                    geoBtn.textContent = originalText;
+                  },
+                );
+              } else {
+                alert("お使いのブラウザは現在地取得に対応していません。");
+              }
+            });
+          }
 
           // Location presets
           document.querySelectorAll(".preset button[data-lat]").forEach((btn) => {

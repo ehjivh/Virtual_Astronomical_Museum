@@ -1,0 +1,1160 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>宇宙を視る巨大な「目」の作り方 — 干渉計の魔法</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* ===== 本展示ページ固有スタイル ===== */
+      .formula {
+        font-family: var(--font-outlier);
+        font-size: var(--text-md);
+        text-align: center;
+        background: var(--color-paper-3);
+        border: 1px solid var(--color-rule);
+        border-left: 3px solid var(--color-accent);
+        border-radius: 8px;
+        padding: var(--space-lg);
+        margin: var(--space-lg) 0;
+        color: var(--color-ink);
+        overflow-x: auto;
+      }
+      .formula .var {
+        color: var(--color-accent);
+        font-style: italic;
+      }
+      .formula .note {
+        display: block;
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        color: var(--color-neutral);
+        margin-top: var(--space-sm);
+        letter-spacing: 0;
+      }
+      .frac {
+        display: inline-flex;
+        flex-direction: column;
+        vertical-align: middle;
+        text-align: center;
+        margin: 0 0.35em;
+      }
+      .frac .num {
+        border-bottom: 1px solid var(--color-muted);
+        padding: 0 0.3em;
+      }
+      .frac .den {
+        padding: 0 0.3em;
+      }
+
+      .chapter {
+        margin-bottom: var(--space-4xl);
+        scroll-margin-top: 100px;
+      }
+      .prose {
+        max-width: 68ch;
+        color: var(--color-muted);
+      }
+      .prose p {
+        margin: 0 0 var(--space-md);
+      }
+      .prose strong {
+        color: var(--color-ink);
+      }
+      .prose em {
+        color: var(--color-accent);
+        font-style: normal;
+        font-weight: 600;
+      }
+
+      .widget {
+        background: var(--color-paper-2);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        padding: var(--space-xl);
+        margin-top: var(--space-xl);
+      }
+      .widget__head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-lg);
+      }
+      .widget__title {
+        font-size: var(--text-md);
+        font-weight: 600;
+      }
+      .widget__q {
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+        margin: 0 0 var(--space-lg);
+        max-width: 70ch;
+      }
+      .widget__q b {
+        color: var(--color-accent);
+      }
+
+      .ctrl {
+        margin-bottom: var(--space-lg);
+      }
+      .ctrl label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+        margin-bottom: var(--space-xs);
+      }
+      .ctrl output {
+        font-family: var(--font-outlier);
+        color: var(--color-accent);
+        font-size: var(--text-base);
+      }
+      input[type="range"] {
+        width: 100%;
+        height: 22px;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--space-xl);
+        margin-top: var(--space-xl);
+      }
+
+      .readout {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: var(--space-md);
+        margin-top: var(--space-md);
+      }
+      .readout__item {
+        background: var(--color-paper-3);
+        border: 1px solid var(--color-rule);
+        border-radius: 8px;
+        padding: var(--space-md);
+      }
+      .readout__k {
+        font-family: var(--font-outlier);
+        font-size: var(--text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--color-neutral);
+      }
+      .readout__v {
+        font-family: var(--font-outlier);
+        font-size: var(--text-md);
+        color: var(--color-accent);
+        font-weight: 600;
+      }
+
+      .stack {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+        margin-top: var(--space-md);
+      }
+
+      canvas.wg {
+        width: 100%;
+        display: block;
+        background: var(--color-paper);
+        border: 1px solid var(--color-rule);
+        border-radius: 8px;
+      }
+
+      .callout {
+        border: 1px solid var(--color-rule);
+        border-left: 3px solid var(--color-accent);
+        background: var(--color-paper-2);
+        border-radius: 8px;
+        padding: var(--space-lg);
+        margin-top: var(--space-lg);
+      }
+      .callout h3 {
+        font-family: var(--font-display);
+        font-size: var(--text-md);
+        margin: 0 0 var(--space-sm);
+        color: var(--color-ink);
+      }
+      .callout p {
+        margin: 0;
+        font-size: var(--text-sm);
+        color: var(--color-muted);
+      }
+
+      .meter {
+        height: 10px;
+        background: var(--color-paper-3);
+        border: 1px solid var(--color-rule);
+        border-radius: 9999px;
+        overflow: hidden;
+        margin-top: var(--space-sm);
+      }
+      .meter__fill {
+        height: 100%;
+        width: 0%;
+        background: var(--color-accent);
+        transition: width 0.15s ease;
+      }
+
+      .seg {
+        display: inline-flex;
+        gap: 4px;
+        background: var(--color-paper-3);
+        border: 1px solid var(--color-rule);
+        border-radius: 9999px;
+        padding: 4px;
+        flex-wrap: wrap;
+      }
+      .seg button {
+        background: transparent;
+        border: none;
+        color: var(--color-muted);
+        cursor: pointer;
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        font-weight: 600;
+        padding: 6px 16px;
+        border-radius: 9999px;
+        transition: all 0.2s ease;
+      }
+      .seg button[aria-pressed="true"] {
+        background: var(--color-accent);
+        color: var(--color-paper);
+      }
+
+      .prologue-visual {
+        position: relative;
+        height: 280px;
+        background: var(--color-paper-2);
+        border: 1px solid var(--color-rule);
+        border-radius: 12px;
+        overflow: hidden;
+        margin: var(--space-xl) 0;
+      }
+
+      @media (max-width: 768px) {
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ============ N5 Floating Pill Nav ============ -->
+    <nav class="nav-pill" aria-label="主要ナビゲーション">
+      <span class="nav-pill__wordmark">Wave&nbsp;Eye</span>
+      <div class="nav-pill__actions">
+        <a class="nav-pill__btn" href="#prologue">導入</a>
+        <a class="nav-pill__btn" href="#zone1">干渉</a>
+        <a class="nav-pill__btn" href="#zone2">光路差</a>
+        <a class="nav-pill__btn" href="#zone3">合成</a>
+      </div>
+    </nav>
+
+    <main class="page-container">
+      <!-- ============ Header ============ -->
+      <header class="portfolio-header">
+        <p class="portfolio-header__tagline">Interferometry &middot; Web Exhibition</p>
+        <h1 class="portfolio-header__title">宇宙を視る<br />巨大な「目」の作り方</h1>
+        <p class="section-lead" style="margin-left: auto; margin-right: auto">複数の望遠鏡をつなげて巨大な望遠鏡の代わりとする「干渉計（かんしょうけい）」の原理を、波の性質から画像合成の仕組みまで、ストーリーに沿って直感的に理解する展示です。</p>
+        <div class="stack" style="justify-content: center">
+          <span class="chip">対象：高校生</span>
+          <span class="chip">波の干渉</span>
+          <span class="chip">開口合成</span>
+          <span class="chip">フーリエ変換</span>
+        </div>
+      </header>
+
+      <!-- ============ プロローグ ============ -->
+      <section class="chapter" id="prologue">
+        <h2 class="section-title"><span class="section-num">0</span>宇宙の謎を解くには視力が足りない！</h2>
+        <p class="section-lead">もっと遠くの、もっと小さな星を見たい。でも、望遠鏡をこれ以上大きくするのは物理的にムリ…！どうすればいい？</p>
+
+        <div class="prologue-visual">
+          <canvas id="prologueCv" class="wg" height="280"></canvas>
+        </div>
+
+        <div class="prose">
+          <p>望遠鏡の「視力」は口径に比例しますが、パラボラアンテナは巨大になるほど自重で歪み、風にあおられます。<strong>数百メートルを超える可動アンテナの建設は、構造力学的に事実上不可能</strong>です。</p>
+          <p>そこで人類は<em>「干渉計」</em>という魔法を手に入れました。複数の望遠鏡を連動させて、1つの巨大な望遠鏡と同等の視力を得る技術です。その秘密は「波」にあります。</p>
+        </div>
+
+        <div class="callout">
+          <h3>レイリーの基準</h3>
+          <p>望遠鏡の分解能（視力）は θ ≈ 1.22 × λ / D で決まります。波長 λ が長い電波では、口径 D を極端に大きくしなければ星を見分けられません。干渉計はこの壁を突破するための技術です。</p>
+        </div>
+      </section>
+
+      <!-- ============ Zone 1 ============ -->
+      <section class="chapter" id="zone1">
+        <h2 class="section-title"><span class="section-num">1</span>波と波の出会い — 「干渉」を体験せよ</h2>
+        <p class="section-lead">光も電波も「波」の仲間です。波どうしがぶつかると、足し算や引き算が起こります。</p>
+
+        <div class="prose">
+          <p>山と山が重なると<strong>最も強め合い</strong>、山と谷が重なると<strong>最も弱め合い（打ち消し合い）</strong>ます。同じ周波数の2つの波のタイミング（位相）をずらすと、合成波の振幅がどう変わるかを観察しましょう。</p>
+        </div>
+
+        <div class="widget">
+          <div class="widget__head">
+            <span class="widget__title">Widget 01 — 波の干渉シミュレーター</span>
+            <span class="stat-chip">superposition</span>
+          </div>
+          <p class="widget__q">波Bの<b>周波数</b>や<b>位相（タイミング）</b>をスライダーで変えて、合成波がどう変化するか確かめてみましょう。</p>
+
+          <canvas id="waveCv" class="wg" height="360"></canvas>
+
+          <div class="grid-2" style="margin-top: var(--space-lg)">
+            <div>
+              <div class="ctrl">
+                <label for="freqB">波Bの周波数倍率<output id="freqBout">1.0 ×</output></label>
+                <input type="range" id="freqB" min="50" max="300" value="100" />
+              </div>
+              <div class="ctrl">
+                <label for="phaseB">波Bの位相ずれ<output id="phaseBout">0°</output></label>
+                <input type="range" id="phaseB" min="0" max="360" value="0" />
+              </div>
+              <div class="ctrl">
+                <label for="ampB">波Bの振幅<output id="ampBout">1.0</output></label>
+                <input type="range" id="ampB" min="0" max="100" value="100" />
+              </div>
+            </div>
+            <div>
+              <div class="readout">
+                <div class="readout__item">
+                  <div class="readout__k">干渉の状態</div>
+                  <div class="readout__v" id="intState">—</div>
+                </div>
+                <div class="readout__item">
+                  <div class="readout__k">合成波の最大振幅</div>
+                  <div class="readout__v" id="intAmp">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="hint"><b>ポイント：</b>同じ周波数で位相が0°のとき「完全な強め合い」（振幅が倍に）、180°のとき「完全な打ち消し合い」（振幅がゼロに）が起こります。周波数を変えると「うなり」のような複雑なパターンが生まれます。</p>
+        </div>
+      </section>
+
+      <!-- ============ Zone 2 ============ -->
+      <section class="chapter" id="zone2">
+        <h2 class="section-title"><span class="section-num">2</span>ズレた時間を合わせろ！ — 光と電波のジレンマ</h2>
+        <p class="section-lead">2つの望遠鏡に波が到達する「時間差（光路差）」の問題と、電波と光の観測技術の違いを理解する。</p>
+
+        <div class="prose">
+          <p>宇宙からやってくる電磁波が、地球上の離れた2つの望遠鏡に到着する時刻は、天体の方向によって異なります。この到着時刻の差に対応する距離が<strong>光路差</strong>です。</p>
+        </div>
+
+        <div class="formula" role="math">
+          光路差 <span class="var">Δ</span> = <span class="var">B</span> sin <span class="var">θ</span>
+          <span class="note">B = 基線長（望遠鏡間の距離）、θ = 天体の天頂角</span>
+        </div>
+
+        <div class="widget">
+          <div class="widget__head">
+            <span class="widget__title">Widget 02 — 光路差シミュレーター</span>
+            <span class="stat-chip">Δ = B sin θ</span>
+          </div>
+          <p class="widget__q">星の角度 θ を動かすと、2つの望遠鏡への到達距離に差が生まれる様子を確認できます。<b>波面の到着タイミング</b>に注目してください。</p>
+
+          <canvas id="pathCv" class="wg" height="380"></canvas>
+
+          <div class="grid-2" style="margin-top: var(--space-lg)">
+            <div>
+              <div class="ctrl">
+                <label for="theta2">天体の角度 <span class="var">θ</span><output id="theta2out">30°</output></label>
+                <input type="range" id="theta2" min="-70" max="70" value="30" />
+              </div>
+              <div class="ctrl">
+                <label for="base2">基線長 <span class="var">B</span><output id="base2out">200 m</output></label>
+                <input type="range" id="base2" min="50" max="500" value="200" />
+              </div>
+            </div>
+            <div class="readout">
+              <div class="readout__item">
+                <div class="readout__k">光路差 Δ</div>
+                <div class="readout__v" id="pd2">—</div>
+              </div>
+              <div class="readout__item">
+                <div class="readout__k">遅延時間</div>
+                <div class="readout__v" id="delay2">—</div>
+              </div>
+            </div>
+          </div>
+
+          <p class="hint"><b>ポイント：</b>光路差はアンテナ間の距離と天体の角度で決まります。この差を正確に補正しないと、2つの波を正しく重ね合わせることができません。</p>
+        </div>
+
+        <div class="grid-2" style="margin-top: var(--space-2xl)">
+          <div class="card">
+            <h2>電波ルート</h2>
+            <p style="color: var(--color-muted); font-size: var(--text-sm)">波長が長い（ゆっくり） → データをストレージに記録して、後からコンピューターでじっくり時間を合わせて足し算できる！</p>
+            <div class="stack">
+              <span class="chip">録音 → 相関処理</span>
+              <span class="chip">VLBI</span>
+            </div>
+          </div>
+          <div class="card">
+            <h2>光ルート</h2>
+            <p style="color: var(--color-muted); font-size: var(--text-sm)">波長が短い（超高速） → 後から合わせることができないので、鏡を使って光を遠回りさせ、<strong style="color: var(--color-ink)">物理的に同時に到着するように遅延線で調整</strong>する必要があります。</p>
+            <div class="stack">
+              <span class="chip">遅延線</span>
+              <span class="chip">0.001μm精度</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top: var(--space-xl)">
+          <h3>光の干渉計の超絶技巧</h3>
+          <p>何十メートルも離れた望遠鏡の光を、0.0000001 cm の精度で合わせる。これが光の干渉計が求める正確さです。電波ではデジタル記録で後から合わせられますが、光では物理的にリアルタイムで合わせるしかありません。</p>
+        </div>
+      </section>
+
+      <!-- ============ Zone 3 ============ -->
+      <section class="chapter" id="zone3">
+        <h2 class="section-title"><span class="section-num">3</span>バラバラの目から1つの画像へ — 開口合成の魔法</h2>
+        <p class="section-lead">干渉の強さ（コントラスト）を測ることで天体の位置がわかり、さらに画像を合成できる。</p>
+
+        <div class="prose">
+          <p>干渉計が直接得るのは「天体の画像」ではなく、<strong>ある基線の長さと向きに対する縞の濃さ（可視度）</strong>です。望遠鏡を離せば離すほど、細かい模様が見えてきます。分解能は <em>λ / B</em>（波長 ÷ 基線長）で決まります。</p>
+          <p>どんな複雑な形も、色々な波の足し算でできています。干渉計は、望遠鏡の距離や方向を変えることで「どんな波が含まれているか」の情報を集めているのです。集めた波の情報を、数学の魔法（<em>フーリエ変換</em>）で元の形に翻訳すると…巨大望遠鏡と同じ画像が完成します！</p>
+        </div>
+
+        <!-- Widget: 測量チャレンジ -->
+        <div class="widget">
+          <div class="widget__head">
+            <span class="widget__title">Widget 03 — 測量チャレンジ：波を合わせて位置を特定</span>
+            <span class="stat-chip" id="lockStat">LOCK 0%</span>
+          </div>
+          <p class="widget__q">2局に届いた波のタイミングを<b>ぴったり合わせて干渉を最大化</b>してください。位相が合うと星の位置が特定されます！</p>
+
+          <canvas id="lockCv" class="wg" height="280"></canvas>
+
+          <div class="ctrl" style="margin-top: var(--space-lg)">
+            <label for="lockSlider">遅延補正<output id="lockOut">0.0 ps</output></label>
+            <input type="range" id="lockSlider" min="-2000" max="2000" value="0" />
+          </div>
+          <div class="meter"><div class="meter__fill" id="lockMeter"></div></div>
+
+          <div class="readout" style="margin-top: var(--space-md)">
+            <div class="readout__item">
+              <div class="readout__k">残差</div>
+              <div class="readout__v" id="lockResid">—</div>
+            </div>
+            <div class="readout__item">
+              <div class="readout__k">コヒーレンス</div>
+              <div class="readout__v" id="lockCoh">—</div>
+            </div>
+            <div class="readout__item">
+              <div class="readout__k">判定</div>
+              <div class="readout__v" id="lockVerdict">—</div>
+            </div>
+          </div>
+          <div class="stack">
+            <button class="btn btn-primary" id="lockRetry" type="button">新しい遅延で再挑戦</button>
+          </div>
+        </div>
+
+        <!-- Widget: 開口合成 -->
+        <div class="widget" style="margin-top: var(--space-2xl)">
+          <div class="widget__head">
+            <span class="widget__title">Widget 04 — 開口合成デモ（フーリエ変換）</span>
+            <div class="seg" role="group" aria-label="天体の形">
+              <button type="button" data-shape="ring" aria-pressed="true">リング</button>
+              <button type="button" data-shape="double" aria-pressed="false">二重星</button>
+              <button type="button" data-shape="nebula" aria-pressed="false">星雲</button>
+            </div>
+          </div>
+          <p class="widget__q">望遠鏡の配置パターンを増やす（＝集める縞の種類を増やす）と、元の天体の姿が徐々に浮かび上がります。<b>ボタンを連打して望遠鏡を追加</b>してみましょう！</p>
+
+          <div class="grid-2">
+            <div>
+              <canvas id="synthUv" class="wg" height="280"></canvas>
+              <p class="hint" style="margin-top: var(--space-sm)">UV平面：集めた縞パターンの一覧。中心＝粗い縞（全体像）、外側＝細かい縞（細部）。</p>
+            </div>
+            <div>
+              <canvas id="synthImg" class="wg" height="280"></canvas>
+              <p class="hint" style="margin-top: var(--space-sm)">合成像：縞を足し合わせた結果。望遠鏡が増えるほど本来の姿へ近づきます。</p>
+            </div>
+          </div>
+
+          <div class="ctrl" style="margin-top: var(--space-lg)">
+            <label for="synthN">望遠鏡の台数<output id="synthNout">3 台</output></label>
+            <input type="range" id="synthN" min="2" max="60" value="3" />
+          </div>
+          <div class="stack">
+            <button class="btn btn-primary" id="synthAdd" type="button">望遠鏡を増やしていく（再生）</button>
+            <button class="btn btn-outline" id="synthTruth" type="button">本当の姿を表示</button>
+          </div>
+
+          <p class="hint"><b>ポイント：</b>望遠鏡の台数が N のとき、基線の数は <b>N(N−1)/2</b> 本。さらに地球の自転によって見かけの基線の向きが変化するので、1日観測するだけで膨大な種類の縞情報が集まります。</p>
+        </div>
+
+        <div class="callout" style="margin-top: var(--space-xl)">
+          <h3>観測データは「歯抜け」である</h3>
+          <p>現実の干渉計では、すべての基線パターンを網羅できるわけではありません。データが抜けている部分は画像処理の技術（CLEANアルゴリズムなど）で補い、もっともらしい像を復元します。これが天文学のリアルな泥臭さであり、研究者の腕の見せどころです。</p>
+        </div>
+      </section>
+
+      <!-- ============ Ft5 Statement Footer ============ -->
+      <footer class="footer-statement">
+        <p class="footer-statement__text">波を聴き、縞を読み、宇宙を描く。</p>
+        <div class="hint" style="text-align: left; max-width: 70ch; margin: 0 auto var(--space-2xl) auto">
+          <b>科学コミュニケーション上の工夫。</b>
+          「フーリエ変換」や「虚数」といった大学レベルの数学は、本展示ではあえて背後に隠し、「波のパターンの組み合わせ」という直感的な概念として図解しています。「より遠くを見るため」→「干渉を使う」→「到着時間がずれるから合わせる」→「波の情報を集めて画像に戻す」── この一連のストーリーを、あなた自身の手で辿ってもらうことが本展示の設計意図です。
+        </div>
+        <div class="footer-statement__meta">
+          <span>WAVE / EYE — Web Exhibition</span>
+          <span>Interferometry · Aperture Synthesis</span>
+        </div>
+      </footer>
+    </main>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const ACC = "199,149,92"; // accent color RGB for canvas
+
+      function fitCanvas(cv) {
+        const r = cv.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const w = Math.round(r.width * dpr);
+        const h = Math.round(r.height * dpr);
+        if (cv.width !== w || cv.height !== h) {
+          cv.width = w;
+          cv.height = h;
+        }
+        const ctx = cv.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return { ctx, w: r.width, h: r.height };
+      }
+
+      /* ==========================================================
+         Prologue: パラボラアンテナが歪むアニメーション
+         ========================================================== */
+      (function initPrologue() {
+        const cv = $("prologueCv");
+        if (!cv) return;
+        let t = 0;
+
+        function draw() {
+          const { ctx, w, h } = fitCanvas(cv);
+          ctx.clearRect(0, 0, w, h);
+          t += 0.02;
+
+          // 背景の星
+          ctx.fillStyle = "rgba(199,149,92,0.3)";
+          for (let i = 0; i < 40; i++) {
+            const sx = (i * 137.5) % w;
+            const sy = (i * 97.3 + 20) % h;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 1 + Math.sin(t + i) * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // 小さいアンテナ（安定）
+          drawDish(ctx, w * 0.25, h * 0.7, 40, 0, "oklch(72% 0.008 260)");
+          ctx.fillStyle = "oklch(58% 0.01 260)";
+          ctx.font = '11px "Geist Mono", monospace';
+          ctx.textAlign = "center";
+          ctx.fillText("D = 30 m  ✓ 安定", w * 0.25, h * 0.92);
+
+          // 巨大アンテナ（歪む）
+          const sag = Math.sin(t * 1.2) * 8 + Math.sin(t * 3.7) * 3;
+          drawDish(ctx, w * 0.65, h * 0.65, 120, sag, "oklch(75% 0.15 45)");
+          ctx.fillStyle = "oklch(75% 0.15 45)";
+          ctx.fillText("D = 600 m  ✗ 自重で歪む！", w * 0.65, h * 0.92);
+
+          // 風の矢印
+          const windX = w * 0.85;
+          ctx.save();
+          ctx.translate(windX, h * 0.35);
+          ctx.strokeStyle = "oklch(58% 0.01 260)";
+          ctx.lineWidth = 2;
+          for (let i = 0; i < 3; i++) {
+            const ox = Math.sin(t * 2 + i * 1.5) * 8;
+            ctx.beginPath();
+            ctx.moveTo(-20 + ox, i * 16);
+            ctx.lineTo(20 + ox, i * 16);
+            ctx.lineTo(14 + ox, i * 16 - 5);
+            ctx.stroke();
+          }
+          ctx.fillStyle = "oklch(58% 0.01 260)";
+          ctx.font = '10px "Geist Mono", monospace';
+          ctx.textAlign = "center";
+          ctx.fillText("WIND", 0, 60);
+          ctx.restore();
+
+          requestAnimationFrame(draw);
+        }
+
+        function drawDish(ctx, x, y, size, sag, color) {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(x - size, y - size * 0.5);
+          ctx.quadraticCurveTo(x, y + size * 0.35 + sag, x + size, y - size * 0.5);
+          ctx.stroke();
+          // 支柱
+          ctx.strokeStyle = "oklch(58% 0.01 260)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x, y + size * 0.05 + sag * 0.3);
+          ctx.lineTo(x, y + size * 0.6);
+          ctx.stroke();
+          // 台座
+          ctx.beginPath();
+          ctx.moveTo(x - size * 0.25, y + size * 0.6);
+          ctx.lineTo(x + size * 0.25, y + size * 0.6);
+          ctx.stroke();
+        }
+
+        draw();
+      })();
+
+      /* ==========================================================
+         Widget 01: 波の干渉シミュレーター
+         ========================================================== */
+      (function initWave() {
+        const cv = $("waveCv");
+        if (!cv) return;
+        const freqS = $("freqB"),
+          phaseS = $("phaseB"),
+          ampS = $("ampB");
+        let t = 0;
+
+        function draw() {
+          t += 0.04;
+          const { ctx, w, h } = fitCanvas(cv);
+          ctx.clearRect(0, 0, w, h);
+
+          const freqRatio = freqS.value / 100;
+          const phaseDeg = +phaseS.value;
+          const phaseRad = (phaseDeg * Math.PI) / 180;
+          const ampRatio = ampS.value / 100;
+
+          $("freqBout").textContent = freqRatio.toFixed(1) + " ×";
+          $("phaseBout").textContent = phaseDeg + "°";
+          $("ampBout").textContent = ampRatio.toFixed(1);
+
+          const baseFreq = 0.04;
+          const rowH = h / 3;
+
+          // Helper: draw wave
+          function drawWave(yBase, freq, phase, amp, color, label) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let x = 0; x <= w; x++) {
+              const y = yBase + amp * 30 * Math.sin(freq * x + t + phase);
+              x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            // zero line
+            ctx.strokeStyle = "rgba(120,130,150,0.25)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, yBase);
+            ctx.lineTo(w, yBase);
+            ctx.stroke();
+            // label
+            ctx.fillStyle = "rgba(190,200,220,0.8)";
+            ctx.font = '11px "Geist Mono", monospace';
+            ctx.textAlign = "left";
+            ctx.fillText(label, 8, yBase - 40);
+          }
+
+          // Wave A
+          drawWave(rowH * 0.5, baseFreq, 0, 1, "oklch(65% 0.14 250)", "波A（基準）");
+          // Wave B
+          drawWave(rowH * 1.15, baseFreq * freqRatio, phaseRad, ampRatio, "oklch(75% 0.15 45)", "波B（操作）");
+          // Sum
+          ctx.strokeStyle = "oklch(95% 0.005 260)";
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          let maxAmp = 0;
+          for (let x = 0; x <= w; x++) {
+            const a = Math.sin(baseFreq * x + t);
+            const b = ampRatio * Math.sin(baseFreq * freqRatio * x + t + phaseRad);
+            const sum = a + b;
+            maxAmp = Math.max(maxAmp, Math.abs(sum));
+            const y = rowH * 2.2 + sum * 30;
+            x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(120,130,150,0.25)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(0, rowH * 2.2);
+          ctx.lineTo(w, rowH * 2.2);
+          ctx.stroke();
+          ctx.fillStyle = "oklch(95% 0.005 260)";
+          ctx.font = '11px "Geist Mono", monospace';
+          ctx.textAlign = "left";
+          ctx.fillText("合成波 A + B", 8, rowH * 2.2 - 40);
+
+          // State
+          const sameFreq = Math.abs(freqRatio - 1.0) < 0.05;
+          let state = "複合波";
+          if (sameFreq) {
+            if (phaseDeg < 20 || phaseDeg > 340) state = "強め合い ✦";
+            else if (phaseDeg > 160 && phaseDeg < 200) state = "打ち消し合い";
+            else state = "中間状態";
+          }
+          $("intState").textContent = state;
+          $("intAmp").textContent = maxAmp.toFixed(2);
+
+          requestAnimationFrame(draw);
+        }
+        draw();
+      })();
+
+      /* ==========================================================
+         Widget 02: 光路差シミュレーター
+         ========================================================== */
+      (function initPath() {
+        const cv = $("pathCv");
+        if (!cv) return;
+        const thetaS = $("theta2"),
+          baseS = $("base2");
+        let t = 0;
+
+        function draw() {
+          t += 0.03;
+          const { ctx, w, h } = fitCanvas(cv);
+          ctx.clearRect(0, 0, w, h);
+
+          const theta = (+thetaS.value * Math.PI) / 180;
+          const B = +baseS.value;
+          const delta = B * Math.sin(theta);
+          const delayNs = (Math.abs(delta) / 3e8) * 1e9;
+
+          $("theta2out").textContent = thetaS.value + "°";
+          $("base2out").textContent = B + " m";
+          $("pd2").textContent = Math.abs(delta).toFixed(1) + " m";
+          $("delay2").textContent = delayNs < 1 ? (delayNs * 1000).toFixed(1) + " ps" : delayNs.toFixed(2) + " ns";
+
+          const groundY = h * 0.82;
+          const cx = w / 2;
+          const antSep = Math.min(w * 0.35, B * 0.5);
+
+          // ground
+          ctx.strokeStyle = "oklch(28% 0.01 260)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(0, groundY);
+          ctx.lineTo(w, groundY);
+          ctx.stroke();
+
+          // antennas
+          const ax = cx - antSep,
+            bx = cx + antSep;
+          drawAnt(ctx, ax, groundY, "A");
+          drawAnt(ctx, bx, groundY, "B");
+
+          // baseline
+          ctx.strokeStyle = "oklch(75% 0.15 45 / 0.4)";
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(ax, groundY + 10);
+          ctx.lineTo(bx, groundY + 10);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = "oklch(72% 0.008 260)";
+          ctx.font = '11px "Geist Mono", monospace';
+          ctx.textAlign = "center";
+          ctx.fillText("B = " + B + " m", cx, groundY + 28);
+
+          // wavefronts from star direction
+          const starAngle = -Math.PI / 2 + theta;
+          const dx = Math.cos(starAngle),
+            dy = Math.sin(starAngle);
+
+          // star indicator
+          const starDist = h * 0.35;
+          const starX = cx + starDist * Math.sin(theta);
+          const starY = groundY - starDist * Math.cos(Math.abs(theta)) - 30;
+          ctx.fillStyle = "oklch(90% 0.10 55)";
+          ctx.beginPath();
+          ctx.arc(starX, Math.max(20, starY), 6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "oklch(72% 0.008 260)";
+          ctx.font = '10px "Geist Mono", monospace';
+          ctx.fillText("★ 天体", starX, Math.max(20, starY) - 14);
+
+          // wavefront lines
+          ctx.strokeStyle = "oklch(75% 0.15 45 / 0.35)";
+          ctx.lineWidth = 1.5;
+          const perp = { x: -dy, y: dx };
+          for (let i = 0; i < 8; i++) {
+            const phase = (t * 80 + i * 35) % (h * 0.8);
+            const originX = starX - dx * phase;
+            const originY = Math.max(20, starY) - dy * phase;
+            if (originY > groundY) continue;
+            ctx.beginPath();
+            ctx.moveTo(originX - perp.x * w * 0.5, originY - perp.y * w * 0.5);
+            ctx.lineTo(originX + perp.x * w * 0.5, originY + perp.y * w * 0.5);
+            ctx.stroke();
+          }
+
+          // path difference indicator
+          if (Math.abs(delta) > 1) {
+            const side = delta > 0 ? bx : ax;
+            ctx.strokeStyle = "oklch(85% 0.16 50)";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([3, 3]);
+            const offset = Math.min(Math.abs(delta) * 0.3, 60);
+            ctx.beginPath();
+            ctx.moveTo(side, groundY - 20);
+            ctx.lineTo(side, groundY - 20 - offset);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = "oklch(85% 0.16 50)";
+            ctx.font = '10px "Geist Mono", monospace';
+            ctx.fillText("Δ = " + Math.abs(delta).toFixed(1) + " m", side, groundY - 26 - offset);
+          }
+
+          requestAnimationFrame(draw);
+        }
+
+        function drawAnt(ctx, x, y, label) {
+          ctx.strokeStyle = "oklch(75% 0.15 45)";
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(x - 18, y - 22);
+          ctx.quadraticCurveTo(x, y + 4, x + 18, y - 22);
+          ctx.stroke();
+          ctx.strokeStyle = "oklch(58% 0.01 260)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x, y - 6);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+          ctx.fillStyle = "oklch(72% 0.008 260)";
+          ctx.font = '12px "Geist Mono", monospace';
+          ctx.textAlign = "center";
+          ctx.fillText(label, x, y - 30);
+        }
+
+        draw();
+      })();
+
+      /* ==========================================================
+         Widget 03: 測量チャレンジ
+         ========================================================== */
+      (function initLock() {
+        const cv = $("lockCv");
+        if (!cv) return;
+        const slider = $("lockSlider");
+        const FREQ = 43e9;
+        let secret = Math.round((Math.random() - 0.5) * 3000);
+        let t = 0;
+
+        function draw() {
+          t += 0.04;
+          const { ctx, w, h } = fitCanvas(cv);
+          ctx.clearRect(0, 0, w, h);
+
+          const user = +slider.value;
+          const resid = user - secret;
+          const residPs = (resid / 1000).toFixed(1);
+          const phShift = (2 * Math.PI * FREQ * resid * 1e-12) % (2 * Math.PI);
+          const coh = Math.max(0, Math.cos(phShift));
+          const cohPct = (coh * 100).toFixed(0);
+
+          $("lockOut").textContent = (user / 1000).toFixed(1) + " ns";
+          $("lockResid").textContent = Math.abs(resid).toFixed(0) + " ps";
+          $("lockCoh").textContent = cohPct + "%";
+          $("lockStat").textContent = "LOCK " + cohPct + "%";
+
+          const ok = coh > 0.95;
+          const mid = coh > 0.5;
+          $("lockVerdict").textContent = ok ? "✦ フリンジ検出！" : mid ? "もう少し…" : "縞が見えない";
+          $("lockVerdict").style.color = ok ? "oklch(75% 0.15 45)" : "oklch(72% 0.008 260)";
+          $("lockMeter").style.width = cohPct + "%";
+
+          const midY = h / 2;
+          // Station A signal
+          ctx.strokeStyle = "oklch(65% 0.14 250)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          for (let x = 0; x < w; x++) {
+            const y = midY - 35 + 25 * Math.sin(x * 0.06 + t);
+            x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+
+          // Station B signal (shifted)
+          ctx.strokeStyle = "oklch(75% 0.15 45)";
+          ctx.beginPath();
+          for (let x = 0; x < w; x++) {
+            const y = midY + 35 + 25 * Math.sin(x * 0.06 + t + phShift);
+            x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+
+          // Correlation bar
+          const barH = 20;
+          const barY = h - 35;
+          ctx.fillStyle = "oklch(22% 0.012 260)";
+          ctx.fillRect(0, barY, w, barH);
+          const barColor = ok ? "oklch(75% 0.15 45)" : mid ? "oklch(60% 0.10 45)" : "oklch(40% 0.05 260)";
+          ctx.fillStyle = barColor;
+          ctx.fillRect(0, barY, w * coh, barH);
+
+          // labels
+          ctx.fillStyle = "rgba(190,200,220,0.8)";
+          ctx.font = '10px "Geist Mono", monospace';
+          ctx.textAlign = "left";
+          ctx.fillText("局A", 8, midY - 55);
+          ctx.fillText("局B（遅延補正済み）", 8, midY + 15);
+          ctx.fillText("相関出力: " + cohPct + "%", 8, barY - 6);
+
+          requestAnimationFrame(draw);
+        }
+
+        slider.addEventListener("input", draw);
+        $("lockRetry").addEventListener("click", () => {
+          secret = Math.round((Math.random() - 0.5) * 3000);
+          slider.value = 0;
+        });
+
+        draw();
+      })();
+
+      /* ==========================================================
+         Widget 04: 開口合成デモ
+         ========================================================== */
+      (function initSynth() {
+        const nS = $("synthN"),
+          uvCv = $("synthUv"),
+          imCv = $("synthImg");
+        if (!nS || !uvCv || !imCv) return;
+        const N = 48;
+        let shape = "ring",
+          showTruth = false,
+          playing = false,
+          raf = null;
+
+        function truth(i, j) {
+          const x = (i - N / 2) / (N / 2),
+            y = (j - N / 2) / (N / 2);
+          const r = Math.sqrt(x * x + y * y);
+          if (shape === "ring") {
+            const v = Math.exp(-Math.pow((r - 0.45) / 0.11, 2));
+            const asym = 0.55 + (0.45 * (Math.sin(Math.atan2(y, x) + 1.2) + 1)) / 2;
+            return v * asym;
+          }
+          if (shape === "double") {
+            const a = Math.exp(-(Math.pow(x + 0.32, 2) + y * y) / 0.012);
+            const b = Math.exp(-(Math.pow(x - 0.3, 2) + Math.pow(y - 0.1, 2)) / 0.018);
+            return a + 0.75 * b;
+          }
+          // nebula
+          const core = Math.exp(-(x * x + y * y) / 0.015) * 1.2;
+          const arm1 = Math.exp(-Math.pow(y - 0.3 * Math.sin(x * 3), 2) / 0.02) * Math.exp((-x * x) / 0.12) * 0.6;
+          const arm2 = Math.exp(-Math.pow(x - 0.2 * Math.cos(y * 2.5), 2) / 0.03) * Math.exp((-y * y) / 0.15) * 0.4;
+          return core + arm1 + arm2;
+        }
+
+        function baselines(n) {
+          const out = [];
+          const nAnt = Math.max(2, n);
+          for (let a = 0; a < nAnt; a++)
+            for (let b = a + 1; b < nAnt; b++) {
+              if (out.length >= 200) break;
+              const rad = 1.5 + 12 * Math.pow((a + b) / (2 * nAnt), 0.6);
+              const ang = (a * 2.399 + b * 1.618) % (2 * Math.PI);
+              out.push({ u: Math.round(rad * Math.cos(ang)), v: Math.round(rad * Math.sin(ang)) });
+            }
+          return out;
+        }
+
+        const cache = {};
+        function comp(u, v) {
+          const key = shape + ":" + u + "," + v;
+          if (cache[key]) return cache[key];
+          let re = 0,
+            im = 0;
+          for (let i = 0; i < N; i++)
+            for (let j = 0; j < N; j++) {
+              const f = truth(i, j);
+              if (f < 0.004) continue;
+              const ph = -2 * Math.PI * ((u * (i - N / 2)) / N + (v * (j - N / 2)) / N);
+              re += f * Math.cos(ph);
+              im += f * Math.sin(ph);
+            }
+          const r = { re: re / (N * N), im: im / (N * N) };
+          cache[key] = r;
+          return r;
+        }
+
+        function render() {
+          const n = parseInt(nS.value, 10);
+          const blCount = (n * (n - 1)) / 2;
+          $("synthNout").textContent = n + " 台（" + Math.min(blCount, 200) + " 基線）";
+          const bl = baselines(n);
+
+          // UV canvas
+          {
+            const { ctx, w, h } = fitCanvas(uvCv);
+            ctx.clearRect(0, 0, w, h);
+            const cx = w / 2,
+              cy = h / 2,
+              sc = Math.min(w, h) / 34;
+            ctx.strokeStyle = "rgba(120,130,150,0.28)";
+            ctx.lineWidth = 1;
+            [5, 10, 15].forEach((r) => {
+              ctx.beginPath();
+              ctx.arc(cx, cy, r * sc, 0, 7);
+              ctx.stroke();
+            });
+            ctx.beginPath();
+            ctx.moveTo(0, cy);
+            ctx.lineTo(w, cy);
+            ctx.moveTo(cx, 0);
+            ctx.lineTo(cx, h);
+            ctx.stroke();
+
+            bl.forEach((b, i) => {
+              const alpha = 0.35 + 0.65 * (i / Math.max(1, bl.length - 1));
+              ctx.fillStyle = "rgba(" + ACC + "," + alpha.toFixed(2) + ")";
+              [1, -1].forEach((s) => {
+                ctx.beginPath();
+                ctx.arc(cx + s * b.u * sc, cy - s * b.v * sc, 2.8, 0, 7);
+                ctx.fill();
+              });
+            });
+            ctx.font = '10px "Geist Mono", monospace';
+            ctx.fillStyle = "rgba(190,200,220,0.8)";
+            ctx.textAlign = "left";
+            ctx.fillText("UV平面", 8, 14);
+          }
+
+          // Image canvas
+          {
+            const { ctx, w, h } = fitCanvas(imCv);
+            ctx.clearRect(0, 0, w, h);
+            const side = Math.min(w, h) - 10;
+            const ox = (w - side) / 2,
+              oy = (h - side) / 2;
+            const px = side / N;
+            const buf = new Float32Array(N * N);
+
+            if (showTruth) {
+              for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) buf[j * N + i] = truth(i, j);
+            } else {
+              bl.forEach((b) => {
+                const C0 = comp(b.u, b.v);
+                for (let i = 0; i < N; i++)
+                  for (let j = 0; j < N; j++) {
+                    const ph = 2 * Math.PI * ((b.u * (i - N / 2)) / N + (b.v * (j - N / 2)) / N);
+                    buf[j * N + i] += 2 * (C0.re * Math.cos(ph) - C0.im * Math.sin(ph));
+                  }
+              });
+            }
+
+            let mx = 1e-9;
+            for (let k = 0; k < buf.length; k++) mx = Math.max(mx, buf[k]);
+            for (let i = 0; i < N; i++)
+              for (let j = 0; j < N; j++) {
+                const v = Math.max(0, buf[j * N + i]) / mx;
+                const g = Math.pow(v, 0.75);
+                ctx.fillStyle = "rgb(" + Math.round(20 + 235 * g) + "," + Math.round(14 + 150 * g) + "," + Math.round(24 + 70 * g) + ")";
+                ctx.fillRect(ox + i * px, oy + (N - 1 - j) * px, px + 0.6, px + 0.6);
+              }
+            ctx.strokeStyle = "rgba(120,130,150,0.35)";
+            ctx.strokeRect(ox, oy, side, side);
+            ctx.font = '10px "Geist Mono", monospace';
+            ctx.fillStyle = "rgba(230,235,245,0.9)";
+            ctx.textAlign = "left";
+            ctx.fillText(showTruth ? "TRUE IMAGE" : "SYNTHESIZED (" + bl.length + " baselines)", ox + 6, oy + 14);
+          }
+        }
+
+        document.querySelectorAll("[data-shape]").forEach((b) => {
+          b.addEventListener("click", () => {
+            document.querySelectorAll("[data-shape]").forEach((o) => o.setAttribute("aria-pressed", "false"));
+            b.setAttribute("aria-pressed", "true");
+            shape = b.dataset.shape;
+            for (const k in cache) delete cache[k];
+            showTruth = false;
+            $("synthTruth").textContent = "本当の姿を表示";
+            render();
+          });
+        });
+
+        nS.addEventListener("input", () => {
+          showTruth = false;
+          $("synthTruth").textContent = "本当の姿を表示";
+          if (playing) {
+            playing = false;
+            $("synthAdd").textContent = "望遠鏡を増やしていく（再生）";
+            if (raf) clearTimeout(raf);
+          }
+          render();
+        });
+
+        $("synthTruth").addEventListener("click", () => {
+          showTruth = !showTruth;
+          $("synthTruth").textContent = showTruth ? "合成像に戻す" : "本当の姿を表示";
+          render();
+        });
+
+        $("synthAdd").addEventListener("click", () => {
+          playing = !playing;
+          $("synthAdd").textContent = playing ? "停止" : "望遠鏡を増やしていく（再生）";
+          if (!playing) {
+            if (raf) clearTimeout(raf);
+            return;
+          }
+          showTruth = false;
+          $("synthTruth").textContent = "本当の姿を表示";
+          let v = 2;
+          (function step() {
+            if (!playing) return;
+            nS.value = v;
+            render();
+            v = v < 10 ? v + 1 : Math.min(60, Math.round(v * 1.2));
+            if (v > 60) {
+              playing = false;
+              $("synthAdd").textContent = "望遠鏡を増やしていく（再生）";
+              return;
+            }
+            raf = setTimeout(step, 350);
+          })();
+        });
+
+        window.addEventListener("resize", render);
+        render();
+      })();
+
+      /* ==========================================================
+         Nav scroll spy
+         ========================================================== */
+      (function initNav() {
+        const links = document.querySelectorAll(".nav-pill__btn");
+        const chapters = document.querySelectorAll(".chapter");
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                const id = entry.target.id;
+                links.forEach((l) => {
+                  l.style.opacity = l.getAttribute("href") === "#" + id ? "1" : "0.6";
+                });
+              }
+            });
+          },
+          { rootMargin: "-20% 0px -60% 0px" },
+        );
+        chapters.forEach((ch) => observer.observe(ch));
+      })();
+    </script>
+  </body>
+</html>

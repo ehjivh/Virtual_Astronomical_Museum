@@ -4,9 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>見えない宇宙を「聴く」 〜電波天文学への招待〜</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
     <style>
-/* Hallmark · genre: atmospheric · macrostructure: 18-portfolio-grid · theme: bloom · nav: N5 · footer: Ft5 */
+      /* Hallmark · genre: atmospheric · macrostructure: 18-portfolio-grid · theme: bloom · nav: N5 · footer: Ft5 */
       @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono&display=swap");
 
       :root {
@@ -403,21 +403,10 @@
 
       /* Exhibit Page Additions */
       .view {
-        display: none;
-      }
-      .view.is-active {
         display: block;
-        animation: fadeUp 0.45s ease both;
-      }
-      @keyframes fadeUp {
-        from {
-          opacity: 0;
-          transform: translateY(12px);
-        }
-        to {
-          opacity: 1;
-          transform: none;
-        }
+        padding-top: 100px; /* スクロール時のヘッダー被り防止 */
+        margin-top: -80px;
+        margin-bottom: var(--space-4xl);
       }
 
       .breadcrumb {
@@ -691,7 +680,7 @@
           font-size: var(--text-xl);
         }
       }
-</style>
+    </style>
   </head>
   <body>
     <!-- ============ N5 Floating Pill Nav ============ -->
@@ -718,93 +707,7 @@
           <p class="section-lead" style="margin-left: auto; margin-right: auto">人の目に映らない「電波」で宇宙を描き出す ── 口径8mクラスの電波望遠鏡を運用するプロセスをモデルに、 微弱な信号が宇宙の姿になるまでの4つの工程を、あなたの手で辿ってみてください。</p>
         </header>
 
-        <div class="portfolio-grid">
-          <article class="exhibit-card">
-            <div class="exhibit-card__visual">
-              <svg viewBox="0 0 320 200" style="position: relative; z-index: 1; width: 100%; height: 100%">
-                <defs>
-                  <linearGradient id="g1" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stop-color="oklch(70% 0.20 300)" />
-                    <stop offset="50%" stop-color="oklch(85% 0.15 150)" />
-                    <stop offset="100%" stop-color="oklch(75% 0.16 45)" />
-                  </linearGradient>
-                </defs>
-                <path d="M0 130 Q 20 90 40 130 T 80 130 T 120 130 Q 150 60 180 130 Q 220 20 260 130 Q 290 60 320 130" fill="none" stroke="url(#g1)" stroke-width="2.5" />
-                <rect x="0" y="150" width="320" height="8" fill="url(#g1)" opacity="0.5" />
-              </svg>
-            </div>
-            <div class="exhibit-card__content">
-              <p class="exhibit-card__meta">Chapter 01 · Wavelength</p>
-              <h2 class="exhibit-card__title">光と電波の連続性</h2>
-              <p class="exhibit-card__desc">ガンマ線から電波まで。同じ電磁波が「波長」の違いだけで、まったく別の宇宙を見せる。 スライダーで波長を変えて、暗黒星雲の向こう側を覗いてみましょう。</p>
-              <a class="exhibit-card__link" data-go="ch1">波長マップを操作する</a>
-            </div>
-          </article>
 
-          <article class="exhibit-card">
-            <div class="exhibit-card__visual">
-              <svg viewBox="0 0 320 200" style="position: relative; z-index: 1; width: 100%; height: 100%">
-                <path d="M60 160 Q160 20 260 160" fill="none" stroke="oklch(75% 0.15 45)" stroke-width="3" />
-                <line x1="160" y1="160" x2="160" y2="95" stroke="oklch(72% 0.008 260)" stroke-width="2" />
-                <circle cx="160" cy="90" r="7" fill="oklch(75% 0.15 45)" />
-                <line x1="60" y1="160" x2="260" y2="160" stroke="oklch(58% 0.01 260)" stroke-width="2" />
-              </svg>
-            </div>
-            <div class="exhibit-card__content">
-              <p class="exhibit-card__meta">Chapter 02 · Resolution</p>
-              <h2 class="exhibit-card__title">わずかな囁きを捉える</h2>
-              <p class="exhibit-card__desc">θ = 1.22 λ/D。なぜ電波望遠鏡は巨大なのか。波長と口径を動かして、 像がぼやけ、そして再び結ばれる瞬間を確かめてください。</p>
-              <a class="exhibit-card__link" data-go="ch2">分解能シミュレータへ</a>
-            </div>
-          </article>
-
-          <article class="exhibit-card">
-            <div class="exhibit-card__visual">
-              <svg viewBox="0 0 320 200" style="position: relative; z-index: 1; width: 100%; height: 100%">
-                <polyline points="0,100 20,95 40,105 60,90 80,110 100,100" fill="none" stroke="oklch(58% 0.01 260)" stroke-width="2" />
-                <rect x="110" y="70" width="40" height="60" rx="6" fill="none" stroke="oklch(72% 0.008 260)" stroke-width="2" />
-                <rect x="170" y="70" width="40" height="60" rx="6" fill="none" stroke="oklch(75% 0.15 45)" stroke-width="2" />
-                <polyline points="220,100 235,50 250,150 265,55 280,145 295,100 320,100" fill="none" stroke="oklch(75% 0.15 45)" stroke-width="2.5" />
-              </svg>
-            </div>
-            <div class="exhibit-card__content">
-              <p class="exhibit-card__meta">Chapter 03 · Front End</p>
-              <h2 class="exhibit-card__title">ノイズの中から星の声を</h2>
-              <p class="exhibit-card__desc">人工電波と熱雑音に埋もれた囁きを、フィルターで選び、極低温のLNAで増幅する。 信号経路をたどりながら、S/N比が生まれる瞬間を体感します。</p>
-              <a class="exhibit-card__link" data-go="ch3">受信系をたどる</a>
-            </div>
-          </article>
-
-          <article class="exhibit-card">
-            <div class="exhibit-card__visual">
-              <svg viewBox="0 0 320 200" style="position: relative; z-index: 1; width: 100%; height: 100%">
-                <g fill="oklch(75% 0.15 45)">
-                  <rect x="30" y="120" width="10" height="30" />
-                  <rect x="50" y="95" width="10" height="55" />
-                  <rect x="70" y="60" width="10" height="90" />
-                  <rect x="90" y="30" width="10" height="120" />
-                  <rect x="110" y="70" width="10" height="80" />
-                  <rect x="130" y="105" width="10" height="45" />
-                </g>
-                <g fill="oklch(58% 0.01 260)">
-                  <rect x="160" y="115" width="10" height="35" />
-                  <rect x="180" y="125" width="10" height="25" />
-                  <rect x="200" y="110" width="10" height="40" />
-                  <rect x="220" y="130" width="10" height="20" />
-                  <rect x="240" y="118" width="10" height="32" />
-                  <rect x="260" y="128" width="10" height="22" />
-                  <rect x="280" y="112" width="10" height="38" />
-                </g>
-              </svg>
-            </div>
-            <div class="exhibit-card__content">
-              <p class="exhibit-card__meta">Chapter 04 · SDR / Back End</p>
-              <h2 class="exhibit-card__title">電波を「デジタル」に</h2>
-              <p class="exhibit-card__desc">A/D変換、そしてFFT。ウォーターフォールがスペクトルへ切り替わり、 中性水素21cm線のピークが浮かび上がります。</p>
-              <a class="exhibit-card__link" data-go="ch4">SDRコンソールを開く</a>
-            </div>
-          </article>
-        </div>
       </section>
 
       <!-- ================================================================
@@ -912,7 +815,10 @@
         <h1 class="section-title"><span class="section-num">2</span>わずかな囁きを捉える</h1>
         <p class="section-lead">電波望遠鏡はなぜあれほど巨大なのか。答えは分解能の式にあります。 波長が長いほど像はぼやけ、それを取り戻すには口径を大きくするしかありません。</p>
 
-        <div class="formula">θ ≈ 1.22 × λ / D　［rad］</div>
+        <div class="formula">
+          θ ≈ 1.22 × λ / D　［rad］<br />
+          <span style="font-size: var(--text-sm); color: var(--color-muted); font-family: var(--font-body); display: block; margin-top: 8px">※得られたラジアン値を秒角へ換算（× 206265）しています</span>
+        </div>
 
         <div class="sim-layout">
           <div class="sim-stage">
@@ -1059,7 +965,7 @@
         </div>
 
         <div class="hint" style="margin-top: var(--space-xl)">
-          <b>21cm線とは：</b>中性水素原子が放つ波長約21cm（周波数1420.406MHz）の電波です。 塵に遮られないため銀河系全体の水素分布を追うことができ、 ピークの位置がドップラー効果でずれる量から、<b>ガスがどの速度で動いているか</b>まで読み取れます。 見えないガスの運動が、スペクトルという情報として姿を現す瞬間です。 <br /><br />
+          <b>21cm線とは：</b>中性水素原子が放つ波長約21cm（周波数1420.406MHz）の電波です。 塵に遮られないため銀河系全体の水素分布を追うことができ、 ピークの位置がドップラー効果でずれる量から、<b>ガスがどの速度で動いているか</b>まで読み取れます（たとえば星間ガスが地球に向かって100 km/sで動いていれば、ピークは約0.47 MHzほど高い周波数へずれます）。 見えないガスの運動が、スペクトルという情報として姿を現す瞬間です。 <br /><br />
           この帯域は国際的に電波天文業務用として保護されており、 静かな電波環境を守ることが観測そのものを支えています。
         </div>
 
@@ -1086,19 +992,22 @@
     <!-- /page-container -->
 
     <script>
-/* ==========================================================
+      /* ==========================================================
    Router : view switching
    ========================================================== */
       const views = document.querySelectorAll(".view");
       const navLinks = document.querySelectorAll(".nav-pill__link");
 
       function go(id) {
-        views.forEach((v) => v.classList.toggle("is-active", v.id === "view-" + id));
-        navLinks.forEach((l) => l.classList.toggle("is-current", l.dataset.go === id));
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        if (id === "ch2") drawCh2();
-        if (id === "ch4") drawADC();
+        const target = document.getElementById("view-" + id);
+        if (target) {
+          window.scrollTo({
+            top: target.offsetTop - 20,
+            behavior: "smooth",
+          });
+        }
       }
+
       document.addEventListener("click", (e) => {
         const el = e.target.closest("[data-go]");
         if (el) {
@@ -1106,6 +1015,20 @@
           go(el.dataset.go);
         }
       });
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const activeId = entry.target.id.replace("view-", "");
+              navLinks.forEach((l) => l.classList.toggle("is-current", l.dataset.go === activeId));
+            }
+          });
+        },
+        { rootMargin: "-20% 0px -60% 0px" },
+      );
+
+      views.forEach((v) => observer.observe(v));
 
       /* ==========================================================
    Chapter 1 : Wavelength slider
@@ -1617,12 +1540,12 @@
    Single animation loop (only draws visible views)
    ========================================================== */
       function loop() {
-        if (document.getElementById("view-ch3").classList.contains("is-active")) drawCh3();
-        if (document.getElementById("view-ch4").classList.contains("is-active")) drawSDR();
+        drawCh3();
+        drawSDR();
         requestAnimationFrame(loop);
       }
       syncSDR();
       loop();
-</script>
+    </script>
   </body>
 </html>
