@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>見えない宇宙を「聴く」 〜電波天文学への招待〜</title>
     <link rel="stylesheet" href="style.css" />
+    <script src="common-ui.js" defer></script>
     <style>
       /* Hallmark · genre: atmospheric · macrostructure: 18-portfolio-grid · theme: bloom · nav: N5 · footer: Ft5 */
       @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono&display=swap");
@@ -682,7 +683,7 @@
       }
     </style>
   </head>
-  <body>
+  <body data-app-id="radio_telescope">
     <!-- ============ N5 Floating Pill Nav ============ -->
     <nav class="nav-pill">
       <a class="nav-pill__wordmark" data-go="home">RADIO / SKY</a>
@@ -940,6 +941,10 @@
         </div>
 
         <h2 style="font-size: var(--text-xl); margin: var(--space-3xl) 0 var(--space-md)">STEP 2 — SDR仮想コンソール：FFTで21cm線を見る</h2>
+        <div class="hint" style="margin-bottom: var(--space-md)">
+          <span class="chip" style="margin-right: var(--space-xs)">MISSION</span>
+          <b>中性水素21cm線を検出せよ：</b>第3章で<b>フィルター ON・LNA ON・冷却（50 K以下）</b>を設定してS/N比を高め、下のSDRコンソールで<b>FFT ON・積分平均 ON・人工電波 OFF</b>にして 1420.406 MHz のピークを浮かび上がらせましょう。
+        </div>
 
         <div class="sdr-console">
           <div class="sdr-bar">
@@ -1417,6 +1422,7 @@
           note.innerHTML = "<b>人工電波が混入：</b>強いスプリアスが立ち、21cm線のピークが埋もれています。これが電波天文台が静かな立地を必要とする理由です。";
         } else if (avgOn) {
           note.innerHTML = "<b>積分平均 ON：</b>ランダム雑音が平均化で下がり、<b>1420.406 MHz</b>の中性水素21cm線のピークが鮮明に浮かび上がりました。ピークのわずかなズレが、ガスの視線速度を語っています。";
+          if (window.VAM) window.VAM.completeMission("radio_telescope");
         } else {
           note.innerHTML = "<b>FFT ON：</b>周波数領域のスペクトル表示になりました。1420.406 MHz付近にピークの気配があります。積分平均をONにして雑音を抑えてみましょう。";
         }

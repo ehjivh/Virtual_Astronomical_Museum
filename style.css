@@ -16,6 +16,10 @@
   /* Bloom accent: warm star/nebula orange-pink */
   --color-accent: oklch(75% 0.15 45);
   --color-focus: oklch(75% 0.18 45);
+  --color-accent-soft: oklch(75% 0.15 45 / 0.12);
+  --color-accent-glow: oklch(75% 0.15 45 / 0.25);
+  --color-glass: oklch(18% 0.012 260 / 0.72);
+  --shadow-float: 0 12px 40px oklch(0% 0 0 / 0.45);
 
   --font-display: "Geist", system-ui, sans-serif;
   --font-body: "Geist", system-ui, sans-serif;
@@ -827,5 +831,515 @@ canvas {
   }
   .footer-statement__text {
     font-size: var(--text-xl);
+  }
+}
+
+
+/* =========================================================================
+   Common UI (common-ui.js) — 共通ヘッダー / フッター / スタンプラリー
+   各展示ページ固有の header / footer / h2 / p 指定が漏れ込まないよう、
+   主要プロパティは明示的に指定しています。
+   ========================================================================= */
+
+/* ---- 共通ヘッダー ---- */
+.vam-header {
+  position: relative;
+  z-index: 90;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-md);
+  max-width: 1200px;
+  margin: 0 auto var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-rule);
+  background: transparent;
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  color: var(--color-muted);
+}
+.vam-header__left,
+.vam-header__right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+.vam-header__right {
+  justify-content: flex-end;
+}
+.vam-header__home {
+  color: var(--color-ink);
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 4px 0;
+  border-bottom: 1px solid transparent;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+.vam-header__home:hover {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+.vam-header__home:focus-visible,
+.vam-dict-chip:focus-visible,
+.vam-pager__link:focus-visible,
+.vam-reset:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.vam-header__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  text-align: center;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.vam-zone-badge,
+.vam-clear-badge,
+.vam-stamp-count {
+  display: inline-block;
+  font-family: var(--font-outlier);
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  border: 1px solid var(--color-rule);
+  background: var(--color-paper-2);
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+.vam-zone-badge {
+  color: var(--color-accent);
+}
+.vam-clear-badge.is-cleared {
+  color: var(--color-paper);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  font-weight: 600;
+}
+.vam-stamp-count {
+  color: var(--color-ink);
+}
+
+/* ---- 共通フッター ---- */
+.vam-footer {
+  margin: var(--space-4xl) 0 0;
+  padding: var(--space-3xl) var(--space-lg) var(--space-2xl);
+  border-top: 1px solid var(--color-rule);
+  background: var(--color-paper-2);
+  text-align: left;
+  font-family: var(--font-body);
+  color: var(--color-muted);
+}
+.vam-footer__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  gap: var(--space-2xl);
+}
+.vam-footer__h {
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  text-align: left;
+}
+.vam-footer__note {
+  margin: 0 0 var(--space-md);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  max-width: 65ch;
+}
+.vam-dict-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+.vam-dict-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border: 1px solid var(--color-rule);
+  background: var(--color-paper-3);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+.vam-dict-chip::after {
+  content: "↗";
+  font-family: var(--font-outlier);
+  color: var(--color-accent);
+}
+.vam-dict-chip:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+.vam-pager {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-md);
+}
+.vam-pager__link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-lg);
+  border: 1px solid var(--color-rule);
+  border-radius: 12px;
+  background: var(--color-paper);
+  min-width: 0;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+.vam-pager__link--next,
+.vam-pager > .vam-pager__link:last-child {
+  text-align: right;
+}
+.vam-pager__link:hover {
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+}
+.vam-pager__dir {
+  font-family: var(--font-outlier);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-accent);
+}
+.vam-pager__title {
+  font-weight: 600;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+.vam-pager__star {
+  color: var(--color-accent);
+}
+.vam-footer__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-rule);
+  font-family: var(--font-outlier);
+  font-size: var(--text-xs);
+  color: var(--color-neutral);
+}
+
+/* ---- スタンプ獲得トースト ---- */
+.vam-toast {
+  position: fixed;
+  right: var(--space-lg);
+  bottom: var(--space-lg);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  max-width: min(420px, calc(100vw - 2 * var(--space-lg)));
+  padding: var(--space-md) var(--space-lg);
+  background: var(--color-glass);
+  backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid var(--color-accent);
+  border-radius: 14px;
+  box-shadow: var(--shadow-float);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  opacity: 0;
+  transform: translateY(16px);
+  pointer-events: none;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+.vam-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.vam-toast__stamp {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px dashed var(--color-accent);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: var(--text-lg);
+  transform: rotate(-12deg);
+}
+.vam-toast.is-visible .vam-toast__stamp {
+  animation: vam-stamp-press 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes vam-stamp-press {
+  0% {
+    transform: scale(2.2) rotate(-30deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(0.9) rotate(-10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(-12deg);
+  }
+}
+.vam-toast__body p {
+  margin: 0;
+}
+.vam-toast__title {
+  font-weight: 600;
+  color: var(--color-accent);
+}
+.vam-toast__meta {
+  font-family: var(--font-outlier);
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
+.vam-toast__extra {
+  margin-top: var(--space-xs) !important;
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+}
+
+/* ---- index.html: スタンプ帳ダッシュボード ---- */
+.vam-dashboard {
+  max-width: 880px;
+  margin: 0 auto var(--space-4xl);
+  padding: var(--space-xl);
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-rule);
+  border-radius: 16px;
+}
+.vam-dash__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-md);
+}
+.vam-dash__label {
+  margin: 0 0 var(--space-xs);
+  font-family: var(--font-outlier);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-accent);
+}
+.vam-dash__count {
+  margin: 0;
+  color: var(--color-muted);
+}
+.vam-dash__num {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--color-ink);
+  letter-spacing: -0.03em;
+}
+.vam-reset {
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  color: var(--color-neutral);
+  font-family: var(--font-outlier);
+  font-size: var(--text-xs);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.vam-reset:hover {
+  color: var(--color-ink);
+}
+.vam-progress {
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--color-paper-3);
+  border: 1px solid var(--color-rule);
+  overflow: hidden;
+}
+.vam-progress__fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 9999px;
+  transition: width 0.6s ease;
+}
+.vam-zone-badges {
+  list-style: none;
+  margin: var(--space-lg) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-md);
+}
+.vam-zone-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--color-rule);
+  border-radius: 12px;
+  background: var(--color-paper);
+  opacity: 0.75;
+}
+.vam-zone-title.is-complete {
+  opacity: 1;
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+  box-shadow: 0 0 24px var(--color-accent-glow);
+}
+.vam-zone-title__mark {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px dashed var(--color-neutral);
+  font-family: var(--font-outlier);
+  color: var(--color-neutral);
+}
+.vam-zone-title.is-complete .vam-zone-title__mark {
+  border: 2px solid var(--color-accent);
+  color: var(--color-accent);
+}
+.vam-zone-title__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.vam-zone-title__name {
+  font-weight: 600;
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+}
+.vam-zone-title__count {
+  font-family: var(--font-outlier);
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+}
+
+/* ---- index.html: ゾーン別セクション ---- */
+.vam-zone {
+  margin-bottom: var(--space-4xl);
+  scroll-margin-top: 100px;
+}
+.vam-zone__head {
+  display: grid;
+  gap: var(--space-sm);
+  justify-items: start;
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--color-rule);
+}
+.vam-zone__en {
+  margin: 0;
+  font-family: var(--font-outlier);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-accent);
+}
+.vam-zone__title {
+  font-size: var(--text-2xl);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.vam-zone__desc {
+  margin: 0;
+  color: var(--color-muted);
+  max-width: 60ch;
+}
+.vam-zone__grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+  margin-bottom: 0;
+}
+.vam-card-num {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-outlier);
+  font-size: var(--text-3xl);
+  color: var(--color-rule);
+  letter-spacing: -0.02em;
+}
+.exhibit-card.is-cleared {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent-soft);
+}
+.exhibit-card.is-cleared .vam-card-num {
+  color: var(--color-accent-glow);
+}
+.vam-card-stamp {
+  position: absolute;
+  z-index: 2;
+  top: var(--space-md);
+  right: var(--space-md);
+  padding: 6px 14px;
+  border: 2px solid var(--color-accent);
+  border-radius: 8px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-family: var(--font-outlier);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  transform: rotate(-8deg);
+}
+
+@media (max-width: 768px) {
+  .vam-header {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+  }
+  .vam-header__title {
+    text-align: left;
+  }
+  .vam-header__right {
+    justify-content: flex-start;
+  }
+  .vam-pager {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .vam-pager__link--next,
+  .vam-pager > .vam-pager__link:last-child {
+    text-align: left;
+  }
+  .vam-dashboard {
+    padding: var(--space-lg);
+  }
+  .vam-zone__title {
+    font-size: var(--text-xl);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vam-toast,
+  .vam-progress__fill,
+  .vam-pager__link {
+    transition: none;
+  }
+  .vam-toast.is-visible .vam-toast__stamp {
+    animation: none;
   }
 }

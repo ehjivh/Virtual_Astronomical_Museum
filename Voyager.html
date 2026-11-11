@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Voyager · Grand Tour Simulator</title>
     <link rel="stylesheet" href="style.css" />
+    <script src="common-ui.js" defer></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono&display=swap");
 
@@ -398,7 +399,7 @@
       }
     </style>
   </head>
-  <body>
+  <body data-app-id="voyager">
     <div class="page-container">
       <nav class="nav-pill">
         <span class="nav-pill__wordmark">Voyager · Grand Tour</span>
@@ -851,6 +852,7 @@
                 const b = $("statusBanner");
                 b.className = "status-banner ok";
                 b.textContent = `★ グランドツアー達成！ スコア: ${score} (最終誤差: ${dev}px)`;
+                if (window.VAM) window.VAM.completeMission("voyager", { score: Number(score) });
               } else if (total >= 2) setStatus("near");
               else setStatus("lost");
             }

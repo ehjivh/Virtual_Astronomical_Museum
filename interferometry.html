@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>宇宙を視る巨大な「目」の作り方 — 干渉計の魔法</title>
     <link rel="stylesheet" href="style.css" />
+    <script src="common-ui.js" defer></script>
     <style>
       /* ===== 本展示ページ固有スタイル ===== */
       .formula {
@@ -245,7 +246,7 @@
       }
     </style>
   </head>
-  <body>
+  <body data-app-id="interferometry">
     <!-- ============ N5 Floating Pill Nav ============ -->
     <nav class="nav-pill" aria-label="主要ナビゲーション">
       <span class="nav-pill__wordmark">Wave&nbsp;Eye</span>
@@ -852,7 +853,13 @@
         if (!cv) return;
         const slider = $("lockSlider");
         const FREQ = 43e9;
-        let secret = Math.round((Math.random() - 0.5) * 3000);
+        function pickSecret() {
+          let s = 0;
+          while (Math.abs(s) < 350) s = Math.round((Math.random() - 0.5) * 3000);
+          return s;
+        }
+        let secret = pickSecret();
+        let userMoved = false;
         let t = 0;
 
         function draw() {
@@ -877,6 +884,9 @@
           $("lockVerdict").textContent = ok ? "✦ フリンジ検出！" : mid ? "もう少し…" : "縞が見えない";
           $("lockVerdict").style.color = ok ? "oklch(75% 0.15 45)" : "oklch(72% 0.008 260)";
           $("lockMeter").style.width = cohPct + "%";
+          if (userMoved && ok && window.VAM) {
+            window.VAM.completeMission("interferometry", { score: Number(cohPct) });
+          }
 
           const midY = h / 2;
           // Station A signal
@@ -918,9 +928,13 @@
           requestAnimationFrame(draw);
         }
 
-        slider.addEventListener("input", draw);
+        slider.addEventListener("input", () => {
+          userMoved = true;
+          draw();
+        });
         $("lockRetry").addEventListener("click", () => {
-          secret = Math.round((Math.random() - 0.5) * 3000);
+          secret = pickSecret();
+          userMoved = false;
           slider.value = 0;
         });
 

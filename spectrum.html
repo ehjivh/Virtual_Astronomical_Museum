@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="style.css" />
+    <script src="common-ui.js" defer></script>
     <style>
       /* Hallmark · genre: atmospheric · macrostructure: 18-portfolio-grid · theme: bloom · enrichment: none · nav: N5 · footer: Ft5 */
 
@@ -1093,7 +1094,7 @@
       }
     </style>
   </head>
-  <body>
+  <body data-app-id="spectrum">
     <!-- ============ N5 Floating Pill Nav ============ -->
     <nav class="nav-pill" aria-label="メインナビゲーション">
       <a class="nav-pill__wordmark" href="#top">星の光を解読する旅</a>
@@ -1320,6 +1321,11 @@
         <div class="chapter__head">
           <h2 class="section-title" id="ch4-title"><span class="section-num">04</span>星の指紋を照合する</h2>
           <p class="section-lead">なめらかな虹色のはずのスペクトルを細かく見ると、暗い線（<strong>吸収線</strong>）や 明るい線（<strong>輝線</strong>）が刻まれています。この線の位置は元素ごとに決まっていて、 まさに<strong>元素の指紋</strong>。光を読めば、何万光年も離れた星の成分がわかるのです。</p>
+        </div>
+
+        <div class="hint" style="margin-bottom: var(--space-lg)">
+          <span class="chip" style="margin-right: var(--space-xs)">MISSION</span>
+          <b>5つの元素の指紋を照合せよ：</b>下の <b>H・He・Na・Ca・Fe</b> すべての元素タブを切り替えて、吸収線と輝線のパターンを確認しましょう（<b id="elMissionProg">1 / 5 元素</b>）。
         </div>
 
         <div class="element-tabs" id="elementTabs" role="group" aria-label="元素を選択">
@@ -1849,9 +1855,16 @@
         SPEC_MAX = 720;
       const absStrip = document.getElementById("absStrip");
       const emitStrip = document.getElementById("emitStrip");
+      const inspectedElements = new Set(["H"]);
 
       function renderLines(el) {
         const data = ELEMENTS[el];
+        inspectedElements.add(el);
+        const progEl = document.getElementById("elMissionProg");
+        if (progEl) progEl.textContent = `${inspectedElements.size} / 5 元素`;
+        if (inspectedElements.size >= 5 && window.VAM) {
+          window.VAM.completeMission("spectrum");
+        }
         document.getElementById("specTitle").textContent = data.label + "の指紋";
         document.getElementById("specNote").textContent = data.note;
 

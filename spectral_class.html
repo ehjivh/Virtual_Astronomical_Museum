@@ -9,6 +9,7 @@
     <title>星の色を解き明かせ！｜光のバーコードが語る星の素顔</title>
 
     <link rel="stylesheet" href="style.css" />
+    <script src="common-ui.js" defer></script>
 
     <style>
       /* =========================================================
@@ -908,7 +909,7 @@
     </style>
   </head>
 
-  <body>
+  <body data-app-id="spectral_class">
     <nav class="nav-pill" aria-label="展示チャプター">
       <a class="nav-pill__wordmark" href="#prologue">Starlight Files</a>
 
@@ -1122,6 +1123,11 @@
           <button class="science-term" type="button" data-tooltip="星のスペクトルに現れる吸収線と表面温度をもとに、O・B・A・F・G・K・Mなどへ分類する方法です。">スペクトル型</button>
           に分類できます。O型が最も高温で、M型へ進むほど低温です。
         </p>
+
+        <div class="hint" style="margin-bottom: var(--space-lg)">
+          <span class="chip" style="margin-right: var(--space-xs)">MISSION</span>
+          <b>7つのスペクトル型を調査せよ：</b>下の <b>O・B・A・F・G・K・M</b> すべてのカードをクリックして、温度と吸収線パターンの違いを確認しましょう（<b id="specClassProgress">1 / 7 型</b>）。
+        </div>
 
         <div class="classification-grid" id="classificationGrid" role="listbox" aria-label="スペクトル型を選択">
           <button class="type-card" type="button" role="option" aria-selected="true" data-type="O" style="--type-color: #8db7ff; --type-glow: rgba(80, 140, 255, 0.72)">
@@ -1619,9 +1625,18 @@
         const typeDescription = document.getElementById("typeDescription");
         const typeExample = document.getElementById("typeExample");
         const typeSpectrum = document.getElementById("typeSpectrum");
+        const specClassProgress = document.getElementById("specClassProgress");
+        const inspectedTypes = new Set(["O"]);
 
         function selectSpectralType(type) {
           const data = spectralTypes[type];
+          inspectedTypes.add(type);
+          if (specClassProgress) {
+            specClassProgress.textContent = `${inspectedTypes.size} / 7 型`;
+          }
+          if (inspectedTypes.size >= 7 && window.VAM) {
+            window.VAM.completeMission("spectral_class");
+          }
 
           typeCards.forEach((card) => {
             card.setAttribute("aria-selected", String(card.dataset.type === type));

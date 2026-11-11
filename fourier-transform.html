@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>波をほどく数学 ── フーリエ変換の世界</title>
     <link rel="stylesheet" href="style.css" />
+    <script src="common-ui.js" defer></script>
     <style>
       /* ============ 単一HTML用の最小追加（既存変数のみ参照） ============ */
 
@@ -220,7 +221,7 @@
       }
     </style>
   </head>
-  <body>
+  <body data-app-id="fourier">
     <!-- ========== N5 Floating Pill Nav ========== -->
     <nav class="nav-pill">
       <span class="nav-pill__wordmark" id="wordmark">Fourier / 波をほどく数学</span>
@@ -405,7 +406,10 @@
 
         <div class="stage"><canvas id="cvSpec" width="900" height="260"></canvas></div>
 
-        <div class="hint"><b>ここが要点：</b>フーリエ変換とは、ごちゃごちゃに集まった波形を単純なサイン波の和で表し、 扱いやすくする技術です。やっていることは <b>「時間の関数 → 角周波数の関数」への書き換え</b> に過ぎません。</div>
+        <div class="hint">
+          <span class="chip" style="margin-right: var(--space-xs)">MISSION</span>
+          <b>ミッション：</b>上の<b>「波を分解する」→「スペクトルに変換」</b>ボタンを押して、複雑な波形から3つの角周波数成分（ω = 2, 5, 7）のスペクトルを取り出しましょう。
+        </div>
 
         <div class="prevnext">
           <button class="btn btn-outline" data-go="home">← 展示一覧</button>
@@ -933,6 +937,9 @@
             }
             all();
             const done = kind === "split" ? split >= 1 : grow >= 1;
+            if (kind === "spec" && grow >= 1 && window.VAM) {
+              window.VAM.completeMission("fourier");
+            }
             done ? (busy = false) : requestAnimationFrame(step);
           })();
         }

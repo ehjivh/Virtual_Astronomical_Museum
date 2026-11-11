@@ -6,6 +6,7 @@
     <title>続・光の軌跡から探る望遠鏡の仕組み 〜補正レンズとフィルターが描く宇宙〜</title>
     <meta name="description" content="コマコレクター・フラットナー、レデューサー、干渉フィルターの仕組みをCanvasによる光線追跡シミュレーションで体験するWeb展示。" />
     <link rel="stylesheet" href="style.css">
+    <script src="common-ui.js" defer></script>
     <style>
 @import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;600&family=Geist+Mono&display=swap");
 
@@ -759,7 +760,7 @@
       }
 </style>
   </head>
-  <body>
+  <body data-app-id="lens">
     <nav class="nav-pill" aria-label="メインナビゲーション">
       <a class="nav-pill__wordmark" href="#top">Optics Trail II</a>
       <div class="nav-pill__actions">
@@ -1145,6 +1146,10 @@
       <section class="chapter" id="setup" aria-labelledby="s07t">
         <h2 class="section-title" id="s07t"><span class="section-num">07</span>理論を、ミリ単位の実践へ</h2>
         <p class="section-lead">補正レンズもレデューサーも、設計されたバックフォーカス位置に置かれて初めて性能を発揮します。 ここまでのシミュレーションを、実際の機材構成に落とし込んでみましょう。 センサー面までの距離を、リングとスペーサーの積み上げで指定値に合わせる——それが最後の工程です。</p>
+        <div class="hint" style="margin-bottom: var(--space-lg)">
+          <span class="chip" style="margin-right: var(--space-xs)">MISSION</span>
+          <b>バックフォーカスを一致させよ：</b>延長筒・フィルター厚・スペーサーを調整（または「自動で合わせる」を使用）し、指定バックフォーカス <b>55.0 mm</b> との差分を <b>±0.3 mm 未満（周辺像評価：良好）</b> に仕上げましょう。
+        </div>
 
         <div class="sim">
           <div class="sim__bar">
@@ -2512,6 +2517,9 @@
         document.getElementById("s7filv").textContent = S7.fil.toFixed(1);
         document.getElementById("s7spav").textContent = S7.spa.toFixed(1);
         s7Draw(cur, tgt);
+        if (err < 0.3 && window.VAM) {
+          window.VAM.completeMission("lens");
+        }
       }
 
       function s7Init() {

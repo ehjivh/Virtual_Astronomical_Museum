@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>地球サイズの瞳で宇宙を見る — 電波干渉計とVLBIの挑戦</title>
     <link rel="stylesheet" href="style.css" />
+    <script src="common-ui.js" defer></script>
     <style>
       /* ===== 本展示ページ固有の追記スタイル（style.cssの変数を継承） ===== */
       .formula {
@@ -360,7 +361,7 @@
       }
     </style>
   </head>
-  <body>
+  <body data-app-id="vlbi">
     <!-- ============ N5 Floating Pill Nav ============ -->
     <nav class="nav-pill" aria-label="主要ナビゲーション">
       <span class="nav-pill__wordmark">Radio&nbsp;Eye</span>
@@ -1689,11 +1690,12 @@
             timer = null;
 
           function newTarget() {
-            target = Math.round((Math.random() * 2 - 1) * 2400);
+            target = 0;
+            while (Math.abs(target) < 300) target = Math.round((Math.random() * 2 - 1) * 2400);
             dS.value = 0;
-            render();
+            render(false);
           }
-          function render() {
+          function render(fromUser = true) {
             const tau = parseFloat(dS.value);
             const d = (tau - target) * 1e-12;
             const phase = 2 * Math.PI * FREQ * d;
@@ -1706,6 +1708,9 @@
             $("gameStat").textContent = "FRINGE " + pct.toFixed(0) + "%";
             $("meterFill").style.width = pct + "%";
             $("verdict").textContent = pct > 95 ? "完璧！結像成功" : pct > 70 ? "もう少し" : pct > 25 ? "縞が弱い" : "縞が消滅";
+            if (fromUser && pct > 95 && window.VAM) {
+              window.VAM.completeMission("vlbi", { score: Math.round(pct) });
+            }
 
             const { ctx, w, h } = fitCanvas(cv);
             ctx.clearRect(0, 0, w, h);

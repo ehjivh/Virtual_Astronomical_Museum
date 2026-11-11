@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>星までの距離はどうやって測る？ | 天体までの距離をWebで学べる教育アプリ | Virtual Astronomical Museum</title>
     <link rel="stylesheet" href="style.css">
+    <script src="common-ui.js" defer></script>
     <style>
 /* Layout specific styles for Cosmological Distance Ladder */
       .app-bar { padding: var(--space-4xl) var(--space-xl) var(--space-2xl); text-align: center; }
@@ -70,16 +71,8 @@
       .hidden { display: none; }
 </style>
   </head>
-  <body>
+  <body data-app-id="distance_ladder">
     <div class="page-container">
-
-      <!-- Nav: N5 Floating Pill -->
-      <nav class="nav-pill" aria-label="Main Navigation">
-        <div class="nav-pill__wordmark">Astronomy Museum</div>
-        <div class="nav-pill__actions">
-          <a href="index.html" class="nav-pill__btn">Back to Exhibits</a>
-        </div>
-      </nav>
 
       <div class="app-bar">
         <h1>星までの距離はどうやって測る？</h1>
@@ -300,7 +293,6 @@
       </div>
       <div class="footer-statement__meta">
         <span>Web展示「天体写真の裏側」 デモ実装 / 画像はデモ用に生成した擬似データです</span>
-        <span>© 2026. All rights reserved.</span>
       </div>
     </footer>
 
@@ -1257,6 +1249,8 @@
           $("H0out").textContent = H0.toFixed(1) + " km/s/Mpc";
           st.className = "status ok";
           st.textContent = "ハッブル定数 H₀≒" + H0.toFixed(1) + " km/s/Mpc を算出。距離梯子が完成しました！ この式で最果ての銀河までの距離も測定可能です。";
+          // 最終STEP（ハッブル図フィット）完了 → 博物館スタンプ獲得
+          if (state.done[2]) window.VAM && window.VAM.completeMission("distance_ladder", { H0: +H0.toFixed(1) });
         } else {
           $("H0out").textContent = H0 ? H0.toFixed(1) : "–";
         }

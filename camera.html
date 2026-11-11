@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>天体写真の裏側 〜見えないノイズを取り除く画像処理〜 | Virtual Astronomical Museum</title>
     <link rel="stylesheet" href="style.css">
+    <script src="common-ui.js" defer></script>
     <style>
 /* Layout specific styles for Camera Lab */
       .starfield {
@@ -127,17 +128,9 @@
       .refs cite { color: var(--color-ink); font-style: italic; }
 </style>
   </head>
-  <body>
+  <body data-app-id="camera">
     <div class="starfield"></div>
     <div class="page-container">
-
-      <!-- Nav: N5 Floating Pill -->
-      <nav class="nav-pill" aria-label="Main Navigation">
-        <div class="nav-pill__wordmark">Astronomy Museum</div>
-        <div class="nav-pill__actions">
-          <a href="index.html" class="nav-pill__btn">Back to Exhibits</a>
-        </div>
-      </nav>
 
       <header>
         <h1>天体写真の裏側</h1>
@@ -199,6 +192,8 @@
           </span>
         </div>
         <p class="formula-note">※フラットにも暗電流とバイアスが含まれるため、分母では<b>フラット専用ダーク</b>を減算します。なお、ダークフレームを引くことでそこに含まれるバイアス成分も同時に除去されます。各マスターは N 枚の平均。</p>
+
+        <p class="hint" id="camMission"><b>MISSION：</b>8 枚以上を重ねてランダムノイズを 1/√8 ≈ 0.35 倍以下に抑え、減算 → 除算まで完了させてキャリブレーション画像を完成させよう！</p>
 
         <div class="card">
           <div class="steps" id="steps">
@@ -370,7 +365,6 @@
       </div>
       <div class="footer-statement__meta">
         <span>Web展示「天体写真の裏側」 デモ実装 / 画像はデモ用に生成した擬似データです</span>
-        <span>© 2026. All rights reserved.</span>
       </div>
     </footer>
 
@@ -1150,7 +1144,13 @@
           drawBarChart();
           drawLineChart();
           markDone(2);
-          setStatus("✓ 完成！ 周辺減光が平坦化（ラインプロファイル参照）", "var(--md-success)");
+          // ミッション判定：N ≥ 8 枚のマスターでキャリブレーション完了（ランダムノイズ ∝ 1/√N ≤ 0.35）
+          if (state.N >= 8) {
+            setStatus("✓ 完成！ 周辺減光が平坦化（ラインプロファイル参照）― ミッション達成", "var(--md-success)");
+            window.VAM && window.VAM.completeMission("camera", { frames: state.N });
+          } else {
+            setStatus("✓ 完成！ 周辺減光が平坦化。ミッション達成には 8 枚以上のスタックが必要です（現在 " + state.N + " 枚）", "var(--md-success)");
+          }
         });
 
         $("resetAll").addEventListener("click", () => {

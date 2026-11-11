@@ -9,8 +9,9 @@
 
     <!-- ===== 添付デザインシステム（styles.txt）を統合 ===== -->
     <link rel="stylesheet" href="style.css" />
+    <script src="common-ui.js" defer></script>
   </head>
-  <body>
+  <body data-app-id="cal">
     <!-- ===== N5 Floating Pill Nav ===== -->
     <nav class="nav-pill">
       <span class="nav-pill__wordmark">☄ Celestial Coordinates</span>
@@ -139,6 +140,17 @@
 
         <!-- ---- 右：天球モデル可視化 ---- -->
         <div class="col">
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-xs)">
+              <span class="chip">MISSION</span>
+              <span class="chip" id="calMissionStat">0 / 4 天体</span>
+            </div>
+            <h2>4つの恒星を地平線上で観測せよ</h2>
+            <p class="hint" style="margin-top: var(--space-xs)">
+              プリセットの4恒星（<b>シリウス・アルクトゥルス・ポラリス・ベガ</b>）を切り替え、時刻や観測地を調整してすべて<b>地平線上（高度 h ≥ 0°）</b>で観測してください。
+            </p>
+          </div>
+
           <div class="card">
             <h2>計算結果</h2>
             <div class="final">
@@ -415,6 +427,7 @@
       const App = {
         map: null,
         marker: null,
+        observedStars: new Set(),
 
         init: () => {
           App.setupMap();
@@ -444,6 +457,27 @@
           const results = AstroCalc.computeHorizontalCoords(inputs.lon, inputs.lat, inputs.raH, inputs.dec, inputs.jstValString, inputs.useRefraction);
 
           UI.updateResults(results, inputs);
+
+          if (results.alt >= 0) {
+            const targets = [
+              { id: "sirius", ra: 6.752, dec: -16.716 },
+              { id: "arcturus", ra: 14.261, dec: 19.182 },
+              { id: "polaris", ra: 2.53, dec: 89.264 },
+              { id: "vega", ra: 18.616, dec: 38.784 },
+            ];
+            targets.forEach((t) => {
+              if (Math.abs(inputs.raH - t.ra) < 0.05 && Math.abs(inputs.dec - t.dec) < 0.05) {
+                App.observedStars.add(t.id);
+              }
+            });
+            const stat = UI.getEl("calMissionStat");
+            if (stat) {
+              stat.textContent = `${App.observedStars.size} / 4 天体`;
+            }
+            if (App.observedStars.size >= 4 && window.VAM) {
+              window.VAM.completeMission("cal");
+            }
+          }
         },
 
         setNow: () => {

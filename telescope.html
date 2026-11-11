@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>光の軌跡から探る望遠鏡の仕組み | Web展示</title>
     <link rel="stylesheet" href="style.css" />
+    <script src="common-ui.js" defer></script>
     <style>
 /* ===== 展示個別レイアウト（styles.css のトークンを継承） ===== */
       .exhibit-section {
@@ -157,7 +158,7 @@
       }
 </style>
   </head>
-  <body>
+  <body data-app-id="telescope">
     <!-- ===== N5 Floating Pill Nav ===== -->
     <nav class="nav-pill">
       <span class="nav-pill__wordmark">Optics&nbsp;Trail</span>
@@ -381,7 +382,10 @@
               </div>
             </div>
 
-            <div class="hint"><b>観察</b>：スライダーを右へ動かすと、並んだプリズムの屈折角が滑らかに変化し、 やがて連続した1枚の凸レンズになります。<b>レンズ上半分を遮蔽</b>しても像の形は欠けず、 光量だけが落ちることを確認してください。</div>
+            <div class="hint">
+              <span class="chip" style="margin-right: var(--space-xs)">MISSION</span>
+              <b>観察ミッション</b>：スライダーを右へ動かして<b>プリズムを100%凸レンズ化</b>し（合焦誤差 0.0 px）、さらに表示モードを<b>「ケプラー式望遠鏡」</b>に切り替えて望遠鏡の光路を完成させましょう。
+            </div>
           </div>
         </div>
 
@@ -1080,7 +1084,9 @@
           cMk = document.getElementById("c2mask");
         let mode = "prism",
           lensX = 330,
-          eyeShift = 0;
+          eyeShift = 0,
+          lensCompleted = false,
+          teleViewed = false;
 
         document.querySelectorAll("[data-mode2]").forEach((b) => {
           b.addEventListener("click", () => {
@@ -1226,6 +1232,8 @@
             label(ctx, imgX, 30, "SCREEN / REAL IMAGE", MUT);
 
             const focusErr = (1 - morph) * 22;
+            if (morph >= 0.98) lensCompleted = true;
+            if (lensCompleted && teleViewed && window.VAM) window.VAM.completeMission("telescope");
             document.getElementById("r2a").textContent = "×" + ((D * D) / 100).toFixed(0);
             document.getElementById("r2b").textContent = focusErr.toFixed(1) + " px";
             document.getElementById("r2c").textContent = "—";
@@ -1239,6 +1247,8 @@
             });
           } else {
             /* ケプラー式望遠鏡 */
+            teleViewed = true;
+            if (lensCompleted && teleViewed && window.VAM) window.VAM.completeMission("telescope");
             const objLX = 170,
               fpx = Math.max(90, f * 0.42),
               fepx = Math.max(24, fe * 1.5);
